@@ -51,12 +51,6 @@ const els = {
   kpiPost: document.querySelector("#kpiPost"),
   kpiGain: document.querySelector("#kpiGain"),
   kpiGainContext: document.querySelector("#kpiGainContext"),
-  kpiLift: document.querySelector("#kpiLift"),
-  kpiLiftContext: document.querySelector("#kpiLiftContext"),
-  kpiCompletions: document.querySelector("#kpiCompletions"),
-  kpiCompletionRate: document.querySelector("#kpiCompletionRate"),
-  kpiDistricts: document.querySelector("#kpiDistricts"),
-  kpiCourses: document.querySelector("#kpiCourses"),
   trendChart: document.querySelector("#trendChart"),
   sexDonut: document.querySelector("#sexDonut"),
   sexLegend: document.querySelector("#sexLegend"),
@@ -467,31 +461,14 @@ function renderKpis(rows) {
   const post = average(rows, "post");
   const gain = average(rows, "gain");
   const facilities = new Set(rows.map((row) => row.facility)).size;
-  const districts = new Set(rows.map((row) => row.district).filter(isRealDistrict)).size;
-  const allDistricts = new Set(state.rows.map((row) => row.district).filter(isRealDistrict)).size;
-  const paired = rows.filter((row) => Number.isFinite(row.pre) && Number.isFinite(row.post)).length;
-  const completionRate = rows.length ? Math.round((paired / rows.length) * 100) : 0;
-  const topDistrict = countBy(rows.filter((row) => isRealDistrict(row.district)), "district")
-    .map((item) => ({ name: item.name, value: average(item.rows, "gain"), count: item.count }))
-    .filter((item) => Number.isFinite(item.value) && item.count >= 3)
-    .sort((a, b) => b.value - a.value || b.count - a.count)[0];
-  const districtCoverage = allDistricts ? Math.round((districts / allDistricts) * 100) : 0;
 
   els.kpiParticipants.textContent = formatNumber(rows.length);
   els.kpiFacilities.textContent = `${formatNumber(facilities)} facilities`;
-  els.kpiPre.textContent = `Baseline ${formatScore(pre)}`;
+  els.kpiPre.textContent = formatScore(pre);
   els.kpiPost.textContent = formatScore(post);
   els.kpiGain.textContent = gain == null ? "N/A" : `${gain >= 0 ? "+" : ""}${Math.round(gain)} pts`;
   els.kpiGainContext.textContent =
     gain == null ? "No paired scores" : `${formatScore(pre)} to ${formatScore(post)}`;
-  els.kpiLift.textContent = topDistrict
-    ? `${topDistrict.value >= 0 ? "+" : ""}${Math.round(topDistrict.value)} pts`
-    : "N/A";
-  els.kpiLiftContext.textContent = topDistrict ? shorten(topDistrict.name, 18) : "Top district";
-  els.kpiCompletions.textContent = formatNumber(paired);
-  els.kpiCompletionRate.textContent = `${completionRate}% completion rate`;
-  els.kpiDistricts.textContent = `${formatNumber(districts)} / ${formatNumber(allDistricts)}`;
-  els.kpiCourses.textContent = `${districtCoverage}% coverage`;
 }
 
 function renderTrend(rows) {
@@ -1205,9 +1182,8 @@ async function exportDashboardImage() {
   const rows = [
     ["Total participants", els.kpiParticipants.textContent],
     ["Average improvement", els.kpiGain.textContent],
-    ["District score lift", els.kpiLift.textContent],
-    ["Completions", els.kpiCompletions.textContent],
-    ["Active districts", els.kpiDistricts.textContent],
+    ["Average pre-test", els.kpiPre.textContent],
+    ["Average post-test", els.kpiPost.textContent],
   ];
   const svg = dashboardSummarySvg(rows);
   const blob = await svgTextToPngBlob(svg.text, svg.width, svg.height);
