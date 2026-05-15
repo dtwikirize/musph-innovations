@@ -40,6 +40,9 @@ const els = {
   activeFilters: document.querySelector("#activeFilters"),
   resetFilters: document.querySelector("#resetFilters"),
   refreshData: document.querySelector("#refreshData"),
+  toggleFilters: document.querySelector("#toggleFilters"),
+  exportData: document.querySelector("#exportData"),
+  dateWindow: document.querySelector("#dateWindow strong"),
   kpiParticipants: document.querySelector("#kpiParticipants"),
   kpiFacilities: document.querySelector("#kpiFacilities"),
   kpiPre: document.querySelector("#kpiPre"),
@@ -59,8 +62,6 @@ const els = {
   courseMixLegend: document.querySelector("#courseMixLegend"),
   jobBars: document.querySelector("#jobBars"),
   organizationBars: document.querySelector("#organizationBars"),
-  scoreBands: document.querySelector("#scoreBands"),
-  durationBands: document.querySelector("#durationBands"),
   participantTable: document.querySelector("#participantTable"),
   rowCount: document.querySelector("#rowCount"),
   dateRange: document.querySelector("#dateRange"),
@@ -68,6 +69,10 @@ const els = {
   dbFacilities: document.querySelector("#dbFacilities"),
   dbCourses: document.querySelector("#dbCourses"),
   dbCompleteness: document.querySelector("#dbCompleteness"),
+  focusLayer: document.querySelector("#focusLayer"),
+  focusTitle: document.querySelector("#focusTitle"),
+  focusBody: document.querySelector("#focusBody"),
+  toast: document.querySelector("#toast"),
 };
 
 function parseCsv(text) {
@@ -352,7 +357,7 @@ function setupFilters() {
     uniqueSorted(
       state.rows.filter((row) => row.startYear !== "Unknown"),
       "startYear",
-    ),
+    ).reverse(),
     state.filters.year,
   );
   fillSelect(
@@ -398,8 +403,6 @@ function render() {
   renderCourseMix(rows);
   renderRankedBars(els.jobBars, countBy(rows, "jobTitle").slice(0, 8), palette.gold);
   renderRankedBars(els.organizationBars, countBy(rows, "organization").slice(0, 8), palette.coral);
-  renderScoreBands(rows);
-  renderDurationBands(rows);
   renderDatabaseSnapshot(rows);
   renderParticipants(rows);
 }
@@ -451,7 +454,7 @@ function renderKpis(rows) {
 
   els.kpiParticipants.textContent = formatNumber(rows.length);
   els.kpiFacilities.textContent = `${formatNumber(facilities)} facilities`;
-  els.kpiPre.textContent = formatScore(pre);
+  els.kpiPre.textContent = `Baseline ${formatScore(pre)}`;
   els.kpiPost.textContent = formatScore(post);
   els.kpiGain.textContent = gain == null ? "N/A" : `${gain >= 0 ? "+" : ""}${Math.round(gain)} pts`;
   els.kpiGainContext.textContent =
@@ -462,12 +465,19 @@ function renderKpis(rows) {
 
 function renderTrend(rows) {
   const grouped = [...groupBy(rows.filter((row) => row.startMonth !== "Unknown"), "startMonth")]
-    .map(([name, items]) => ({ name, count: items.length }))
+    .map(([name, items]) => ({
+      name,
+      post: average(items, "post"),
+      gain: average(items, "gain"),
+      count: items.length,
+    }))
+    .filter((item) => Number.isFinite(item.post) && Number.isFinite(item.gain))
     .sort((a, b) => a.name.localeCompare(b.name));
   els.dateRange.textContent =
     grouped.length > 1
       ? `${monthLabel(grouped[0].name)} - ${monthLabel(grouped[grouped.length - 1].name)}`
       : "All dates";
+  els.dateWindow.textContent = els.dateRange.textContent;
 
   if (!grouped.length) {
     els.trendChart.innerHTML = emptyMarkup("No dated records in this filter.");
@@ -476,40 +486,53 @@ function renderTrend(rows) {
 
   const width = 760;
   const height = 250;
-  const pad = { top: 16, right: 22, bottom: 42, left: 46 };
+  const pad = { top: 30, right: 48, bottom: 42, left: 46 };
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
-  const max = Math.max(...grouped.map((item) => item.count), 1);
+  const postMax = Math.max(...grouped.map((item) => item.post), 100);
+  const gainMax = Math.max(...grouped.map((item) => item.gain), 1);
   const points = grouped.map((item, index) => {
     const x = pad.left + (grouped.length === 1 ? plotW / 2 : (index / (grouped.length - 1)) * plotW);
-    const y = pad.top + plotH - (item.count / max) * plotH;
-    return { ...item, x, y };
+    const postY = pad.top + plotH - (item.post / postMax) * plotH;
+    const gainY = pad.top + plotH - (item.gain / gainMax) * plotH;
+    return { ...item, x, postY, gainY };
   });
-  const path = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
-  const area = `${path} L ${points[points.length - 1].x} ${pad.top + plotH} L ${points[0].x} ${
-    pad.top + plotH
-  } Z`;
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => Math.round(max * ratio));
+  const postPath = points
+    .map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.postY}`)
+    .join(" ");
+  const gainPath = points
+    .map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.gainY}`)
+    .join(" ");
+  const ticks = [0, 25, 50, 75, 100];
   const xLabels = points.filter((_, index) => index % Math.ceil(points.length / 7) === 0);
 
   els.trendChart.innerHTML = `
-    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Training volume trend">
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Score improvement over time">
+      <g transform="translate(${pad.left} 7)">
+        <line x1="0" y1="0" x2="18" y2="0" stroke="${palette.teal}" stroke-width="4" stroke-linecap="round"></line>
+        <text class="axis-label" x="26" y="4">Average post-test</text>
+        <line x1="150" y1="0" x2="168" y2="0" stroke="${palette.violet}" stroke-width="4" stroke-linecap="round"></line>
+        <text class="axis-label" x="176" y="4">Average improvement</text>
+      </g>
       ${ticks
         .map((tick) => {
-          const y = pad.top + plotH - (tick / max) * plotH;
+          const y = pad.top + plotH - (tick / postMax) * plotH;
           return `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${
             width - pad.right
           }" y2="${y}"></line><text class="axis-label" x="8" y="${y + 4}">${tick}</text>`;
         })
         .join("")}
-      <path d="${area}" fill="rgba(14,154,154,0.14)"></path>
-      <path d="${path}" fill="none" stroke="${palette.teal}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="${postPath}" fill="none" stroke="${palette.teal}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="${gainPath}" fill="none" stroke="${palette.violet}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
       ${points
         .map(
           (point) =>
-            `<circle cx="${point.x}" cy="${point.y}" r="4" fill="#fff" stroke="${palette.teal}" stroke-width="3"><title>${monthLabel(
+            `<circle cx="${point.x}" cy="${point.postY}" r="4" fill="#fff" stroke="${palette.teal}" stroke-width="3"><title>${monthLabel(
               point.name,
-            )}: ${point.count}</title></circle>`,
+            )}: ${Math.round(point.post)}% post-test from ${point.count} people</title></circle>
+            <circle cx="${point.x}" cy="${point.gainY}" r="4" fill="#fff" stroke="${palette.violet}" stroke-width="3"><title>${monthLabel(
+              point.name,
+            )}: ${Math.round(point.gain)} pts improvement</title></circle>`,
         )
         .join("")}
       ${xLabels
@@ -520,6 +543,9 @@ function renderTrend(rows) {
             )}</text>`,
         )
         .join("")}
+      <text class="axis-label" x="${width - 12}" y="${pad.top + 4}" text-anchor="end">${Math.round(
+        gainMax,
+      )} pts</text>
     </svg>`;
 }
 
@@ -610,6 +636,7 @@ function renderCourseBars(rows) {
           const preH = plotH - (yFor(course.pre) - pad.top);
           const postH = plotH - (yFor(course.post) - pad.top);
           const lines = wrapLabel(course.name, 15, 2);
+          const gain = Math.round(course.post - course.pre);
           return `<g>
             <rect x="${center - barW - 3}" y="${yFor(course.pre)}" width="${barW}" height="${preH}" rx="5" fill="${palette.gold}"><title>${course.name} pre: ${Math.round(
               course.pre,
@@ -617,6 +644,10 @@ function renderCourseBars(rows) {
             <rect x="${center + 3}" y="${yFor(course.post)}" width="${barW}" height="${postH}" rx="5" fill="${palette.teal}"><title>${course.name} post: ${Math.round(
               course.post,
             )}%</title></rect>
+            <text class="axis-label" x="${center}" y="${Math.max(
+              13,
+              yFor(Math.max(course.pre, course.post)) - 9,
+            )}" text-anchor="middle">+${gain}</text>
             <text class="axis-label" x="${center}" y="${height - 42}" text-anchor="middle">
               ${lines
                 .map(
@@ -797,61 +828,6 @@ function renderRankedBars(container, data, color) {
     .join("");
 }
 
-function renderScoreBands(rows) {
-  const bands = [
-    { name: "90-100%", test: (value) => value >= 90, color: palette.green },
-    { name: "75-89%", test: (value) => value >= 75 && value < 90, color: palette.teal },
-    { name: "60-74%", test: (value) => value >= 60 && value < 75, color: palette.gold },
-    { name: "Below 60%", test: (value) => value < 60, color: palette.coral },
-  ].map((band) => ({
-    ...band,
-    count: rows.filter((row) => Number.isFinite(row.post) && band.test(row.post)).length,
-  }));
-  const total = bands.reduce((sum, band) => sum + band.count, 0) || 1;
-
-  els.scoreBands.innerHTML = bands
-    .map(
-      (band) => `<div class="band-card">
-        <strong style="color:${band.color}">${formatNumber(band.count)}</strong>
-        <span>${band.name} post-test (${Math.round((band.count / total) * 100)}%)</span>
-        <div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(
-          2,
-          (band.count / total) * 100,
-        )}%; background:${band.color}"></div></div>
-      </div>`,
-    )
-    .join("");
-}
-
-function renderDurationBands(rows) {
-  const bands = [
-    { name: "Same day", test: (value) => value === 0, color: palette.green },
-    { name: "1-3 days", test: (value) => value >= 1 && value <= 3, color: palette.teal },
-    { name: "4-7 days", test: (value) => value >= 4 && value <= 7, color: palette.violet },
-    { name: "8+ days", test: (value) => value >= 8, color: palette.gold },
-  ].map((band) => ({
-    ...band,
-    count: rows.filter((row) => {
-      const days = durationDays(row);
-      return Number.isFinite(days) && band.test(days);
-    }).length,
-  }));
-  const total = bands.reduce((sum, band) => sum + band.count, 0) || 1;
-
-  els.durationBands.innerHTML = bands
-    .map(
-      (band) => `<div class="band-card">
-        <strong style="color:${band.color}">${formatNumber(band.count)}</strong>
-        <span>${band.name} (${Math.round((band.count / total) * 100)}%)</span>
-        <div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(
-          2,
-          (band.count / total) * 100,
-        )}%; background:${band.color}"></div></div>
-      </div>`,
-    )
-    .join("");
-}
-
 function renderDatabaseSnapshot(rows) {
   const facilities = new Set(rows.map((row) => row.facility)).size;
   const courses = new Set(rows.map((row) => row.course)).size;
@@ -934,6 +910,164 @@ function escapeSvg(value) {
   return escapeHtml(value);
 }
 
+function hydratePanelTools() {
+  document.querySelectorAll(".panel[data-section]").forEach((panel) => {
+    const header = panel.querySelector(".panel-header");
+    if (!header || header.querySelector(".panel-tools")) return;
+
+    const tools = document.createElement("div");
+    tools.className = "panel-tools";
+    tools.innerHTML = `
+      <button class="icon-button" type="button" data-panel-action="copy" aria-label="Copy visual summary">
+        <svg viewBox="0 0 24 24">
+          <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+      <button class="icon-button" type="button" data-panel-action="export" aria-label="Export visual">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3v12"></path>
+          <path d="m7 10 5 5 5-5"></path>
+          <path d="M5 21h14"></path>
+        </svg>
+      </button>
+      <button class="icon-button" type="button" data-panel-action="focus" aria-label="Open focus mode">
+        <svg viewBox="0 0 24 24">
+          <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path>
+        </svg>
+      </button>
+    `;
+
+    const trailingNode = header.lastElementChild;
+    if (trailingNode && trailingNode !== header.firstElementChild) {
+      const meta = document.createElement("div");
+      meta.className = "panel-meta";
+      meta.append(trailingNode);
+      meta.append(tools);
+      header.append(meta);
+    } else {
+      header.append(tools);
+    }
+  });
+}
+
+function panelTitle(panel) {
+  return panel.querySelector(".panel-header h2")?.textContent?.trim() || "visual";
+}
+
+async function copyPanelSummary(panel) {
+  const text = panel.innerText.replace(/\s+/g, " ").trim();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(`${panelTitle(panel)} copied`);
+  } catch (error) {
+    const helper = document.createElement("textarea");
+    helper.value = text;
+    helper.setAttribute("readonly", "");
+    helper.style.position = "fixed";
+    helper.style.opacity = "0";
+    document.body.append(helper);
+    helper.select();
+    document.execCommand("copy");
+    helper.remove();
+    showToast(`${panelTitle(panel)} copied`);
+  }
+}
+
+function exportPanel(panel) {
+  const svg = panel.querySelector("svg");
+  if (svg) {
+    const blob = new Blob([new XMLSerializer().serializeToString(svg)], {
+      type: "image/svg+xml;charset=utf-8",
+    });
+    downloadBlob(blob, `${slugify(panelTitle(panel))}.svg`);
+    showToast(`${panelTitle(panel)} exported`);
+    return;
+  }
+
+  const rows = [...panel.querySelectorAll(".bar-row, .legend-row")].map((row) =>
+    [...row.querySelectorAll("span, strong")].map((cell) => cell.textContent.trim()),
+  );
+  const csv = rows.map((row) => row.map(csvCell).join(",")).join("\n");
+  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `${slugify(panelTitle(panel))}.csv`);
+  showToast(`${panelTitle(panel)} exported`);
+}
+
+function exportFilteredRows() {
+  const headers = [
+    "Name",
+    "Sex",
+    "Job title",
+    "Organization",
+    "Facility",
+    "District",
+    "Course",
+    "Pre-test",
+    "Post-test",
+    "Gain",
+  ];
+  const rows = state.filtered.map((row) => [
+    row.name,
+    row.sex,
+    row.jobTitle,
+    row.organization,
+    row.facility,
+    row.district,
+    row.course,
+    row.pre ?? "",
+    row.post ?? "",
+    row.gain ?? "",
+  ]);
+  const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
+  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "training-dashboard-export.csv");
+  showToast("Filtered dataset exported");
+}
+
+function openFocusMode(panel) {
+  const clone = panel.cloneNode(true);
+  els.focusTitle.textContent = panelTitle(panel);
+  els.focusBody.replaceChildren(clone);
+  els.focusLayer.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeFocusMode() {
+  els.focusLayer.hidden = true;
+  els.focusBody.replaceChildren();
+  document.body.style.overflow = "";
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function slugify(value) {
+  return String(value || "visual")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+let toastTimer;
+function showToast(message) {
+  els.toast.textContent = message;
+  els.toast.classList.add("is-visible");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => els.toast.classList.remove("is-visible"), 1800);
+}
+
 async function loadData(source = LOCAL_CSV) {
   els.refreshData.disabled = true;
   els.refreshData.textContent = source === LIVE_CSV ? "Refreshing..." : "Loading...";
@@ -944,6 +1078,7 @@ async function loadData(source = LOCAL_CSV) {
     state.rows = parseCsv(csv).map(normalizeRow).filter((row) => row.name !== "Unnamed participant");
     setupFilters();
     applyFilters();
+    hydratePanelTools();
   } catch (error) {
     console.error(error);
     document.querySelector(".visual-grid").innerHTML = `<article class="panel span-12">${emptyMarkup(
@@ -981,13 +1116,28 @@ els.resetFilters.addEventListener("click", () => {
 });
 
 els.refreshData.addEventListener("click", () => loadData(LIVE_CSV));
+els.toggleFilters.addEventListener("click", () => {
+  const collapsed = document.querySelector(".filter-shell").classList.toggle("is-collapsed");
+  els.toggleFilters.setAttribute("aria-expanded", String(!collapsed));
+});
+els.exportData.addEventListener("click", exportFilteredRows);
 
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".premium-select")) closePremiumSelects();
+  const panelButton = event.target.closest("[data-panel-action]");
+  if (panelButton) {
+    const panel = panelButton.closest(".panel");
+    const action = panelButton.dataset.panelAction;
+    if (action === "copy") copyPanelSummary(panel);
+    if (action === "export") exportPanel(panel);
+    if (action === "focus") openFocusMode(panel);
+  }
+  if (event.target.closest("[data-close-focus]")) closeFocusMode();
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
+  if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
 });
 
 els.navItems.forEach((item) => {

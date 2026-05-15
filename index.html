@@ -13,8 +13,8 @@
         <div class="brand-lockup">
           <img class="brand-seal" src="/logos/maksph_logo.png" alt="" />
           <div>
-            <strong>Training BI</strong>
-            <span>Public Health Analytics</span>
+            <strong>Makerere University</strong>
+            <span>School of Public Health</span>
           </div>
         </div>
         <p class="nav-section-label">Analytics</p>
@@ -94,7 +94,34 @@
               <span>In partnership with</span>
               <img src="/logos/cranesurvey.png" alt="Cranesurvey Project logo" />
             </div>
-            <div class="topbar-actions">
+            <div class="utility-actions">
+              <button class="utility-button" id="dateWindow" type="button">
+                <span aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8 2v4M16 2v4M4 9h16"></path>
+                    <rect x="4" y="5" width="16" height="16" rx="3"></rect>
+                  </svg>
+                </span>
+                <strong>All dates</strong>
+              </button>
+              <button class="utility-button" id="toggleFilters" type="button" aria-expanded="true">
+                <span aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 5h16l-6 7v5l-4 2v-7L4 5Z"></path>
+                  </svg>
+                </span>
+                <strong>Filters</strong>
+              </button>
+              <button class="utility-button export-button" id="exportData" type="button">
+                <span aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 3v12"></path>
+                    <path d="m7 10 5 5 5-5"></path>
+                    <path d="M5 21h14"></path>
+                  </svg>
+                </span>
+                <strong>Export</strong>
+              </button>
               <button class="ghost-button" id="resetFilters" type="button">Reset</button>
               <button class="primary-button" id="refreshData" type="button">Refresh data</button>
             </div>
@@ -115,16 +142,16 @@
               <input id="searchInput" type="search" placeholder="Search records, facilities, organizations..." />
             </label>
             <label>
-              Course
-              <select id="courseFilter"></select>
+              Year
+              <select id="yearFilter"></select>
             </label>
             <label>
               District
               <select id="districtFilter"></select>
             </label>
             <label>
-              Year
-              <select id="yearFilter"></select>
+              Course
+              <select id="courseFilter"></select>
             </label>
             <label>
               Sex
@@ -135,26 +162,46 @@
 
         <section class="kpi-grid" aria-label="Key performance indicators">
           <article class="kpi-card">
+            <span class="kpi-icon teal" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </span>
             <span>Total participants</span>
             <strong id="kpiParticipants">0</strong>
             <small id="kpiFacilities">0 facilities</small>
           </article>
-          <article class="kpi-card">
-            <span>Average pre-test</span>
-            <strong id="kpiPre">0%</strong>
-            <small>Baseline score</small>
-          </article>
-          <article class="kpi-card">
-            <span>Average post-test</span>
-            <strong id="kpiPost">0%</strong>
-            <small>After training</small>
-          </article>
           <article class="kpi-card emphasis">
+            <span class="kpi-icon violet" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 19V9M10 19V5M16 19v-8M22 19V3"></path>
+              </svg>
+            </span>
             <span>Average improvement</span>
             <strong id="kpiGain">0 pts</strong>
             <small id="kpiGainContext">Pre to post</small>
           </article>
           <article class="kpi-card">
+            <span class="kpi-icon gold" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 20h16"></path>
+                <path d="M7 20V9h4v11"></path>
+                <path d="M13 20V4h4v16"></path>
+              </svg>
+            </span>
+            <span>Average post-test</span>
+            <strong id="kpiPost">0%</strong>
+            <small id="kpiPre">Baseline 0%</small>
+          </article>
+          <article class="kpi-card">
+            <span class="kpi-icon blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 21V8l8-5 8 5v13"></path>
+                <path d="M9 21v-6h6v6"></path>
+              </svg>
+            </span>
             <span>Districts covered</span>
             <strong id="kpiDistricts">0</strong>
             <small id="kpiCourses">0 courses</small>
@@ -165,8 +212,8 @@
           <article class="panel span-3 top-chart" data-section="overview coverage">
             <div class="panel-header">
               <div>
-                <h2>Training Volume Trend</h2>
-                <p>Participants by start month</p>
+                <h2>Score Improvement Over Time</h2>
+                <p>Average post-test and score lift by month</p>
               </div>
               <span id="dateRange">All dates</span>
             </div>
@@ -206,14 +253,11 @@
           <article class="panel span-4" data-section="overview people">
             <div class="panel-header">
               <div>
-                <h2>Sex Distribution</h2>
-                <p>Filtered participant mix</p>
+                <h2>Participants by Cadre</h2>
+                <p>Top trained job titles</p>
               </div>
             </div>
-            <div class="donut-layout">
-              <div class="chart-frame donut-frame" id="sexDonut"></div>
-              <div class="legend-list" id="sexLegend"></div>
-            </div>
+            <div class="ranked-bars compact" id="jobBars"></div>
           </article>
 
           <article class="panel span-4" data-section="overview coverage">
@@ -252,31 +296,14 @@
           <article class="panel span-4" data-section="overview people">
             <div class="panel-header">
               <div>
-                <h2>Job Titles</h2>
-                <p>Top roles trained</p>
+                <h2>Sex Distribution</h2>
+                <p>Filtered participant mix</p>
               </div>
             </div>
-            <div class="ranked-bars compact" id="jobBars"></div>
-          </article>
-
-          <article class="panel span-4" data-section="overview coverage">
-            <div class="panel-header">
-              <div>
-                <h2>Training Duration</h2>
-                <p>Start to end date bands</p>
-              </div>
+            <div class="donut-layout">
+              <div class="chart-frame donut-frame" id="sexDonut"></div>
+              <div class="legend-list" id="sexLegend"></div>
             </div>
-            <div class="band-stack" id="durationBands"></div>
-          </article>
-
-          <article class="panel span-4" data-section="overview scores">
-            <div class="panel-header">
-              <div>
-                <h2>Score Bands</h2>
-                <p>Post-test distribution</p>
-              </div>
-            </div>
-            <div class="band-stack" id="scoreBands"></div>
           </article>
 
           <article class="panel span-12 database-summary" data-section="database">
@@ -345,6 +372,26 @@
       <i aria-hidden="true"></i>
       <span>Cranesurvey Project</span>
     </footer>
+
+    <div class="focus-layer" id="focusLayer" hidden>
+      <div class="focus-backdrop" data-close-focus></div>
+      <section class="focus-card" role="dialog" aria-modal="true" aria-labelledby="focusTitle">
+        <div class="focus-toolbar">
+          <div>
+            <p>Focus mode</p>
+            <h2 id="focusTitle">Visual</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-focus aria-label="Close focus mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="focus-body" id="focusBody"></div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script type="module" src="./app.js"></script>
   </body>
