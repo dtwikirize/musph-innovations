@@ -595,7 +595,7 @@ function renderSex(rows) {
     .map(
       (item, index) => `<div class="legend-row">
         <span class="dot" style="background:${colors[index % colors.length]}"></span>
-        <span>${escapeHtml(item.name)}</span>
+        <span title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
         <strong>${Math.round((item.count / total) * 100)}%</strong>
       </div>`,
     )
@@ -822,14 +822,14 @@ function renderCourseMix(rows) {
       <circle cx="110" cy="110" r="${radius}" fill="none" stroke="#edf2f8" stroke-width="28"></circle>
       ${rings}
       <text x="110" y="106" text-anchor="middle" fill="${palette.navy}" font-size="26" font-weight="850">${values.length}</text>
-      <text x="110" y="128" text-anchor="middle" fill="${palette.muted}" font-size="12" font-weight="700">segments</text>
+      <text x="110" y="128" text-anchor="middle" fill="${palette.muted}" font-size="12" font-weight="700">courses</text>
     </svg>`;
 
   els.courseMixLegend.innerHTML = values
     .map(
       (item, index) => `<div class="legend-row">
         <span class="dot" style="background:${colors[index % colors.length]}"></span>
-        <span>${escapeHtml(shorten(item.name, 22))}</span>
+        <span title="${escapeHtml(item.name)}">${escapeHtml(shorten(item.name, 26))}</span>
         <strong>${Math.round((item.count / total) * 100)}%</strong>
       </div>`,
     )
@@ -941,6 +941,45 @@ function escapeSvg(value) {
 
 function panelTitle(panel) {
   return panel.querySelector(".panel-header h2")?.textContent?.trim() || "visual";
+}
+
+function enhancePanelsForFocus() {
+  document.querySelectorAll(".visual-grid .panel").forEach((panel) => {
+    panel.tabIndex = 0;
+    panel.setAttribute("aria-label", `${panelTitle(panel)} visual`);
+
+    const header = panel.querySelector(".panel-header");
+    if (!header || header.querySelector("[data-open-focus]")) return;
+
+    let meta = header.querySelector(".panel-meta");
+    if (!meta) {
+      meta = document.createElement("div");
+      meta.className = "panel-meta";
+      const trailing = [...header.children].find((child) => child !== header.firstElementChild);
+      if (trailing) meta.append(trailing);
+      header.append(meta);
+    }
+
+    const button = document.createElement("button");
+    button.className = "icon-button";
+    button.type = "button";
+    button.dataset.openFocus = "true";
+    button.setAttribute("aria-label", `Focus ${panelTitle(panel)} visual`);
+    button.innerHTML = `
+      <svg viewBox="0 0 24 24">
+        <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path>
+      </svg>
+    `;
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openFocusMode(panel);
+    });
+    meta.append(button);
+
+    panel.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") openFocusMode(panel);
+    });
+  });
 }
 
 function openFocusMode(panel) {
@@ -1068,4 +1107,5 @@ els.databaseAccessForm.addEventListener("submit", (event) => {
   showToast("Database unlocked");
 });
 
+enhancePanelsForFocus();
 loadData();
