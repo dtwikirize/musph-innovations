@@ -1075,12 +1075,7 @@ td {
   }
 
   .brand-lockup {
-    grid-column: 1 / -1;
-    margin: 0;
-  }
-
-  .brand-lockup div {
-    display: block;
+    display: none;
   }
 
   .nav-section-label,
@@ -1115,30 +1110,60 @@ td {
   .topbar {
     align-items: stretch;
     flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
   }
 
   .institution-strip {
     display: grid;
     grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .lead-org {
     width: 100%;
-    border-right: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.88);
     margin-right: 0;
-    padding-right: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+    line-height: 1.25;
   }
 
   .lead-org:not(:last-child) {
     border-right: 0;
   }
 
+  .lead-org img {
+    width: 42px;
+    height: 42px;
+  }
+
   .topbar-side {
     justify-items: stretch;
+    gap: 10px;
   }
 
   .partner-lockup {
-    justify-content: space-between;
+    min-height: 56px;
+    justify-content: flex-start;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.88);
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .partner-lockup img {
+    width: 60px;
+    height: 40px;
+    margin-left: auto;
   }
 
   .topbar-actions {
@@ -1151,7 +1176,17 @@ td {
   }
 
   h1 {
-    font-size: 22px;
+    font-size: 21px;
+    line-height: 1.18;
+  }
+
+  .title-block {
+    gap: 8px;
+  }
+
+  .dashboard-description {
+    margin-top: 0;
+    font-size: 13px;
   }
 
   .filter-bar,
