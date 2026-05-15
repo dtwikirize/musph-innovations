@@ -3,33 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GSD Training Dashboard</title>
+    <title>Training Dashboard</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="side-nav" aria-label="Dashboard navigation">
         <div class="brand-lockup">
-          <div class="brand-mark">G</div>
+          <div class="brand-mark">T</div>
           <div>
-            <strong>GSD</strong>
-            <span>Training BI</span>
+            <strong>Training BI</strong>
+            <span>Performance Report</span>
           </div>
         </div>
-        <button class="nav-item active" type="button" title="Overview">
-          <span class="nav-icon">●</span>
+        <button class="nav-item active" type="button" title="Overview" data-view="overview" aria-pressed="true">
+          <span class="nav-icon">O</span>
           <span>Overview</span>
         </button>
-        <button class="nav-item" type="button" title="Performance">
-          <span class="nav-icon">◆</span>
+        <button class="nav-item" type="button" title="Performance" data-view="scores" aria-pressed="false">
+          <span class="nav-icon">S</span>
           <span>Scores</span>
         </button>
-        <button class="nav-item" type="button" title="Coverage">
-          <span class="nav-icon">■</span>
+        <button class="nav-item" type="button" title="Coverage" data-view="coverage" aria-pressed="false">
+          <span class="nav-icon">C</span>
           <span>Coverage</span>
         </button>
-        <button class="nav-item" type="button" title="Participants">
-          <span class="nav-icon">▲</span>
+        <button class="nav-item" type="button" title="Participants" data-view="people" aria-pressed="false">
+          <span class="nav-icon">P</span>
           <span>People</span>
         </button>
       </aside>
@@ -37,8 +37,8 @@
       <main class="dashboard">
         <header class="topbar">
           <div>
-            <p class="eyeline">Google Sheets live extract</p>
-            <h1>GSD Training Performance Dashboard</h1>
+            <p class="eyeline" id="activeViewLabel">Overview</p>
+            <h1>Training Performance Dashboard</h1>
           </div>
           <div class="topbar-actions">
             <button class="ghost-button" id="resetFilters" type="button">Reset</button>
@@ -46,27 +46,36 @@
           </div>
         </header>
 
-        <section class="filter-bar" aria-label="Dashboard filters">
-          <label>
-            Search
-            <input id="searchInput" type="search" placeholder="Name, facility, organization..." />
-          </label>
-          <label>
-            Course
-            <select id="courseFilter"></select>
-          </label>
-          <label>
-            District
-            <select id="districtFilter"></select>
-          </label>
-          <label>
-            Year
-            <select id="yearFilter"></select>
-          </label>
-          <label>
-            Sex
-            <select id="sexFilter"></select>
-          </label>
+        <section class="filter-shell" aria-label="Dashboard filters">
+          <div class="filter-heading">
+            <div>
+              <h2>Filters</h2>
+              <p id="filterSummary">All participants and districts</p>
+            </div>
+            <span id="activeFilters">No filters applied</span>
+          </div>
+          <div class="filter-bar">
+            <label class="search-filter">
+              Search
+              <input id="searchInput" type="search" placeholder="Name, facility, organization..." />
+            </label>
+            <label>
+              Course
+              <select id="courseFilter"></select>
+            </label>
+            <label>
+              District
+              <select id="districtFilter"></select>
+            </label>
+            <label>
+              Year
+              <select id="yearFilter"></select>
+            </label>
+            <label>
+              Sex
+              <select id="sexFilter"></select>
+            </label>
+          </div>
         </section>
 
         <section class="kpi-grid" aria-label="Key performance indicators">
@@ -98,7 +107,7 @@
         </section>
 
         <section class="visual-grid">
-          <article class="panel span-7">
+          <article class="panel span-7" data-section="overview coverage">
             <div class="panel-header">
               <div>
                 <h2>Training Volume Trend</h2>
@@ -109,7 +118,7 @@
             <div class="chart-frame" id="trendChart"></div>
           </article>
 
-          <article class="panel span-5">
+          <article class="panel span-5" data-section="overview people">
             <div class="panel-header">
               <div>
                 <h2>Sex Distribution</h2>
@@ -122,7 +131,7 @@
             </div>
           </article>
 
-          <article class="panel span-7">
+          <article class="panel span-7" data-section="overview scores">
             <div class="panel-header">
               <div>
                 <h2>Pre-Test vs Post-Test by Course</h2>
@@ -132,7 +141,7 @@
             <div class="chart-frame" id="courseBars"></div>
           </article>
 
-          <article class="panel span-5">
+          <article class="panel span-5" data-section="overview coverage">
             <div class="panel-header">
               <div>
                 <h2>Top Districts</h2>
@@ -142,7 +151,7 @@
             <div class="ranked-bars" id="districtBars"></div>
           </article>
 
-          <article class="panel span-4">
+          <article class="panel span-4" data-section="overview people">
             <div class="panel-header">
               <div>
                 <h2>Job Titles</h2>
@@ -152,7 +161,7 @@
             <div class="ranked-bars compact" id="jobBars"></div>
           </article>
 
-          <article class="panel span-4">
+          <article class="panel span-4" data-section="overview coverage people">
             <div class="panel-header">
               <div>
                 <h2>Organizations</h2>
@@ -173,7 +182,7 @@
             </div>
           </article>
 
-          <article class="panel span-4">
+          <article class="panel span-4" data-section="overview scores">
             <div class="panel-header">
               <div>
                 <h2>Score Bands</h2>
@@ -183,7 +192,7 @@
             <div class="band-stack" id="scoreBands"></div>
           </article>
 
-          <article class="panel span-12">
+          <article class="panel span-12" data-section="overview people">
             <div class="panel-header">
               <div>
                 <h2>Participant Register</h2>

@@ -14,6 +14,7 @@ const palette = {
 const state = {
   rows: [],
   filtered: [],
+  activeView: "overview",
   filters: {
     search: "",
     course: "All",
@@ -29,6 +30,11 @@ const els = {
   districtFilter: document.querySelector("#districtFilter"),
   yearFilter: document.querySelector("#yearFilter"),
   sexFilter: document.querySelector("#sexFilter"),
+  navItems: document.querySelectorAll(".nav-item[data-view]"),
+  panels: document.querySelectorAll(".panel[data-section]"),
+  activeViewLabel: document.querySelector("#activeViewLabel"),
+  filterSummary: document.querySelector("#filterSummary"),
+  activeFilters: document.querySelector("#activeFilters"),
   resetFilters: document.querySelector("#resetFilters"),
   refreshData: document.querySelector("#refreshData"),
   kpiParticipants: document.querySelector("#kpiParticipants"),
@@ -129,7 +135,7 @@ function normalizeRow(row) {
   const startDate = parseDate(row["Starting date"]);
   const endDate = parseDate(row["Ending date"]);
   const course = cleanLabel(row["Course Name"]) || "Unspecified course";
-  const district = cleanLabel(row.District) || "Unspecified district";
+  const district = cleanDistrict(row.District);
   const sex = cleanLabel(row.Sex) || "Unspecified";
 
   return {
@@ -139,7 +145,7 @@ function normalizeRow(row) {
     jobTitle: cleanLabel(row["Job title"]) || "Unspecified role",
     organization: cleanLabel(row.Organization) || "Unspecified organization",
     facility: cleanLabel(row["Health Facility"]) || "Unspecified facility",
-    district,
+    district: district || "Unspecified district",
     telephone: cleanLabel(row["Telephone no"]),
     course,
     startDate,
@@ -154,6 +160,16 @@ function normalizeRow(row) {
 
 function cleanLabel(value) {
   return String(value || "").replace(/\\+/g, "").replace(/\s+/g, " ").trim();
+}
+
+function cleanDistrict(value) {
+  const district = cleanLabel(value);
+  if (!district) return "";
+  return district.replace(/\s*,\s*/g, ", ");
+}
+
+function isRealDistrict(value) {
+  return Boolean(value && !/^unspecified/i.test(value) && value !== "Unknown");
 }
 
 function monthKey(date) {
@@ -216,9 +232,30 @@ function uniqueSorted(rows, key) {
 
 function setupFilters() {
   fillSelect(els.courseFilter, uniqueSorted(state.rows, "course"), state.filters.course);
-  fillSelect(els.districtFilter, uniqueSorted(state.rows, "district"), state.filters.district);
-  fillSelect(els.yearFilter, uniqueSorted(state.rows, "startYear"), state.filters.year);
-  fillSelect(els.sexFilter, uniqueSorted(state.rows, "sex"), state.filters.sex);
+  fillSelect(
+    els.districtFilter,
+    uniqueSorted(
+      state.rows.filter((row) => isRealDistrict(row.district)),
+      "district",
+    ),
+    state.filters.district,
+  );
+  fillSelect(
+    els.yearFilter,
+    uniqueSorted(
+      state.rows.filter((row) => row.startYear !== "Unknown"),
+      "startYear",
+    ),
+    state.filters.year,
+  );
+  fillSelect(
+    els.sexFilter,
+    uniqueSorted(
+      state.rows.filter((row) => row.sex !== "Unspecified"),
+      "sex",
+    ),
+    state.filters.sex,
+  );
 }
 
 function applyFilters() {
@@ -238,15 +275,57 @@ function applyFilters() {
 
 function render() {
   const rows = state.filtered;
+  renderView();
+  renderFilterSummary(rows);
   renderKpis(rows);
   renderTrend(rows);
   renderSex(rows);
   renderCourseBars(rows);
-  renderRankedBars(els.districtBars, countBy(rows, "district").slice(0, 10), palette.teal);
+  renderRankedBars(
+    els.districtBars,
+    countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10),
+    palette.teal,
+  );
   renderRankedBars(els.jobBars, countBy(rows, "jobTitle").slice(0, 8), palette.gold);
   renderOrganizations(rows);
   renderScoreBands(rows);
   renderParticipants(rows);
+}
+
+function renderView() {
+  const labels = {
+    overview: "Overview",
+    scores: "Score Analysis",
+    coverage: "District Coverage",
+    people: "Participants",
+  };
+
+  els.activeViewLabel.textContent = labels[state.activeView] || "Overview";
+  els.navItems.forEach((item) => {
+    const active = item.dataset.view === state.activeView;
+    item.classList.toggle("active", active);
+    item.setAttribute("aria-pressed", String(active));
+  });
+  els.panels.forEach((panel) => {
+    const sections = panel.dataset.section.split(" ");
+    panel.classList.toggle("is-hidden", !sections.includes(state.activeView));
+  });
+}
+
+function renderFilterSummary(rows) {
+  const districtCount = new Set(rows.map((row) => row.district).filter(isRealDistrict)).size;
+  const active = [
+    state.filters.course !== "All" ? `Course: ${shorten(state.filters.course, 22)}` : "",
+    state.filters.district !== "All" ? `District: ${state.filters.district}` : "",
+    state.filters.year !== "All" ? `Year: ${state.filters.year}` : "",
+    state.filters.sex !== "All" ? `Sex: ${state.filters.sex}` : "",
+    state.filters.search ? "Search active" : "",
+  ].filter(Boolean);
+
+  els.filterSummary.textContent = `${formatNumber(rows.length)} participants across ${formatNumber(
+    districtCount,
+  )} districts`;
+  els.activeFilters.textContent = active.length ? active.join(" | ") : "No filters applied";
 }
 
 function renderKpis(rows) {
@@ -254,7 +333,7 @@ function renderKpis(rows) {
   const post = average(rows, "post");
   const gain = average(rows, "gain");
   const facilities = new Set(rows.map((row) => row.facility)).size;
-  const districts = new Set(rows.map((row) => row.district)).size;
+  const districts = new Set(rows.map((row) => row.district).filter(isRealDistrict)).size;
   const courses = new Set(rows.map((row) => row.course)).size;
 
   els.kpiParticipants.textContent = formatNumber(rows.length);
@@ -599,5 +678,13 @@ els.resetFilters.addEventListener("click", () => {
 });
 
 els.refreshData.addEventListener("click", () => loadData(LIVE_CSV));
+
+els.navItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    state.activeView = item.dataset.view;
+    renderView();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
 
 loadData();
