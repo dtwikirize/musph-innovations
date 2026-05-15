@@ -200,14 +200,7 @@ select {
   align-items: stretch;
   gap: 18px;
   margin-bottom: 16px;
-  padding: 18px 20px;
-  border: 1px solid rgba(203, 214, 228, 0.86);
-  border-radius: var(--radius);
-  background:
-    radial-gradient(circle at 82% 18%, rgba(14, 154, 154, 0.12), transparent 32%),
-    rgba(255, 255, 255, 0.84);
-  box-shadow: var(--shadow-tight);
-  backdrop-filter: blur(18px);
+  padding: 0 0 8px;
 }
 
 .title-block {
@@ -220,7 +213,7 @@ select {
 .institution-strip {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
   flex-wrap: wrap;
 }
 
@@ -229,22 +222,21 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  border: 1px solid rgba(203, 214, 228, 0.9);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  padding: 5px 10px 5px 5px;
+  padding-right: 18px;
+  margin-right: 18px;
   color: var(--navy);
   font-size: 12px;
   font-weight: 750;
+}
+
+.lead-org:not(:last-child) {
+  border-right: 1px solid var(--line-strong);
 }
 
 .lead-org img {
   width: 30px;
   height: 30px;
   object-fit: contain;
-  border-radius: 999px;
-  background: #fff;
-  padding: 3px;
 }
 
 .eyeline {
@@ -270,6 +262,15 @@ h1 {
   font-weight: 800;
 }
 
+.dashboard-description {
+  margin: -2px 0 0;
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 650;
+}
+
 .topbar-side {
   display: grid;
   justify-items: end;
@@ -290,10 +291,6 @@ h1 {
   width: 54px;
   height: 36px;
   object-fit: contain;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  padding: 4px;
 }
 
 .topbar-actions {
@@ -629,8 +626,8 @@ h1 {
     box-shadow 160ms ease;
 }
 
-.hero-panel {
-  min-height: 314px;
+.top-chart {
+  min-height: 304px;
 }
 
 .panel:hover {
@@ -644,6 +641,10 @@ h1 {
 
 .span-4 {
   grid-column: span 4;
+}
+
+.span-3 {
+  grid-column: span 3;
 }
 
 .span-5 {
@@ -692,36 +693,8 @@ h1 {
   padding: 6px 14px 14px;
 }
 
-.mini-metric-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  padding: 0 16px 16px;
-}
-
-.mini-metric {
-  min-height: 72px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: #f8fbff;
-  padding: 12px;
-}
-
-.mini-metric strong {
-  display: block;
-  color: var(--navy);
-  font-size: 22px;
-  line-height: 1;
-}
-
-.mini-metric span {
-  display: block;
-  margin-top: 7px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .06em;
+.compact-chart {
+  min-height: 226px;
 }
 
 .chart-frame svg {
@@ -759,6 +732,15 @@ h1 {
 
 .compact-donut {
   grid-template-columns: minmax(132px, .82fr) 1fr;
+}
+
+.compact-panel {
+  min-height: 0;
+  align-self: start;
+}
+
+.compact-panel .donut-layout {
+  min-height: 0;
 }
 
 .donut-frame {
@@ -799,6 +781,11 @@ h1 {
 
 .ranked-bars.compact {
   gap: 11px;
+}
+
+.ranked-bars.dense {
+  gap: 9px;
+  padding-top: 0;
 }
 
 .bar-top {
@@ -1013,29 +1000,24 @@ td {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 14px;
   margin-left: 224px;
   padding: 18px 24px 24px;
   color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.footer-logos {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.site-footer i {
+  width: 1px;
+  height: 14px;
+  background: var(--line-strong);
 }
 
-.footer-logos img {
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: #fff;
-  padding: 4px;
-}
-
-.footer-logos img:last-child {
-  width: 52px;
+@media (max-width: 1400px) {
+  .top-chart {
+    grid-column: span 6;
+  }
 }
 
 @media (max-width: 1180px) {
@@ -1066,6 +1048,7 @@ td {
   }
 
   .span-4,
+  .span-3,
   .span-5,
   .span-7,
   .span-8 {
@@ -1141,7 +1124,13 @@ td {
 
   .lead-org {
     width: 100%;
-    border-radius: 10px;
+    border-right: 0;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .lead-org:not(:last-child) {
+    border-right: 0;
   }
 
   .topbar-side {
@@ -1182,6 +1171,7 @@ td {
   }
 
   .span-4,
+  .span-3,
   .span-5,
   .span-7,
   .span-8,
@@ -1191,6 +1181,7 @@ td {
 
   .site-footer {
     margin-left: 0;
+    flex-wrap: wrap;
     padding: 18px 14px 22px;
   }
 }

@@ -49,9 +49,6 @@ const els = {
   kpiDistricts: document.querySelector("#kpiDistricts"),
   kpiCourses: document.querySelector("#kpiCourses"),
   trendChart: document.querySelector("#trendChart"),
-  trendPeak: document.querySelector("#trendPeak"),
-  trendLatest: document.querySelector("#trendLatest"),
-  trendMonths: document.querySelector("#trendMonths"),
   sexDonut: document.querySelector("#sexDonut"),
   sexLegend: document.querySelector("#sexLegend"),
   courseBars: document.querySelector("#courseBars"),
@@ -61,7 +58,7 @@ const els = {
   courseMixDonut: document.querySelector("#courseMixDonut"),
   courseMixLegend: document.querySelector("#courseMixLegend"),
   jobBars: document.querySelector("#jobBars"),
-  organizationTable: document.querySelector("#organizationTable"),
+  organizationBars: document.querySelector("#organizationBars"),
   scoreBands: document.querySelector("#scoreBands"),
   durationBands: document.querySelector("#durationBands"),
   participantTable: document.querySelector("#participantTable"),
@@ -400,7 +397,7 @@ function render() {
   );
   renderCourseMix(rows);
   renderRankedBars(els.jobBars, countBy(rows, "jobTitle").slice(0, 8), palette.gold);
-  renderOrganizations(rows);
+  renderRankedBars(els.organizationBars, countBy(rows, "organization").slice(0, 8), palette.coral);
   renderScoreBands(rows);
   renderDurationBands(rows);
   renderDatabaseSnapshot(rows);
@@ -474,17 +471,8 @@ function renderTrend(rows) {
 
   if (!grouped.length) {
     els.trendChart.innerHTML = emptyMarkup("No dated records in this filter.");
-    els.trendPeak.textContent = "0";
-    els.trendLatest.textContent = "0";
-    els.trendMonths.textContent = "0";
     return;
   }
-
-  const peak = grouped.reduce((best, item) => (item.count > best.count ? item : best), grouped[0]);
-  const latest = grouped[grouped.length - 1];
-  els.trendPeak.textContent = formatNumber(peak.count);
-  els.trendLatest.textContent = formatNumber(latest.count);
-  els.trendMonths.textContent = formatNumber(grouped.length);
 
   const width = 760;
   const height = 250;
@@ -583,9 +571,9 @@ function renderSex(rows) {
 
 function renderCourseBars(rows) {
   const courses = countBy(rows, "course")
-    .slice(0, 6)
+    .slice(0, 5)
     .map((item) => ({
-      name: shorten(item.name, 28),
+      name: item.name,
       pre: average(item.rows, "pre") || 0,
       post: average(item.rows, "post") || 0,
       count: item.count,
@@ -598,7 +586,7 @@ function renderCourseBars(rows) {
 
   const width = 760;
   const height = 250;
-  const pad = { top: 12, right: 24, bottom: 58, left: 42 };
+  const pad = { top: 18, right: 18, bottom: 84, left: 42 };
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
   const groupW = plotW / courses.length;
@@ -621,6 +609,7 @@ function renderCourseBars(rows) {
           const center = pad.left + index * groupW + groupW / 2;
           const preH = plotH - (yFor(course.pre) - pad.top);
           const postH = plotH - (yFor(course.post) - pad.top);
+          const lines = wrapLabel(course.name, 15, 2);
           return `<g>
             <rect x="${center - barW - 3}" y="${yFor(course.pre)}" width="${barW}" height="${preH}" rx="5" fill="${palette.gold}"><title>${course.name} pre: ${Math.round(
               course.pre,
@@ -628,10 +617,15 @@ function renderCourseBars(rows) {
             <rect x="${center + 3}" y="${yFor(course.post)}" width="${barW}" height="${postH}" rx="5" fill="${palette.teal}"><title>${course.name} post: ${Math.round(
               course.post,
             )}%</title></rect>
-            <text class="axis-label" x="${center}" y="${
-              height - 32
-            }" text-anchor="middle">${escapeSvg(course.name)}</text>
-            <text class="axis-label" x="${center}" y="${height - 14}" text-anchor="middle">${course.count} people</text>
+            <text class="axis-label" x="${center}" y="${height - 42}" text-anchor="middle">
+              ${lines
+                .map(
+                  (line, lineIndex) =>
+                    `<tspan x="${center}" dy="${lineIndex ? 13 : 0}">${escapeSvg(line)}</tspan>`,
+                )
+                .join("")}
+            </text>
+            <text class="axis-label" x="${center}" y="${height - 12}" text-anchor="middle">${course.count} people</text>
           </g>`;
         })
         .join("")}
@@ -803,24 +797,6 @@ function renderRankedBars(container, data, color) {
     .join("");
 }
 
-function renderOrganizations(rows) {
-  const orgs = countBy(rows, "organization")
-    .slice(0, 8)
-    .map((item) => ({ ...item, gain: average(item.rows, "gain") }));
-
-  els.organizationTable.innerHTML = orgs
-    .map(
-      (item) => `<tr>
-        <td>${escapeHtml(shorten(item.name, 30))}</td>
-        <td>${formatNumber(item.count)}</td>
-        <td><span class="gain-pill ${item.gain < 0 ? "negative" : ""}">${
-          item.gain == null ? "N/A" : `${item.gain >= 0 ? "+" : ""}${Math.round(item.gain)}`
-        }</span></td>
-      </tr>`,
-    )
-    .join("");
-}
-
 function renderScoreBands(rows) {
   const bands = [
     { name: "90-100%", test: (value) => value >= 90, color: palette.green },
@@ -920,6 +896,29 @@ function emptyMarkup(message) {
 function shorten(value, max) {
   const text = String(value || "");
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
+}
+
+function wrapLabel(value, maxChars, maxLines) {
+  const words = String(value || "").split(" ");
+  const lines = [];
+  let line = "";
+
+  words.forEach((word) => {
+    const next = line ? `${line} ${word}` : word;
+    if (next.length <= maxChars) {
+      line = next;
+      return;
+    }
+    if (line) lines.push(line);
+    line = word;
+  });
+
+  if (line) lines.push(line);
+  if (lines.length <= maxLines) return lines;
+
+  const clipped = lines.slice(0, maxLines);
+  clipped[maxLines - 1] = shorten(clipped[maxLines - 1], maxChars);
+  return clipped;
 }
 
 function escapeHtml(value) {

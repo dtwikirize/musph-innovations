@@ -85,6 +85,9 @@
             </div>
             <p class="eyeline" id="activeViewLabel">Overview</p>
             <h1>Training Performance Dashboard</h1>
+            <p class="dashboard-description">
+              Training of Health workers in providing Friendly services to High Risk Individuals
+            </p>
           </div>
           <div class="topbar-side">
             <div class="partner-lockup">
@@ -159,7 +162,7 @@
         </section>
 
         <section class="visual-grid">
-          <article class="panel span-8 hero-panel" data-section="overview coverage">
+          <article class="panel span-3 top-chart" data-section="overview coverage">
             <div class="panel-header">
               <div>
                 <h2>Training Volume Trend</h2>
@@ -168,20 +171,36 @@
               <span id="dateRange">All dates</span>
             </div>
             <div class="chart-frame" id="trendChart"></div>
-            <div class="mini-metric-row">
-              <article class="mini-metric">
-                <strong id="trendPeak">0</strong>
-                <span>Peak month</span>
-              </article>
-              <article class="mini-metric">
-                <strong id="trendLatest">0</strong>
-                <span>Latest month</span>
-              </article>
-              <article class="mini-metric">
-                <strong id="trendMonths">0</strong>
-                <span>Months tracked</span>
-              </article>
+          </article>
+
+          <article class="panel span-3 top-chart" data-section="overview scores">
+            <div class="panel-header">
+              <div>
+                <h2>Pre-Test vs Post-Test</h2>
+                <p>Top courses by participant volume</p>
+              </div>
             </div>
+            <div class="chart-frame compact-chart" id="courseBars"></div>
+          </article>
+
+          <article class="panel span-3 top-chart" data-section="overview scores coverage">
+            <div class="panel-header">
+              <div>
+                <h2>District Score Lift</h2>
+                <p>Highest average improvement</p>
+              </div>
+            </div>
+            <div class="ranked-bars dense" id="districtGainBars"></div>
+          </article>
+
+          <article class="panel span-3 top-chart" data-section="overview people">
+            <div class="panel-header">
+              <div>
+                <h2>Top Organizations</h2>
+                <p>Participants by organization</p>
+              </div>
+            </div>
+            <div class="ranked-bars dense" id="organizationBars"></div>
           </article>
 
           <article class="panel span-4" data-section="overview people">
@@ -197,27 +216,7 @@
             </div>
           </article>
 
-          <article class="panel span-7" data-section="overview scores">
-            <div class="panel-header">
-              <div>
-                <h2>Pre-Test vs Post-Test by Course</h2>
-                <p>Top courses by participant volume</p>
-              </div>
-            </div>
-            <div class="chart-frame" id="courseBars"></div>
-          </article>
-
-          <article class="panel span-5" data-section="overview scores coverage">
-            <div class="panel-header">
-              <div>
-                <h2>District Score Lift</h2>
-                <p>Highest average improvement</p>
-              </div>
-            </div>
-            <div class="ranked-bars" id="districtGainBars"></div>
-          </article>
-
-          <article class="panel span-5" data-section="overview coverage">
+          <article class="panel span-4" data-section="overview coverage">
             <div class="panel-header">
               <div>
                 <h2>Top Districts</h2>
@@ -227,7 +226,7 @@
             <div class="ranked-bars" id="districtBars"></div>
           </article>
 
-          <article class="panel span-7" data-section="overview scores">
+          <article class="panel span-4" data-section="overview scores">
             <div class="panel-header">
               <div>
                 <h2>Monthly Average Score Lift</h2>
@@ -237,7 +236,7 @@
             <div class="chart-frame" id="gainTrendChart"></div>
           </article>
 
-          <article class="panel span-4" data-section="overview coverage">
+          <article class="panel span-4 compact-panel" data-section="overview coverage">
             <div class="panel-header">
               <div>
                 <h2>Course Mix</h2>
@@ -268,27 +267,6 @@
               </div>
             </div>
             <div class="band-stack" id="durationBands"></div>
-          </article>
-
-          <article class="panel span-4" data-section="overview coverage people">
-            <div class="panel-header">
-              <div>
-                <h2>Organizations</h2>
-                <p>Volume and score lift</p>
-              </div>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Organization</th>
-                    <th>People</th>
-                    <th>Gain</th>
-                  </tr>
-                </thead>
-                <tbody id="organizationTable"></tbody>
-              </table>
-            </div>
           </article>
 
           <article class="panel span-4" data-section="overview scores">
@@ -360,12 +338,12 @@
       </main>
     </div>
 
-    <footer class="site-footer" aria-label="Partner organizations">
-      <div class="footer-logos" aria-label="Partner organizations">
-        <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health" />
-        <img src="/logos/moh_logo.png" alt="Ministry of Health" />
-        <img src="/logos/cranesurvey.png" alt="Cranesurvey Project" />
-      </div>
+    <footer class="site-footer">
+      <span>&copy; 2026 Ministry of Health, Republic of Uganda</span>
+      <i aria-hidden="true"></i>
+      <span>Makerere University School of Public Health</span>
+      <i aria-hidden="true"></i>
+      <span>Cranesurvey Project</span>
     </footer>
 
     <script type="module" src="./app.js"></script>
