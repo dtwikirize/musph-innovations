@@ -56,11 +56,13 @@ const els = {
   courseBars: document.querySelector("#courseBars"),
   gainTrendChart: document.querySelector("#gainTrendChart"),
   districtGainBars: document.querySelector("#districtGainBars"),
+  districtRateBars: document.querySelector("#districtRateBars"),
   districtBars: document.querySelector("#districtBars"),
   courseMixDonut: document.querySelector("#courseMixDonut"),
   courseMixLegend: document.querySelector("#courseMixLegend"),
   jobBars: document.querySelector("#jobBars"),
   organizationBars: document.querySelector("#organizationBars"),
+  organizationRateBars: document.querySelector("#organizationRateBars"),
   participantTable: document.querySelector("#participantTable"),
   rowCount: document.querySelector("#rowCount"),
   dateRange: document.querySelector("#dateRange"),
@@ -220,6 +222,12 @@ function average(rows, key) {
   const values = rows.map((row) => row[key]).filter((value) => Number.isFinite(value));
   if (!values.length) return null;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function percentImprovement(row) {
+  return Number.isFinite(row.pre) && Number.isFinite(row.post) && row.pre > 0
+    ? ((row.post - row.pre) / row.pre) * 100
+    : null;
 }
 
 function durationDays(row) {
@@ -397,6 +405,7 @@ function render() {
   renderCourseBars(rows);
   renderGainTrend(rows);
   renderDistrictGains(rows);
+  renderImprovementRates(rows);
   renderRankedBars(
     els.districtBars,
     countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10),
@@ -732,6 +741,31 @@ function renderDistrictGains(rows) {
     .slice(0, 10);
 
   renderMetricBars(els.districtGainBars, data, palette.teal, "pts");
+}
+
+function renderImprovementRates(rows) {
+  const districtData = countBy(rows.filter((row) => isRealDistrict(row.district)), "district")
+    .map((item) => ({
+      name: item.name,
+      value: average(item.rows.map((row) => ({ rate: percentImprovement(row) })), "rate"),
+      count: item.rows.filter((row) => Number.isFinite(percentImprovement(row))).length,
+    }))
+    .filter((item) => Number.isFinite(item.value) && item.count >= 3)
+    .sort((a, b) => b.value - a.value || b.count - a.count)
+    .slice(0, 8);
+
+  const organizationData = countBy(rows, "organization")
+    .map((item) => ({
+      name: item.name,
+      value: average(item.rows.map((row) => ({ rate: percentImprovement(row) })), "rate"),
+      count: item.rows.filter((row) => Number.isFinite(percentImprovement(row))).length,
+    }))
+    .filter((item) => Number.isFinite(item.value) && item.count >= 3)
+    .sort((a, b) => b.value - a.value || b.count - a.count)
+    .slice(0, 8);
+
+  renderMetricBars(els.districtRateBars, districtData, palette.green, "%");
+  renderMetricBars(els.organizationRateBars, organizationData, palette.blue, "%");
 }
 
 function renderMetricBars(container, data, color, suffix = "") {

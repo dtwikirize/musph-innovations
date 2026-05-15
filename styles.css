@@ -20,7 +20,7 @@
   --shadow-tight: 0 10px 22px rgba(16, 35, 63, 0.06);
   --radius: 8px;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Aptos, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 }
 
@@ -34,6 +34,9 @@ body {
     linear-gradient(180deg, #ffffff 0%, #f7f9fc 260px, var(--bg) 520px),
     var(--bg);
   color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: 0;
 }
 
 button,
@@ -214,7 +217,7 @@ p {
 h1 {
   margin-bottom: 0;
   color: var(--navy);
-  font-size: 26px;
+  font-size: 27px;
   line-height: 1.15;
   font-weight: 800;
 }
@@ -225,7 +228,7 @@ h1 {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.4;
-  font-weight: 650;
+  font-weight: 560;
 }
 
 .topbar-side {
@@ -659,7 +662,7 @@ h1 {
 .visual-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 
 .panel {
@@ -669,7 +672,9 @@ h1 {
   border-radius: var(--radius);
   background:
     linear-gradient(180deg, #fff 0%, #fcfdff 100%);
-  box-shadow: var(--shadow);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 14px 30px rgba(16, 35, 63, 0.07);
   overflow: hidden;
   transition:
     transform 160ms ease,
@@ -701,6 +706,10 @@ h1 {
   grid-column: span 5;
 }
 
+.span-6 {
+  grid-column: span 6;
+}
+
 .span-7 {
   grid-column: span 7;
 }
@@ -725,16 +734,18 @@ h1 {
 .panel-header h2 {
   margin-bottom: 3px;
   color: var(--navy);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.25;
+  font-weight: 780;
 }
 
 .panel-header p,
 .panel-header span {
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.35;
+  font-weight: 620;
 }
 
 .panel-heading {
@@ -794,7 +805,7 @@ h1 {
 }
 
 .grid-line {
-  stroke: #e8edf4;
+  stroke: #e6ebf3;
   stroke-width: 1;
 }
 
@@ -861,6 +872,15 @@ h1 {
   padding: 4px 16px 18px;
 }
 
+.insight-panel {
+  min-height: 278px;
+}
+
+.insight-bars {
+  gap: 10px;
+  padding-top: 2px;
+}
+
 .ranked-bars.compact {
   gap: 11px;
 }
@@ -880,7 +900,7 @@ h1 {
 }
 
 .bar-track {
-  height: 8px;
+  height: 9px;
   border-radius: 999px;
   background: #edf2f8;
   overflow: hidden;
@@ -1336,6 +1356,7 @@ td {
   .span-4,
   .span-3,
   .span-5,
+  .span-6,
   .span-7,
   .span-8 {
     grid-column: span 6;
@@ -1462,6 +1483,7 @@ td {
   .span-4,
   .span-3,
   .span-5,
+  .span-6,
   .span-7,
   .span-8,
   .span-12 {
