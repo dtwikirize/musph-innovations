@@ -584,19 +584,19 @@ h1 {
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
   margin-bottom: 16px;
 }
 
 .kpi-card {
-  min-height: 118px;
+  min-height: 96px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto auto;
-  column-gap: 14px;
+  column-gap: 12px;
   align-items: center;
-  padding: 18px;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background:
@@ -626,9 +626,9 @@ h1 {
 .kpi-card strong {
   grid-column: 2;
   display: block;
-  margin: 5px 0 3px;
+  margin: 4px 0 3px;
   color: var(--navy);
-  font-size: 32px;
+  font-size: 24px;
   line-height: 1;
   font-weight: 850;
 }
@@ -640,8 +640,8 @@ h1 {
 .kpi-icon {
   grid-row: 1 / span 3;
   grid-column: 1;
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
   display: grid !important;
   place-items: center;
   border-radius: 9px;
@@ -649,8 +649,8 @@ h1 {
 }
 
 .kpi-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.9;
@@ -668,6 +668,10 @@ h1 {
 
 .kpi-icon.gold {
   background: linear-gradient(135deg, #eba91d, #cb8a05);
+}
+
+.kpi-icon.coral {
+  background: linear-gradient(135deg, #ef796d, #d9574d);
 }
 
 .kpi-icon.blue {
@@ -874,6 +878,14 @@ h1 {
 .legend-list {
   display: grid;
   gap: 10px;
+}
+
+.inline-bars {
+  min-height: 188px;
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: 12px 4px;
 }
 
 .legend-row,

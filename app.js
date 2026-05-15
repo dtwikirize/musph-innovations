@@ -4,11 +4,12 @@ const LIVE_CSV =
 
 const palette = {
   navy: "#14345c",
-  teal: "#0e9a9a",
-  coral: "#e86f52",
-  gold: "#d9a441",
+  teal: "#22aaa1",
+  coral: "#e66c61",
+  gold: "#e4a900",
   green: "#2f9f6b",
-  violet: "#5368d8",
+  violet: "#7445c6",
+  blue: "#2f58bf",
   muted: "#657188",
 };
 
@@ -50,6 +51,10 @@ const els = {
   kpiPost: document.querySelector("#kpiPost"),
   kpiGain: document.querySelector("#kpiGain"),
   kpiGainContext: document.querySelector("#kpiGainContext"),
+  kpiLift: document.querySelector("#kpiLift"),
+  kpiLiftContext: document.querySelector("#kpiLiftContext"),
+  kpiCompletions: document.querySelector("#kpiCompletions"),
+  kpiCompletionRate: document.querySelector("#kpiCompletionRate"),
   kpiDistricts: document.querySelector("#kpiDistricts"),
   kpiCourses: document.querySelector("#kpiCourses"),
   trendChart: document.querySelector("#trendChart"),
@@ -239,6 +244,10 @@ function countBy(rows, key) {
   return [...groupBy(rows, key)]
     .map(([name, items]) => ({ name, count: items.length, rows: items }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+function setExportRows(container, headers, rows) {
+  container.dataset.exportRows = JSON.stringify([headers, ...rows]);
 }
 
 function fillSelect(select, values, current = "All") {
@@ -459,7 +468,14 @@ function renderKpis(rows) {
   const gain = average(rows, "gain");
   const facilities = new Set(rows.map((row) => row.facility)).size;
   const districts = new Set(rows.map((row) => row.district).filter(isRealDistrict)).size;
-  const courses = new Set(rows.map((row) => row.course)).size;
+  const allDistricts = new Set(state.rows.map((row) => row.district).filter(isRealDistrict)).size;
+  const paired = rows.filter((row) => Number.isFinite(row.pre) && Number.isFinite(row.post)).length;
+  const completionRate = rows.length ? Math.round((paired / rows.length) * 100) : 0;
+  const topDistrict = countBy(rows.filter((row) => isRealDistrict(row.district)), "district")
+    .map((item) => ({ name: item.name, value: average(item.rows, "gain"), count: item.count }))
+    .filter((item) => Number.isFinite(item.value) && item.count >= 3)
+    .sort((a, b) => b.value - a.value || b.count - a.count)[0];
+  const districtCoverage = allDistricts ? Math.round((districts / allDistricts) * 100) : 0;
 
   els.kpiParticipants.textContent = formatNumber(rows.length);
   els.kpiFacilities.textContent = `${formatNumber(facilities)} facilities`;
@@ -468,8 +484,14 @@ function renderKpis(rows) {
   els.kpiGain.textContent = gain == null ? "N/A" : `${gain >= 0 ? "+" : ""}${Math.round(gain)} pts`;
   els.kpiGainContext.textContent =
     gain == null ? "No paired scores" : `${formatScore(pre)} to ${formatScore(post)}`;
-  els.kpiDistricts.textContent = formatNumber(districts);
-  els.kpiCourses.textContent = `${formatNumber(courses)} courses`;
+  els.kpiLift.textContent = topDistrict
+    ? `${topDistrict.value >= 0 ? "+" : ""}${Math.round(topDistrict.value)} pts`
+    : "N/A";
+  els.kpiLiftContext.textContent = topDistrict ? shorten(topDistrict.name, 18) : "Top district";
+  els.kpiCompletions.textContent = formatNumber(paired);
+  els.kpiCompletionRate.textContent = `${completionRate}% completion rate`;
+  els.kpiDistricts.textContent = `${formatNumber(districts)} / ${formatNumber(allDistricts)}`;
+  els.kpiCourses.textContent = `${districtCoverage}% coverage`;
 }
 
 function renderTrend(rows) {
@@ -489,9 +511,15 @@ function renderTrend(rows) {
   els.dateWindow.textContent = els.dateRange.textContent;
 
   if (!grouped.length) {
+    delete els.trendChart.dataset.exportRows;
     els.trendChart.innerHTML = emptyMarkup("No dated records in this filter.");
     return;
   }
+  setExportRows(
+    els.trendChart,
+    ["Month", "Average post-test", "Average improvement", "Participants"],
+    grouped.map((item) => [monthLabel(item.name), Math.round(item.post), Math.round(item.gain), item.count]),
+  );
 
   const width = 760;
   const height = 250;
@@ -564,34 +592,33 @@ function renderSex(rows) {
   const total = values.reduce((sum, item) => sum + item.count, 0);
 
   if (!total) {
+    delete els.sexDonut.dataset.exportRows;
     els.sexDonut.innerHTML = emptyMarkup("No sex data in this filter.");
     els.sexLegend.innerHTML = "";
     return;
   }
 
-  let cumulative = 0;
-  const radius = 76;
-  const circumference = 2 * Math.PI * radius;
-  const rings = values
-    .map((item, index) => {
-      const fraction = item.count / total;
-      const dash = fraction * circumference;
-      const gap = circumference - dash;
-      const offset = -cumulative * circumference;
-      cumulative += fraction;
-      return `<circle cx="120" cy="120" r="${radius}" fill="none" stroke="${colors[index % colors.length]}" stroke-width="34" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}" transform="rotate(-90 120 120)"></circle>`;
-    })
-    .join("");
-
-  els.sexDonut.innerHTML = `
-    <svg viewBox="0 0 240 240" role="img" aria-label="Sex distribution donut">
-      <circle cx="120" cy="120" r="${radius}" fill="none" stroke="#edf2f8" stroke-width="34"></circle>
-      ${rings}
-      <text x="120" y="114" text-anchor="middle" fill="${palette.navy}" font-size="32" font-weight="850">${formatNumber(
-        total,
-      )}</text>
-      <text x="120" y="139" text-anchor="middle" fill="${palette.muted}" font-size="13" font-weight="700">participants</text>
-    </svg>`;
+  setExportRows(
+    els.sexDonut,
+    ["Sex", "Participants", "Share"],
+    values.map((item) => [item.name, item.count, `${Math.round((item.count / total) * 100)}%`]),
+  );
+  els.sexDonut.innerHTML = `<div class="inline-bars" role="img" aria-label="Sex distribution bars">
+    ${values
+      .map(
+        (item, index) => `<div class="bar-row">
+          <div class="bar-top">
+            <span>${escapeHtml(item.name)}</span>
+            <strong>${formatNumber(item.count)}</strong>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.max(
+            4,
+            (item.count / total) * 100,
+          )}%; background:${colors[index % colors.length]};"></div></div>
+        </div>`,
+      )
+      .join("")}
+  </div>`;
 
   els.sexLegend.innerHTML = values
     .map(
@@ -615,9 +642,21 @@ function renderCourseBars(rows) {
     }));
 
   if (!courses.length) {
+    delete els.courseBars.dataset.exportRows;
     els.courseBars.innerHTML = emptyMarkup("No course data in this filter.");
     return;
   }
+  setExportRows(
+    els.courseBars,
+    ["Course", "Pre-test", "Post-test", "Improvement", "Participants"],
+    courses.map((course) => [
+      course.name,
+      Math.round(course.pre),
+      Math.round(course.post),
+      Math.round(course.post - course.pre),
+      course.count,
+    ]),
+  );
 
   const width = 760;
   const height = 250;
@@ -647,10 +686,10 @@ function renderCourseBars(rows) {
           const lines = wrapLabel(course.name, 15, 2);
           const gain = Math.round(course.post - course.pre);
           return `<g>
-            <rect x="${center - barW - 3}" y="${yFor(course.pre)}" width="${barW}" height="${preH}" rx="5" fill="${palette.gold}"><title>${course.name} pre: ${Math.round(
+            <rect x="${center - barW - 3}" y="${yFor(course.pre)}" width="${barW}" height="${preH}" rx="5" fill="${palette.teal}"><title>${course.name} pre: ${Math.round(
               course.pre,
             )}%</title></rect>
-            <rect x="${center + 3}" y="${yFor(course.post)}" width="${barW}" height="${postH}" rx="5" fill="${palette.teal}"><title>${course.name} post: ${Math.round(
+            <rect x="${center + 3}" y="${yFor(course.post)}" width="${barW}" height="${postH}" rx="5" fill="${palette.violet}"><title>${course.name} post: ${Math.round(
               course.post,
             )}%</title></rect>
             <text class="axis-label" x="${center}" y="${Math.max(
@@ -670,9 +709,9 @@ function renderCourseBars(rows) {
         })
         .join("")}
       <g transform="translate(${width - 190} 6)">
-        <rect width="10" height="10" rx="2" fill="${palette.gold}"></rect>
+        <rect width="10" height="10" rx="2" fill="${palette.teal}"></rect>
         <text class="axis-label" x="16" y="10">Pre-test</text>
-        <rect x="86" width="10" height="10" rx="2" fill="${palette.teal}"></rect>
+        <rect x="86" width="10" height="10" rx="2" fill="${palette.violet}"></rect>
         <text class="axis-label" x="102" y="10">Post-test</text>
       </g>
     </svg>`;
@@ -685,9 +724,15 @@ function renderGainTrend(rows) {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   if (!grouped.length) {
+    delete els.gainTrendChart.dataset.exportRows;
     els.gainTrendChart.innerHTML = emptyMarkup("No paired score data in this filter.");
     return;
   }
+  setExportRows(
+    els.gainTrendChart,
+    ["Month", "Average score lift", "Participants"],
+    grouped.map((item) => [monthLabel(item.name), Math.round(item.gain), item.count]),
+  );
 
   const width = 760;
   const height = 250;
@@ -698,17 +743,13 @@ function renderGainTrend(rows) {
   const max = Math.max(1, ...grouped.map((item) => item.gain));
   const span = max - min || 1;
   const yFor = (value) => pad.top + plotH - ((value - min) / span) * plotH;
-  const points = grouped.map((item, index) => ({
-    ...item,
-    x: pad.left + (grouped.length === 1 ? plotW / 2 : (index / (grouped.length - 1)) * plotW),
-    y: yFor(item.gain),
-  }));
-  const path = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
-  const xLabels = points.filter((_, index) => index % Math.ceil(points.length / 7) === 0);
+  const groupW = plotW / grouped.length;
+  const barW = Math.min(44, Math.max(16, groupW * 0.54));
+  const xLabels = grouped.filter((_, index) => index % Math.ceil(grouped.length / 7) === 0);
   const ticks = [min, min + span * 0.33, min + span * 0.66, max].map((value) => Math.round(value));
 
   els.gainTrendChart.innerHTML = `
-    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Monthly average score lift">
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Monthly average score lift columns">
       ${ticks
         .map((tick) => {
           const y = yFor(tick);
@@ -717,22 +758,24 @@ function renderGainTrend(rows) {
           }" y2="${y}"></line><text class="axis-label" x="8" y="${y + 4}">${tick}</text>`;
         })
         .join("")}
-      <path d="${path}" fill="none" stroke="${palette.violet}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-      ${points
-        .map(
-          (point) =>
-            `<circle cx="${point.x}" cy="${point.y}" r="4" fill="#fff" stroke="${palette.violet}" stroke-width="3"><title>${monthLabel(
-              point.name,
-            )}: ${Math.round(point.gain)} pts from ${point.count} people</title></circle>`,
-        )
+      ${grouped
+        .map((item, index) => {
+          const x = pad.left + index * groupW + (groupW - barW) / 2;
+          const y = yFor(item.gain);
+          const barH = plotH - (y - pad.top);
+          return `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="7" fill="${palette.violet}"><title>${monthLabel(
+            item.name,
+          )}: ${Math.round(item.gain)} pts from ${item.count} people</title></rect>`;
+        })
         .join("")}
       ${xLabels
-        .map(
-          (point) =>
-            `<text class="axis-label" x="${point.x}" y="${height - 14}" text-anchor="middle">${monthLabel(
-              point.name,
-            )}</text>`,
-        )
+        .map((item) => {
+          const index = grouped.indexOf(item);
+          const x = pad.left + index * groupW + groupW / 2;
+          return `<text class="axis-label" x="${x}" y="${height - 14}" text-anchor="middle">${monthLabel(
+            item.name,
+          )}</text>`;
+        })
         .join("")}
     </svg>`;
 }
@@ -744,14 +787,20 @@ function renderDistrictGains(rows) {
     .sort((a, b) => b.value - a.value || b.count - a.count)
     .slice(0, 10);
 
-  renderMetricBars(els.districtGainBars, data, palette.violet, "pts");
+  renderMetricBars(els.districtGainBars, data, palette.teal, "pts");
 }
 
 function renderMetricBars(container, data, color, suffix = "") {
   if (!data.length) {
+    delete container.dataset.exportRows;
     container.innerHTML = emptyMarkup("No ranked score lift data in this filter.");
     return;
   }
+  setExportRows(
+    container,
+    ["Label", "Value", "Participants"],
+    data.map((item) => [item.name, Math.round(item.value), item.count]),
+  );
   const max = Math.max(...data.map((item) => Math.abs(item.value)), 1);
   container.innerHTML = data
     .map(
@@ -777,31 +826,50 @@ function renderCourseMix(rows) {
   const total = values.reduce((sum, item) => sum + item.count, 0);
 
   if (!total) {
+    delete els.courseMixDonut.dataset.exportRows;
     els.courseMixDonut.innerHTML = emptyMarkup("No course data in this filter.");
     els.courseMixLegend.innerHTML = "";
     return;
   }
 
-  let cumulative = 0;
-  const radius = 70;
-  const circumference = 2 * Math.PI * radius;
-  const rings = values
-    .map((item, index) => {
-      const fraction = item.count / total;
-      const dash = fraction * circumference;
-      const gap = circumference - dash;
-      const offset = -cumulative * circumference;
-      cumulative += fraction;
-      return `<circle cx="110" cy="110" r="${radius}" fill="none" stroke="${colors[index % colors.length]}" stroke-width="28" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}" transform="rotate(-90 110 110)"></circle>`;
-    })
-    .join("");
+  setExportRows(
+    els.courseMixDonut,
+    ["Course", "Participants", "Share"],
+    values.map((item) => [item.name, item.count, `${Math.round((item.count / total) * 100)}%`]),
+  );
+
+  const width = 360;
+  const height = 220;
+  const pad = { top: 18, right: 16, bottom: 52, left: 34 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const max = Math.max(...values.map((item) => item.count), 1);
+  const groupW = plotW / values.length;
+  const barW = Math.min(36, groupW * 0.54);
 
   els.courseMixDonut.innerHTML = `
-    <svg viewBox="0 0 220 220" role="img" aria-label="Course mix donut">
-      <circle cx="110" cy="110" r="${radius}" fill="none" stroke="#edf2f8" stroke-width="28"></circle>
-      ${rings}
-      <text x="110" y="106" text-anchor="middle" fill="${palette.navy}" font-size="26" font-weight="850">${values.length}</text>
-      <text x="110" y="128" text-anchor="middle" fill="${palette.muted}" font-size="12" font-weight="700">segments</text>
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Course mix columns">
+      ${[0, 0.5, 1]
+        .map((ratio) => {
+          const y = pad.top + plotH - ratio * plotH;
+          return `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${
+            width - pad.right
+          }" y2="${y}"></line>`;
+        })
+        .join("")}
+      ${values
+        .map((item, index) => {
+          const x = pad.left + index * groupW + (groupW - barW) / 2;
+          const barH = (item.count / max) * plotH;
+          const y = pad.top + plotH - barH;
+          return `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="7" fill="${
+            colors[index % colors.length]
+          }"><title>${item.name}: ${formatNumber(item.count)} people</title></rect>
+          <text class="axis-label" x="${x + barW / 2}" y="${height - 18}" text-anchor="middle">${Math.round(
+            (item.count / total) * 100,
+          )}%</text>`;
+        })
+        .join("")}
     </svg>`;
 
   els.courseMixLegend.innerHTML = values
@@ -817,9 +885,15 @@ function renderCourseMix(rows) {
 
 function renderRankedBars(container, data, color) {
   if (!data.length) {
+    delete container.dataset.exportRows;
     container.innerHTML = emptyMarkup("No data in this filter.");
     return;
   }
+  setExportRows(
+    container,
+    ["Label", "Participants"],
+    data.map((item) => [item.name, item.count]),
+  );
   const max = Math.max(...data.map((item) => item.count), 1);
   container.innerHTML = data
     .map(
@@ -842,6 +916,12 @@ function renderDatabaseSnapshot(rows) {
   const courses = new Set(rows.map((row) => row.course)).size;
   const paired = rows.filter((row) => Number.isFinite(row.pre) && Number.isFinite(row.post)).length;
   const completeness = rows.length ? Math.round((paired / rows.length) * 100) : 0;
+  setExportRows(document.querySelector(".database-summary"), ["Metric", "Value"], [
+    ["Total records", rows.length],
+    ["Facilities", facilities],
+    ["Courses", courses],
+    ["Paired scores", `${completeness}%`],
+  ]);
 
   els.dbRecords.textContent = formatNumber(rows.length);
   els.dbFacilities.textContent = formatNumber(facilities);
@@ -995,6 +1075,34 @@ async function exportPanel(panel, type) {
 }
 
 function panelRows(panel) {
+  const exported = panel.matches("[data-export-rows]") ? panel : panel.querySelector("[data-export-rows]");
+  if (exported?.dataset.exportRows) {
+    try {
+      const rows = JSON.parse(exported.dataset.exportRows);
+      if (rows?.length) return rows;
+    } catch (error) {
+      // Fall through to DOM extraction.
+    }
+  }
+
+  if (panel.classList.contains("database-panel")) {
+    return [
+      ["Name", "Sex", "Job title", "Organization", "Facility", "District", "Course", "Pre", "Post", "Gain"],
+      ...state.filtered.slice(0, 40).map((row) => [
+        row.name,
+        row.sex,
+        row.jobTitle,
+        row.organization,
+        row.facility,
+        row.district,
+        row.course,
+        row.pre ?? "",
+        row.post ?? "",
+        row.gain ?? "",
+      ]),
+    ];
+  }
+
   const rows = [...panel.querySelectorAll(".bar-row, .legend-row")].map((row) =>
     [...row.querySelectorAll("span, strong")].map((cell) => cell.textContent.trim()),
   );
@@ -1007,7 +1115,7 @@ function panelRows(panel) {
 
 async function panelImageBlob(panel) {
   const svg = panel.querySelector("svg");
-  const markup = svg ? normalizeSvg(svg) : summarySvg(panel);
+  const markup = svg ? normalizeSvg(svg) : panelSummarySvg(panel);
   return svgTextToPngBlob(markup.text, markup.width, markup.height);
 }
 
@@ -1019,6 +1127,11 @@ function normalizeSvg(svg) {
   const height = Number(clone.getAttribute("height")) || viewBox[3] || 520;
   clone.setAttribute("width", width);
   clone.setAttribute("height", height);
+  clone.querySelectorAll("text").forEach((node) => {
+    if (!node.getAttribute("font-family")) {
+      node.setAttribute("font-family", "Inter, Arial, sans-serif");
+    }
+  });
   const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   background.setAttribute("width", "100%");
   background.setAttribute("height", "100%");
@@ -1027,7 +1140,7 @@ function normalizeSvg(svg) {
   return { text: new XMLSerializer().serializeToString(clone), width, height };
 }
 
-function summarySvg(panel) {
+function panelSummarySvg(panel) {
   const title = escapeXml(panelTitle(panel));
   const subtitle = escapeXml(panel.querySelector(".panel-header p")?.textContent?.trim() || "");
   const rows = panelRows(panel).slice(1, 10);
@@ -1053,8 +1166,8 @@ function summarySvg(panel) {
     text: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
       <rect width="100%" height="100%" fill="#ffffff"/>
       <rect x="20" y="20" width="${width - 40}" height="${height - 40}" rx="18" fill="#fbfdff" stroke="#dfe6ef"/>
-      <text x="48" y="70" fill="#10233f" font-size="30" font-weight="850">${title}</text>
-      <text x="48" y="104" fill="#617088" font-size="18" font-weight="650">${subtitle}</text>
+      <text x="48" y="70" fill="#10233f" font-size="30" font-weight="850" font-family="Inter, Arial, sans-serif">${title}</text>
+      <text x="48" y="104" fill="#617088" font-size="18" font-weight="650" font-family="Inter, Arial, sans-serif">${subtitle}</text>
       ${body}
     </svg>`,
   };
@@ -1092,24 +1205,25 @@ async function exportDashboardImage() {
   const rows = [
     ["Total participants", els.kpiParticipants.textContent],
     ["Average improvement", els.kpiGain.textContent],
-    ["Districts covered", els.kpiDistricts.textContent],
-    ["Date window", els.dateWindow.textContent],
+    ["District score lift", els.kpiLift.textContent],
+    ["Completions", els.kpiCompletions.textContent],
+    ["Active districts", els.kpiDistricts.textContent],
   ];
-  const svg = summarySvgFromRows("Training Performance Dashboard", "Filtered dashboard summary", rows);
+  const svg = dashboardSummarySvg(rows);
   const blob = await svgTextToPngBlob(svg.text, svg.width, svg.height);
   downloadBlob(blob, "training-dashboard-summary.png");
   showToast("Dashboard image exported");
 }
 
-function summarySvgFromRows(titleValue, subtitleValue, rows) {
+function dashboardSummarySvg(rows) {
   const width = 1100;
-  const height = 190 + rows.length * 60;
+  const height = 210 + rows.length * 60;
   const rowsMarkup = rows
     .map(([label, value], index) => {
-      const y = 150 + index * 60;
-      return `<text x="70" y="${y}" fill="#617088" font-size="22" font-weight="750">${escapeXml(
+      const y = 160 + index * 60;
+      return `<text x="70" y="${y}" fill="#617088" font-size="22" font-weight="750" font-family="Inter, Arial, sans-serif">${escapeXml(
         label,
-      )}</text><text x="1030" y="${y}" fill="#10233f" font-size="32" font-weight="850" text-anchor="end">${escapeXml(
+      )}</text><text x="1030" y="${y}" fill="#10233f" font-size="32" font-weight="850" text-anchor="end" font-family="Inter, Arial, sans-serif">${escapeXml(
         value,
       )}</text>`;
     })
@@ -1120,8 +1234,8 @@ function summarySvgFromRows(titleValue, subtitleValue, rows) {
     text: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
       <rect width="100%" height="100%" fill="#ffffff"/>
       <rect x="28" y="28" width="${width - 56}" height="${height - 56}" rx="24" fill="#fbfdff" stroke="#dfe6ef"/>
-      <text x="70" y="82" fill="#10233f" font-size="38" font-weight="850">${escapeXml(titleValue)}</text>
-      <text x="70" y="118" fill="#617088" font-size="20" font-weight="650">${escapeXml(subtitleValue)}</text>
+      <text x="70" y="82" fill="#10233f" font-size="38" font-weight="850" font-family="Inter, Arial, sans-serif">Training Performance Dashboard</text>
+      <text x="70" y="118" fill="#617088" font-size="20" font-weight="650" font-family="Inter, Arial, sans-serif">Filtered dashboard summary</text>
       ${rowsMarkup}
     </svg>`,
   };
@@ -1181,10 +1295,6 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
-function csvCell(value) {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
-}
-
 function escapeXml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -1194,10 +1304,11 @@ function escapeXml(value) {
 }
 
 function downloadExcel(sheetName, rows, filename) {
+  const safeRows = rows?.length ? rows : [["No records"], ["No data matched the current filter."]];
   const html = `<!doctype html><html><head><meta charset="UTF-8"></head><body>
     <table>
       <caption>${escapeHtml(sheetName)}</caption>
-      ${rows
+      ${safeRows
         .map(
           (row) =>
             `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`,
@@ -1205,7 +1316,7 @@ function downloadExcel(sheetName, rows, filename) {
         .join("")}
     </table>
   </body></html>`;
-  downloadBlob(new Blob([html], { type: "application/vnd.ms-excel" }), filename);
+  downloadBlob(new Blob([`\ufeff${html}`], { type: "application/vnd.ms-excel;charset=utf-8" }), filename);
 }
 
 function slugify(value) {
