@@ -8,8 +8,11 @@ const palette = {
   coral: "#e86f52",
   gold: "#d9a441",
   green: "#2f9f6b",
+  violet: "#5368d8",
   muted: "#657188",
 };
+
+const premiumSelects = new Map();
 
 const state = {
   rows: [],
@@ -49,10 +52,15 @@ const els = {
   sexDonut: document.querySelector("#sexDonut"),
   sexLegend: document.querySelector("#sexLegend"),
   courseBars: document.querySelector("#courseBars"),
+  gainTrendChart: document.querySelector("#gainTrendChart"),
+  districtGainBars: document.querySelector("#districtGainBars"),
   districtBars: document.querySelector("#districtBars"),
+  courseMixDonut: document.querySelector("#courseMixDonut"),
+  courseMixLegend: document.querySelector("#courseMixLegend"),
   jobBars: document.querySelector("#jobBars"),
   organizationTable: document.querySelector("#organizationTable"),
   scoreBands: document.querySelector("#scoreBands"),
+  durationBands: document.querySelector("#durationBands"),
   participantTable: document.querySelector("#participantTable"),
   rowCount: document.querySelector("#rowCount"),
   dateRange: document.querySelector("#dateRange"),
@@ -165,7 +173,11 @@ function cleanLabel(value) {
 function cleanDistrict(value) {
   const district = cleanLabel(value);
   if (!district) return "";
-  return district.replace(/\s*,\s*/g, ", ");
+  return district
+    .replace(/\s*,\s*/g, ", ")
+    .split(" ")
+    .map((word) => (word ? `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}` : word))
+    .join(" ");
 }
 
 function isRealDistrict(value) {
@@ -199,6 +211,12 @@ function average(rows, key) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+function durationDays(row) {
+  if (!row.startDate || !row.endDate) return null;
+  const days = Math.round((row.endDate.getTime() - row.startDate.getTime()) / 86400000);
+  return days >= 0 && days <= 365 ? days : null;
+}
+
 function groupBy(rows, key) {
   return rows.reduce((map, row) => {
     const label = typeof key === "function" ? key(row) : row[key];
@@ -222,6 +240,91 @@ function fillSelect(select, values, current = "All") {
     select.append(option);
   });
   select.value = values.includes(current) ? current : "All";
+  renderPremiumSelect(select);
+}
+
+function renderPremiumSelect(select) {
+  select.classList.add("native-select");
+  let control = premiumSelects.get(select.id);
+
+  if (!control) {
+    control = createPremiumSelect(select);
+    premiumSelects.set(select.id, control);
+    select.insertAdjacentElement("afterend", control.root);
+  }
+
+  const options = [...select.options].map((option) => ({
+    value: option.value,
+    label: option.textContent,
+  }));
+  const current = options.find((option) => option.value === select.value) || options[0];
+
+  control.value.textContent = current?.label || "All";
+  control.options.innerHTML = options
+    .map(
+      (option) => `<button class="premium-select-option ${
+        option.value === select.value ? "active" : ""
+      }" type="button" data-value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</button>`,
+    )
+    .join("");
+}
+
+function createPremiumSelect(select) {
+  const root = document.createElement("div");
+  root.className = `premium-select premium-${select.id}`;
+  root.innerHTML = `
+    <button class="premium-select-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+      <span class="premium-select-value">All</span>
+      <span class="premium-select-chevron">v</span>
+    </button>
+    <div class="premium-select-menu">
+      <input class="premium-select-search" type="search" placeholder="Search options..." />
+      <div class="premium-select-options" role="listbox"></div>
+    </div>
+  `;
+
+  const button = root.querySelector(".premium-select-button");
+  const value = root.querySelector(".premium-select-value");
+  const search = root.querySelector(".premium-select-search");
+  const options = root.querySelector(".premium-select-options");
+
+  button.addEventListener("click", () => {
+    const shouldOpen = !root.classList.contains("open");
+    closePremiumSelects();
+    root.classList.toggle("open", shouldOpen);
+    button.setAttribute("aria-expanded", String(shouldOpen));
+    if (shouldOpen) {
+      search.value = "";
+      filterPremiumOptions(options, "");
+      search.focus();
+    }
+  });
+
+  search.addEventListener("input", () => filterPremiumOptions(options, search.value));
+
+  options.addEventListener("click", (event) => {
+    const option = event.target.closest(".premium-select-option");
+    if (!option) return;
+    select.value = option.dataset.value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    closePremiumSelects();
+  });
+
+  return { root, button, value, search, options };
+}
+
+function filterPremiumOptions(container, query) {
+  const needle = query.trim().toLowerCase();
+  container.querySelectorAll(".premium-select-option").forEach((option) => {
+    option.hidden = needle && !option.textContent.toLowerCase().includes(needle);
+  });
+}
+
+function closePremiumSelects() {
+  premiumSelects.forEach((control) => {
+    control.root.classList.remove("open");
+    control.button.setAttribute("aria-expanded", "false");
+  });
 }
 
 function uniqueSorted(rows, key) {
@@ -281,14 +384,18 @@ function render() {
   renderTrend(rows);
   renderSex(rows);
   renderCourseBars(rows);
+  renderGainTrend(rows);
+  renderDistrictGains(rows);
   renderRankedBars(
     els.districtBars,
     countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10),
     palette.teal,
   );
+  renderCourseMix(rows);
   renderRankedBars(els.jobBars, countBy(rows, "jobTitle").slice(0, 8), palette.gold);
   renderOrganizations(rows);
   renderScoreBands(rows);
+  renderDurationBands(rows);
   renderParticipants(rows);
 }
 
@@ -519,6 +626,143 @@ function renderCourseBars(rows) {
     </svg>`;
 }
 
+function renderGainTrend(rows) {
+  const grouped = [...groupBy(rows.filter((row) => row.startMonth !== "Unknown"), "startMonth")]
+    .map(([name, items]) => ({ name, gain: average(items, "gain"), count: items.length }))
+    .filter((item) => Number.isFinite(item.gain))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!grouped.length) {
+    els.gainTrendChart.innerHTML = emptyMarkup("No paired score data in this filter.");
+    return;
+  }
+
+  const width = 760;
+  const height = 250;
+  const pad = { top: 18, right: 24, bottom: 42, left: 48 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const min = Math.min(0, ...grouped.map((item) => item.gain));
+  const max = Math.max(1, ...grouped.map((item) => item.gain));
+  const span = max - min || 1;
+  const yFor = (value) => pad.top + plotH - ((value - min) / span) * plotH;
+  const points = grouped.map((item, index) => ({
+    ...item,
+    x: pad.left + (grouped.length === 1 ? plotW / 2 : (index / (grouped.length - 1)) * plotW),
+    y: yFor(item.gain),
+  }));
+  const path = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
+  const xLabels = points.filter((_, index) => index % Math.ceil(points.length / 7) === 0);
+  const ticks = [min, min + span * 0.33, min + span * 0.66, max].map((value) => Math.round(value));
+
+  els.gainTrendChart.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Monthly average score lift">
+      ${ticks
+        .map((tick) => {
+          const y = yFor(tick);
+          return `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${
+            width - pad.right
+          }" y2="${y}"></line><text class="axis-label" x="8" y="${y + 4}">${tick}</text>`;
+        })
+        .join("")}
+      <path d="${path}" fill="none" stroke="${palette.violet}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+      ${points
+        .map(
+          (point) =>
+            `<circle cx="${point.x}" cy="${point.y}" r="4" fill="#fff" stroke="${palette.violet}" stroke-width="3"><title>${monthLabel(
+              point.name,
+            )}: ${Math.round(point.gain)} pts from ${point.count} people</title></circle>`,
+        )
+        .join("")}
+      ${xLabels
+        .map(
+          (point) =>
+            `<text class="axis-label" x="${point.x}" y="${height - 14}" text-anchor="middle">${monthLabel(
+              point.name,
+            )}</text>`,
+        )
+        .join("")}
+    </svg>`;
+}
+
+function renderDistrictGains(rows) {
+  const data = countBy(rows.filter((row) => isRealDistrict(row.district)), "district")
+    .map((item) => ({ name: item.name, value: average(item.rows, "gain"), count: item.count }))
+    .filter((item) => Number.isFinite(item.value) && item.count >= 3)
+    .sort((a, b) => b.value - a.value || b.count - a.count)
+    .slice(0, 10);
+
+  renderMetricBars(els.districtGainBars, data, palette.violet, "pts");
+}
+
+function renderMetricBars(container, data, color, suffix = "") {
+  if (!data.length) {
+    container.innerHTML = emptyMarkup("No ranked score lift data in this filter.");
+    return;
+  }
+  const max = Math.max(...data.map((item) => Math.abs(item.value)), 1);
+  container.innerHTML = data
+    .map(
+      (item) => `<div class="bar-row">
+        <div class="bar-top">
+          <span>${escapeHtml(shorten(item.name, 34))}</span>
+          <strong>${item.value >= 0 ? "+" : ""}${Math.round(item.value)}${suffix ? ` ${suffix}` : ""}</strong>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(
+          3,
+          (Math.abs(item.value) / max) * 100,
+        )}%; background:${color};"></div></div>
+      </div>`,
+    )
+    .join("");
+}
+
+function renderCourseMix(rows) {
+  const values = countBy(rows, "course").slice(0, 5);
+  const remainder = rows.length - values.reduce((sum, item) => sum + item.count, 0);
+  if (remainder > 0) values.push({ name: "Other courses", count: remainder });
+  const colors = [palette.teal, palette.violet, palette.gold, palette.coral, palette.green, palette.navy];
+  const total = values.reduce((sum, item) => sum + item.count, 0);
+
+  if (!total) {
+    els.courseMixDonut.innerHTML = emptyMarkup("No course data in this filter.");
+    els.courseMixLegend.innerHTML = "";
+    return;
+  }
+
+  let cumulative = 0;
+  const radius = 70;
+  const circumference = 2 * Math.PI * radius;
+  const rings = values
+    .map((item, index) => {
+      const fraction = item.count / total;
+      const dash = fraction * circumference;
+      const gap = circumference - dash;
+      const offset = -cumulative * circumference;
+      cumulative += fraction;
+      return `<circle cx="110" cy="110" r="${radius}" fill="none" stroke="${colors[index % colors.length]}" stroke-width="28" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}" transform="rotate(-90 110 110)"></circle>`;
+    })
+    .join("");
+
+  els.courseMixDonut.innerHTML = `
+    <svg viewBox="0 0 220 220" role="img" aria-label="Course mix donut">
+      <circle cx="110" cy="110" r="${radius}" fill="none" stroke="#edf2f8" stroke-width="28"></circle>
+      ${rings}
+      <text x="110" y="106" text-anchor="middle" fill="${palette.navy}" font-size="26" font-weight="850">${values.length}</text>
+      <text x="110" y="128" text-anchor="middle" fill="${palette.muted}" font-size="12" font-weight="700">segments</text>
+    </svg>`;
+
+  els.courseMixLegend.innerHTML = values
+    .map(
+      (item, index) => `<div class="legend-row">
+        <span class="dot" style="background:${colors[index % colors.length]}"></span>
+        <span>${escapeHtml(shorten(item.name, 22))}</span>
+        <strong>${Math.round((item.count / total) * 100)}%</strong>
+      </div>`,
+    )
+    .join("");
+}
+
 function renderRankedBars(container, data, color) {
   if (!data.length) {
     container.innerHTML = emptyMarkup("No data in this filter.");
@@ -576,6 +820,35 @@ function renderScoreBands(rows) {
       (band) => `<div class="band-card">
         <strong style="color:${band.color}">${formatNumber(band.count)}</strong>
         <span>${band.name} post-test (${Math.round((band.count / total) * 100)}%)</span>
+        <div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(
+          2,
+          (band.count / total) * 100,
+        )}%; background:${band.color}"></div></div>
+      </div>`,
+    )
+    .join("");
+}
+
+function renderDurationBands(rows) {
+  const bands = [
+    { name: "Same day", test: (value) => value === 0, color: palette.green },
+    { name: "1-3 days", test: (value) => value >= 1 && value <= 3, color: palette.teal },
+    { name: "4-7 days", test: (value) => value >= 4 && value <= 7, color: palette.violet },
+    { name: "8+ days", test: (value) => value >= 8, color: palette.gold },
+  ].map((band) => ({
+    ...band,
+    count: rows.filter((row) => {
+      const days = durationDays(row);
+      return Number.isFinite(days) && band.test(days);
+    }).length,
+  }));
+  const total = bands.reduce((sum, band) => sum + band.count, 0) || 1;
+
+  els.durationBands.innerHTML = bands
+    .map(
+      (band) => `<div class="band-card">
+        <strong style="color:${band.color}">${formatNumber(band.count)}</strong>
+        <span>${band.name} (${Math.round((band.count / total) * 100)}%)</span>
         <div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(
           2,
           (band.count / total) * 100,
@@ -666,6 +939,7 @@ els.searchInput.addEventListener("input", (event) => {
 ].forEach(([select, key]) => {
   select.addEventListener("change", (event) => {
     state.filters[key] = event.target.value;
+    renderPremiumSelect(select);
     applyFilters();
   });
 });
@@ -678,6 +952,14 @@ els.resetFilters.addEventListener("click", () => {
 });
 
 els.refreshData.addEventListener("click", () => loadData(LIVE_CSV));
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".premium-select")) closePremiumSelects();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closePremiumSelects();
+});
 
 els.navItems.forEach((item) => {
   item.addEventListener("click", () => {

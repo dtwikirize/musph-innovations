@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Training Dashboard</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -36,9 +37,15 @@
 
       <main class="dashboard">
         <header class="topbar">
-          <div>
-            <p class="eyeline" id="activeViewLabel">Overview</p>
-            <h1>Training Performance Dashboard</h1>
+          <div class="title-lockup">
+            <div class="institution-logos">
+              <img src="/logos/moh_logo.png" alt="Ministry of Health logo" />
+              <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health logo" />
+            </div>
+            <div>
+              <p class="eyeline" id="activeViewLabel">Overview</p>
+              <h1>Training Performance Dashboard</h1>
+            </div>
           </div>
           <div class="topbar-actions">
             <button class="ghost-button" id="resetFilters" type="button">Reset</button>
@@ -141,6 +148,16 @@
             <div class="chart-frame" id="courseBars"></div>
           </article>
 
+          <article class="panel span-5" data-section="overview scores coverage">
+            <div class="panel-header">
+              <div>
+                <h2>District Score Lift</h2>
+                <p>Highest average improvement</p>
+              </div>
+            </div>
+            <div class="ranked-bars" id="districtGainBars"></div>
+          </article>
+
           <article class="panel span-5" data-section="overview coverage">
             <div class="panel-header">
               <div>
@@ -151,6 +168,29 @@
             <div class="ranked-bars" id="districtBars"></div>
           </article>
 
+          <article class="panel span-7" data-section="overview scores">
+            <div class="panel-header">
+              <div>
+                <h2>Monthly Average Score Lift</h2>
+                <p>Average gain by training start month</p>
+              </div>
+            </div>
+            <div class="chart-frame" id="gainTrendChart"></div>
+          </article>
+
+          <article class="panel span-4" data-section="overview coverage">
+            <div class="panel-header">
+              <div>
+                <h2>Course Mix</h2>
+                <p>Participants by course</p>
+              </div>
+            </div>
+            <div class="donut-layout compact-donut">
+              <div class="chart-frame donut-frame" id="courseMixDonut"></div>
+              <div class="legend-list" id="courseMixLegend"></div>
+            </div>
+          </article>
+
           <article class="panel span-4" data-section="overview people">
             <div class="panel-header">
               <div>
@@ -159,6 +199,16 @@
               </div>
             </div>
             <div class="ranked-bars compact" id="jobBars"></div>
+          </article>
+
+          <article class="panel span-4" data-section="overview coverage">
+            <div class="panel-header">
+              <div>
+                <h2>Training Duration</h2>
+                <p>Start to end date bands</p>
+              </div>
+            </div>
+            <div class="band-stack" id="durationBands"></div>
           </article>
 
           <article class="panel span-4" data-section="overview coverage people">
@@ -223,6 +273,14 @@
         </section>
       </main>
     </div>
+
+    <footer class="site-footer" aria-label="Partner organizations">
+      <div class="footer-logos" aria-label="Partner organizations">
+        <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health" />
+        <img src="/logos/moh_logo.png" alt="Ministry of Health" />
+        <img src="/logos/cranesurvey.png" alt="Cranesurvey Project" />
+      </div>
+    </footer>
 
     <script type="module" src="./app.js"></script>
   </body>
