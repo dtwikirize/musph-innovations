@@ -241,47 +241,6 @@ h1 {
   align-items: center;
 }
 
-.export-control {
-  position: relative;
-}
-
-.export-menu {
-  position: absolute;
-  z-index: 60;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 180px;
-  display: none;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 18px 46px rgba(16, 35, 63, 0.16);
-  padding: 6px;
-}
-
-.export-control.open .export-menu,
-.panel-export.open .export-menu {
-  display: grid;
-}
-
-.export-menu button {
-  min-height: 36px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ink);
-  padding: 0 10px;
-  font-size: 12px;
-  font-weight: 760;
-  text-align: left;
-  cursor: pointer;
-}
-
-.export-menu button:hover {
-  background: #edf8f7;
-  color: #087c83;
-}
-
 .utility-button,
 .primary-button,
 .ghost-button {
@@ -324,10 +283,6 @@ h1 {
 
 .utility-button strong {
   font-size: 13px;
-}
-
-.export-button {
-  border-color: rgba(21, 154, 149, 0.18);
 }
 
 .primary-button {
@@ -774,22 +729,6 @@ h1 {
   min-width: 0;
 }
 
-.panel-tools {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.panel-export {
-  position: relative;
-}
-
-.panel-export .export-menu {
-  top: calc(100% + 6px);
-  right: 0;
-  width: 142px;
-}
-
 .panel-meta {
   display: inline-flex;
   gap: 10px;
@@ -878,14 +817,6 @@ h1 {
 .legend-list {
   display: grid;
   gap: 10px;
-}
-
-.inline-bars {
-  min-height: 188px;
-  display: grid;
-  align-content: center;
-  gap: 12px;
-  padding: 12px 4px;
 }
 
 .legend-row,
@@ -1205,10 +1136,6 @@ td {
   box-shadow: none;
 }
 
-.focus-body .panel-tools {
-  display: none;
-}
-
 .toast {
   position: fixed;
   right: 20px;
@@ -1376,14 +1303,6 @@ td {
   .primary-button,
   .ghost-button {
     flex: 1;
-  }
-
-  .export-control {
-    min-width: 0;
-  }
-
-  .export-control .utility-button {
-    width: 100%;
   }
 
   h1 {
