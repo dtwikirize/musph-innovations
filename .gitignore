@@ -1,3 +1,5 @@
 .playwright-cli/
 dashboard-*.png
 qa-check.mjs
+dist/
+node_modules/
