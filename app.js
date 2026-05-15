@@ -42,6 +42,7 @@ const els = {
   refreshData: document.querySelector("#refreshData"),
   toggleFilters: document.querySelector("#toggleFilters"),
   exportData: document.querySelector("#exportData"),
+  exportMenu: document.querySelector("#exportMenu"),
   dateWindow: document.querySelector("#dateWindow strong"),
   kpiParticipants: document.querySelector("#kpiParticipants"),
   kpiFacilities: document.querySelector("#kpiFacilities"),
@@ -333,6 +334,14 @@ function closePremiumSelects() {
   premiumSelects.forEach((control) => {
     control.root.classList.remove("open");
     control.button.setAttribute("aria-expanded", "false");
+  });
+}
+
+function closeExportMenus(except = null) {
+  document.querySelectorAll(".export-control.open, .panel-export.open").forEach((control) => {
+    if (except && control === except) return;
+    control.classList.remove("open");
+    control.querySelector("[aria-expanded]")?.setAttribute("aria-expanded", "false");
   });
 }
 
@@ -918,19 +927,25 @@ function hydratePanelTools() {
     const tools = document.createElement("div");
     tools.className = "panel-tools";
     tools.innerHTML = `
-      <button class="icon-button" type="button" data-panel-action="copy" aria-label="Copy visual summary">
+      <button class="icon-button" type="button" data-panel-action="copy-image" aria-label="Copy visual image">
         <svg viewBox="0 0 24 24">
           <rect x="9" y="9" width="11" height="11" rx="2"></rect>
           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
         </svg>
       </button>
-      <button class="icon-button" type="button" data-panel-action="export" aria-label="Export visual">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 3v12"></path>
-          <path d="m7 10 5 5 5-5"></path>
-          <path d="M5 21h14"></path>
-        </svg>
-      </button>
+      <div class="panel-export">
+        <button class="icon-button" type="button" data-panel-action="toggle-export" aria-label="Export visual">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v12"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+        </button>
+        <div class="export-menu">
+          <button type="button" data-panel-export="image">Image</button>
+          <button type="button" data-panel-export="excel">Excel</button>
+        </div>
+      </div>
       <button class="icon-button" type="button" data-panel-action="focus" aria-label="Open focus mode">
         <svg viewBox="0 0 24 24">
           <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path>
@@ -955,43 +970,161 @@ function panelTitle(panel) {
   return panel.querySelector(".panel-header h2")?.textContent?.trim() || "visual";
 }
 
-async function copyPanelSummary(panel) {
-  const text = panel.innerText.replace(/\s+/g, " ").trim();
-  if (!text) return;
+async function copyPanelImage(panel) {
   try {
-    await navigator.clipboard.writeText(text);
-    showToast(`${panelTitle(panel)} copied`);
+    const blob = await panelImageBlob(panel);
+    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+    showToast(`${panelTitle(panel)} image copied`);
   } catch (error) {
-    const helper = document.createElement("textarea");
-    helper.value = text;
-    helper.setAttribute("readonly", "");
-    helper.style.position = "fixed";
-    helper.style.opacity = "0";
-    document.body.append(helper);
-    helper.select();
-    document.execCommand("copy");
-    helper.remove();
-    showToast(`${panelTitle(panel)} copied`);
+    const blob = await panelImageBlob(panel);
+    downloadBlob(blob, `${slugify(panelTitle(panel))}.png`);
+    showToast("Image downloaded; clipboard was unavailable");
   }
 }
 
-function exportPanel(panel) {
-  const svg = panel.querySelector("svg");
-  if (svg) {
-    const blob = new Blob([new XMLSerializer().serializeToString(svg)], {
-      type: "image/svg+xml;charset=utf-8",
-    });
-    downloadBlob(blob, `${slugify(panelTitle(panel))}.svg`);
-    showToast(`${panelTitle(panel)} exported`);
-    return;
+async function exportPanel(panel, type) {
+  if (type === "image") {
+    const blob = await panelImageBlob(panel);
+    downloadBlob(blob, `${slugify(panelTitle(panel))}.png`);
+    showToast(`${panelTitle(panel)} image exported`);
+  } else {
+    const rows = panelRows(panel);
+    downloadExcel(`${panelTitle(panel)}`, rows, `${slugify(panelTitle(panel))}.xls`);
+    showToast(`${panelTitle(panel)} Excel exported`);
   }
+}
 
+function panelRows(panel) {
   const rows = [...panel.querySelectorAll(".bar-row, .legend-row")].map((row) =>
     [...row.querySelectorAll("span, strong")].map((cell) => cell.textContent.trim()),
   );
-  const csv = rows.map((row) => row.map(csvCell).join(",")).join("\n");
-  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `${slugify(panelTitle(panel))}.csv`);
-  showToast(`${panelTitle(panel)} exported`);
+  if (rows.length) return [["Label", "Value"], ...rows.map((row) => [row[0], row[row.length - 1] || ""])];
+
+  const svg = panel.querySelector("svg");
+  if (!svg) return [["Summary"], [panel.innerText.replace(/\s+/g, " ").trim()]];
+  return [["Visual"], [panelTitle(panel)], ["Note"], ["Image-based chart exported separately as PNG."]];
+}
+
+async function panelImageBlob(panel) {
+  const svg = panel.querySelector("svg");
+  const markup = svg ? normalizeSvg(svg) : summarySvg(panel);
+  return svgTextToPngBlob(markup.text, markup.width, markup.height);
+}
+
+function normalizeSvg(svg) {
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  const viewBox = clone.getAttribute("viewBox")?.split(/\s+/).map(Number) || [];
+  const width = Number(clone.getAttribute("width")) || viewBox[2] || 960;
+  const height = Number(clone.getAttribute("height")) || viewBox[3] || 520;
+  clone.setAttribute("width", width);
+  clone.setAttribute("height", height);
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  background.setAttribute("width", "100%");
+  background.setAttribute("height", "100%");
+  background.setAttribute("fill", "#ffffff");
+  clone.prepend(background);
+  return { text: new XMLSerializer().serializeToString(clone), width, height };
+}
+
+function summarySvg(panel) {
+  const title = escapeXml(panelTitle(panel));
+  const subtitle = escapeXml(panel.querySelector(".panel-header p")?.textContent?.trim() || "");
+  const rows = panelRows(panel).slice(1, 10);
+  const width = 960;
+  const height = 180 + rows.length * 54;
+  const body = rows
+    .map(([label, value], index) => {
+      const y = 132 + index * 54;
+      return `<g>
+        <text x="48" y="${y}" fill="#10192b" font-size="24" font-weight="700">${escapeXml(
+          shorten(label, 48),
+        )}</text>
+        <text x="912" y="${y}" fill="#10192b" font-size="24" font-weight="800" text-anchor="end">${escapeXml(
+          value,
+        )}</text>
+        <line x1="48" y1="${y + 22}" x2="912" y2="${y + 22}" stroke="#e8edf4" stroke-width="2"/>
+      </g>`;
+    })
+    .join("");
+  return {
+    width,
+    height,
+    text: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <rect width="100%" height="100%" fill="#ffffff"/>
+      <rect x="20" y="20" width="${width - 40}" height="${height - 40}" rx="18" fill="#fbfdff" stroke="#dfe6ef"/>
+      <text x="48" y="70" fill="#10233f" font-size="30" font-weight="850">${title}</text>
+      <text x="48" y="104" fill="#617088" font-size="18" font-weight="650">${subtitle}</text>
+      ${body}
+    </svg>`,
+  };
+}
+
+function svgTextToPngBlob(svgText, width, height) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const svgBlob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(width * 2);
+      canvas.height = Math.ceil(height * 2);
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.scale(2, 2);
+      context.drawImage(image, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Could not render image."));
+      }, "image/png");
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not load visual image."));
+    };
+    image.src = url;
+  });
+}
+
+async function exportDashboardImage() {
+  const rows = [
+    ["Total participants", els.kpiParticipants.textContent],
+    ["Average improvement", els.kpiGain.textContent],
+    ["Districts covered", els.kpiDistricts.textContent],
+    ["Date window", els.dateWindow.textContent],
+  ];
+  const svg = summarySvgFromRows("Training Performance Dashboard", "Filtered dashboard summary", rows);
+  const blob = await svgTextToPngBlob(svg.text, svg.width, svg.height);
+  downloadBlob(blob, "training-dashboard-summary.png");
+  showToast("Dashboard image exported");
+}
+
+function summarySvgFromRows(titleValue, subtitleValue, rows) {
+  const width = 1100;
+  const height = 190 + rows.length * 60;
+  const rowsMarkup = rows
+    .map(([label, value], index) => {
+      const y = 150 + index * 60;
+      return `<text x="70" y="${y}" fill="#617088" font-size="22" font-weight="750">${escapeXml(
+        label,
+      )}</text><text x="1030" y="${y}" fill="#10233f" font-size="32" font-weight="850" text-anchor="end">${escapeXml(
+        value,
+      )}</text>`;
+    })
+    .join("");
+  return {
+    width,
+    height,
+    text: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <rect width="100%" height="100%" fill="#ffffff"/>
+      <rect x="28" y="28" width="${width - 56}" height="${height - 56}" rx="24" fill="#fbfdff" stroke="#dfe6ef"/>
+      <text x="70" y="82" fill="#10233f" font-size="38" font-weight="850">${escapeXml(titleValue)}</text>
+      <text x="70" y="118" fill="#617088" font-size="20" font-weight="650">${escapeXml(subtitleValue)}</text>
+      ${rowsMarkup}
+    </svg>`,
+  };
 }
 
 function exportFilteredRows() {
@@ -1019,9 +1152,8 @@ function exportFilteredRows() {
     row.post ?? "",
     row.gain ?? "",
   ]);
-  const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
-  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "training-dashboard-export.csv");
-  showToast("Filtered dataset exported");
+  downloadExcel("Training Dashboard Export", [headers, ...rows], "training-dashboard-export.xls");
+  showToast("Excel workbook exported");
 }
 
 function openFocusMode(panel) {
@@ -1051,6 +1183,29 @@ function downloadBlob(blob, filename) {
 
 function csvCell(value) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function escapeXml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function downloadExcel(sheetName, rows, filename) {
+  const html = `<!doctype html><html><head><meta charset="UTF-8"></head><body>
+    <table>
+      <caption>${escapeHtml(sheetName)}</caption>
+      ${rows
+        .map(
+          (row) =>
+            `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`,
+        )
+        .join("")}
+    </table>
+  </body></html>`;
+  downloadBlob(new Blob([html], { type: "application/vnd.ms-excel" }), filename);
 }
 
 function slugify(value) {
@@ -1120,23 +1275,49 @@ els.toggleFilters.addEventListener("click", () => {
   const collapsed = document.querySelector(".filter-shell").classList.toggle("is-collapsed");
   els.toggleFilters.setAttribute("aria-expanded", String(!collapsed));
 });
-els.exportData.addEventListener("click", exportFilteredRows);
+els.exportData.addEventListener("click", (event) => {
+  event.stopPropagation();
+  closeExportMenus();
+  const control = event.currentTarget.closest(".export-control");
+  control.classList.toggle("open");
+  event.currentTarget.setAttribute("aria-expanded", String(control.classList.contains("open")));
+});
+els.exportMenu.addEventListener("click", (event) => {
+  const action = event.target.closest("[data-global-export]")?.dataset.globalExport;
+  if (action === "excel") exportFilteredRows();
+  if (action === "image") exportDashboardImage();
+  closeExportMenus();
+});
 
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".premium-select")) closePremiumSelects();
+  if (!event.target.closest(".export-control") && !event.target.closest(".panel-export")) {
+    closeExportMenus();
+  }
   const panelButton = event.target.closest("[data-panel-action]");
   if (panelButton) {
     const panel = panelButton.closest(".panel");
     const action = panelButton.dataset.panelAction;
-    if (action === "copy") copyPanelSummary(panel);
-    if (action === "export") exportPanel(panel);
+    if (action === "copy-image") copyPanelImage(panel);
+    if (action === "toggle-export") {
+      event.stopPropagation();
+      closeExportMenus(panelButton.closest(".panel-export"));
+      panelButton.closest(".panel-export").classList.toggle("open");
+    }
     if (action === "focus") openFocusMode(panel);
+  }
+  const panelExport = event.target.closest("[data-panel-export]");
+  if (panelExport) {
+    const panel = panelExport.closest(".panel");
+    exportPanel(panel, panelExport.dataset.panelExport);
+    closeExportMenus();
   }
   if (event.target.closest("[data-close-focus]")) closeFocusMode();
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
+  if (event.key === "Escape") closeExportMenus();
   if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
 });
 

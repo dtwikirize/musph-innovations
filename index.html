@@ -10,13 +10,6 @@
   <body>
     <div class="app-shell">
       <aside class="side-nav" aria-label="Dashboard navigation">
-        <div class="brand-lockup">
-          <img class="brand-seal" src="/logos/maksph_logo.png" alt="" />
-          <div>
-            <strong>Makerere University</strong>
-            <span>School of Public Health</span>
-          </div>
-        </div>
         <p class="nav-section-label">Analytics</p>
         <button class="nav-item active" type="button" title="Overview" data-view="overview" aria-pressed="true">
           <span class="nav-icon" aria-hidden="true">
@@ -64,25 +57,20 @@
           </span>
           <span>Database</span>
         </button>
-        <div class="side-meta">
-          <span>Live source</span>
-          <strong>Training dataset</strong>
+        <div class="side-meta side-partners" aria-label="Partner logos">
+          <span>Implemented by</span>
+          <div class="side-logo-stack">
+            <img src="/logos/moh_logo.png" alt="Ministry of Health" />
+            <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health" />
+            <img src="/logos/cranesurvey.png" alt="Cranesurvey Project" />
+          </div>
+          <strong>MoH • MAKSPH • Cranesurvey</strong>
         </div>
       </aside>
 
       <main class="dashboard">
         <header class="topbar">
           <div class="title-block">
-            <div class="institution-strip">
-              <div class="lead-org">
-                <img src="/logos/moh_logo.png" alt="Ministry of Health logo" />
-                <span>Ministry of Health</span>
-              </div>
-              <div class="lead-org">
-                <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health logo" />
-                <span>Makerere University School of Public Health</span>
-              </div>
-            </div>
             <p class="eyeline" id="activeViewLabel">Overview</p>
             <h1>Training Performance Dashboard</h1>
             <p class="dashboard-description">
@@ -90,10 +78,6 @@
             </p>
           </div>
           <div class="topbar-side">
-            <div class="partner-lockup">
-              <span>In partnership with</span>
-              <img src="/logos/cranesurvey.png" alt="Cranesurvey Project logo" />
-            </div>
             <div class="utility-actions">
               <button class="utility-button" id="dateWindow" type="button">
                 <span aria-hidden="true">
@@ -112,16 +96,22 @@
                 </span>
                 <strong>Filters</strong>
               </button>
-              <button class="utility-button export-button" id="exportData" type="button">
-                <span aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M12 3v12"></path>
-                    <path d="m7 10 5 5 5-5"></path>
-                    <path d="M5 21h14"></path>
-                  </svg>
-                </span>
-                <strong>Export</strong>
-              </button>
+              <div class="export-control">
+                <button class="utility-button export-button" id="exportData" type="button" aria-expanded="false">
+                  <span aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 3v12"></path>
+                      <path d="m7 10 5 5 5-5"></path>
+                      <path d="M5 21h14"></path>
+                    </svg>
+                  </span>
+                  <strong>Export</strong>
+                </button>
+                <div class="export-menu" id="exportMenu">
+                  <button type="button" data-global-export="image">Dashboard image</button>
+                  <button type="button" data-global-export="excel">Excel workbook</button>
+                </div>
+              </div>
               <button class="ghost-button" id="resetFilters" type="button">Reset</button>
               <button class="primary-button" id="refreshData" type="button">Refresh data</button>
             </div>
@@ -184,18 +174,6 @@
             <small id="kpiGainContext">Pre to post</small>
           </article>
           <article class="kpi-card">
-            <span class="kpi-icon gold" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M4 20h16"></path>
-                <path d="M7 20V9h4v11"></path>
-                <path d="M13 20V4h4v16"></path>
-              </svg>
-            </span>
-            <span>Average post-test</span>
-            <strong id="kpiPost">0%</strong>
-            <small id="kpiPre">Baseline 0%</small>
-          </article>
-          <article class="kpi-card">
             <span class="kpi-icon blue" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M4 21V8l8-5 8 5v13"></path>
@@ -206,6 +184,8 @@
             <strong id="kpiDistricts">0</strong>
             <small id="kpiCourses">0 courses</small>
           </article>
+          <span id="kpiPre" hidden>Baseline 0%</span>
+          <span id="kpiPost" hidden>0%</span>
         </section>
 
         <section class="visual-grid">
