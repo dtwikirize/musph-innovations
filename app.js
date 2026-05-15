@@ -19,6 +19,7 @@ const state = {
   rows: [],
   filtered: [],
   activeView: "overview",
+  databaseUnlocked: false,
   filters: {
     search: "",
     course: "All",
@@ -70,6 +71,9 @@ const els = {
   focusLayer: document.querySelector("#focusLayer"),
   focusTitle: document.querySelector("#focusTitle"),
   focusBody: document.querySelector("#focusBody"),
+  databaseAccessLayer: document.querySelector("#databaseAccessLayer"),
+  databaseAccessForm: document.querySelector("#databaseAccessForm"),
+  databaseAccessCode: document.querySelector("#databaseAccessCode"),
   toast: document.querySelector("#toast"),
 };
 
@@ -919,6 +923,19 @@ function closeFocusMode() {
   document.body.style.overflow = "";
 }
 
+function openDatabaseAccess() {
+  els.databaseAccessLayer.hidden = false;
+  els.databaseAccessCode.value = "";
+  document.body.style.overflow = "hidden";
+  window.setTimeout(() => els.databaseAccessCode.focus(), 0);
+}
+
+function closeDatabaseAccess() {
+  els.databaseAccessLayer.hidden = true;
+  els.databaseAccessCode.value = "";
+  if (els.focusLayer.hidden) document.body.style.overflow = "";
+}
+
 let toastTimer;
 function showToast(message) {
   els.toast.textContent = message;
@@ -981,19 +998,40 @@ els.toggleFilters.addEventListener("click", () => {
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".premium-select")) closePremiumSelects();
   if (event.target.closest("[data-close-focus]")) closeFocusMode();
+  if (event.target.closest("[data-close-database-access]")) closeDatabaseAccess();
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
   if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
+  if (event.key === "Escape" && !els.databaseAccessLayer.hidden) closeDatabaseAccess();
 });
 
 els.navItems.forEach((item) => {
   item.addEventListener("click", () => {
+    if (item.dataset.view === "database" && !state.databaseUnlocked) {
+      openDatabaseAccess();
+      return;
+    }
     state.activeView = item.dataset.view;
     renderView();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
+});
+
+els.databaseAccessForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (els.databaseAccessCode.value.trim() !== "K2026") {
+    showToast("Incorrect database code");
+    els.databaseAccessCode.select();
+    return;
+  }
+  state.databaseUnlocked = true;
+  state.activeView = "database";
+  closeDatabaseAccess();
+  renderView();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  showToast("Database unlocked");
 });
 
 loadData();

@@ -366,6 +366,32 @@
       </section>
     </div>
 
+    <div class="access-layer" id="databaseAccessLayer" hidden>
+      <div class="access-backdrop" data-close-database-access></div>
+      <section class="access-card" role="dialog" aria-modal="true" aria-labelledby="databaseAccessTitle">
+        <div class="access-heading">
+          <span class="access-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <rect x="4" y="10" width="16" height="11" rx="2"></rect>
+              <path d="M8 10V7a4 4 0 1 1 8 0v3"></path>
+            </svg>
+          </span>
+          <div>
+            <p>Protected view</p>
+            <h2 id="databaseAccessTitle">Database access</h2>
+          </div>
+        </div>
+        <form id="databaseAccessForm">
+          <label for="databaseAccessCode">Access code</label>
+          <input id="databaseAccessCode" type="password" autocomplete="one-time-code" placeholder="Enter code" />
+          <div class="access-actions">
+            <button class="ghost-button" type="button" data-close-database-access>Cancel</button>
+            <button class="primary-button" type="submit">Unlock database</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script type="module" src="./app.js"></script>

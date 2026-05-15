@@ -1136,6 +1136,114 @@ td {
   box-shadow: none;
 }
 
+.access-layer[hidden] {
+  display: none;
+}
+
+.access-layer {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.access-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 23, 47, 0.42);
+  backdrop-filter: blur(5px);
+}
+
+.access-card {
+  position: relative;
+  width: min(420px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(16, 35, 63, 0.22);
+  padding: 20px;
+}
+
+.access-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.access-heading p {
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.access-heading h2 {
+  margin-bottom: 0;
+  color: var(--navy);
+  font-size: 20px;
+}
+
+.access-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3367cf, #234da6);
+  color: #fff;
+}
+
+.access-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.access-card form {
+  display: grid;
+  gap: 10px;
+}
+
+.access-card label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.access-card input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  padding: 0 13px;
+  color: var(--ink);
+  background: #fbfdff;
+}
+
+.access-card input:focus {
+  outline: 0;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(14, 154, 154, 0.13);
+}
+
+.access-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
 .toast {
   position: fixed;
   right: 20px;
