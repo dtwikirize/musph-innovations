@@ -49,6 +49,9 @@ const els = {
   kpiDistricts: document.querySelector("#kpiDistricts"),
   kpiCourses: document.querySelector("#kpiCourses"),
   trendChart: document.querySelector("#trendChart"),
+  trendPeak: document.querySelector("#trendPeak"),
+  trendLatest: document.querySelector("#trendLatest"),
+  trendMonths: document.querySelector("#trendMonths"),
   sexDonut: document.querySelector("#sexDonut"),
   sexLegend: document.querySelector("#sexLegend"),
   courseBars: document.querySelector("#courseBars"),
@@ -64,6 +67,10 @@ const els = {
   participantTable: document.querySelector("#participantTable"),
   rowCount: document.querySelector("#rowCount"),
   dateRange: document.querySelector("#dateRange"),
+  dbRecords: document.querySelector("#dbRecords"),
+  dbFacilities: document.querySelector("#dbFacilities"),
+  dbCourses: document.querySelector("#dbCourses"),
+  dbCompleteness: document.querySelector("#dbCompleteness"),
 };
 
 function parseCsv(text) {
@@ -396,6 +403,7 @@ function render() {
   renderOrganizations(rows);
   renderScoreBands(rows);
   renderDurationBands(rows);
+  renderDatabaseSnapshot(rows);
   renderParticipants(rows);
 }
 
@@ -405,6 +413,7 @@ function renderView() {
     scores: "Score Analysis",
     coverage: "District Coverage",
     people: "Participants",
+    database: "Database",
   };
 
   els.activeViewLabel.textContent = labels[state.activeView] || "Overview";
@@ -465,8 +474,17 @@ function renderTrend(rows) {
 
   if (!grouped.length) {
     els.trendChart.innerHTML = emptyMarkup("No dated records in this filter.");
+    els.trendPeak.textContent = "0";
+    els.trendLatest.textContent = "0";
+    els.trendMonths.textContent = "0";
     return;
   }
+
+  const peak = grouped.reduce((best, item) => (item.count > best.count ? item : best), grouped[0]);
+  const latest = grouped[grouped.length - 1];
+  els.trendPeak.textContent = formatNumber(peak.count);
+  els.trendLatest.textContent = formatNumber(latest.count);
+  els.trendMonths.textContent = formatNumber(grouped.length);
 
   const width = 760;
   const height = 250;
@@ -856,6 +874,18 @@ function renderDurationBands(rows) {
       </div>`,
     )
     .join("");
+}
+
+function renderDatabaseSnapshot(rows) {
+  const facilities = new Set(rows.map((row) => row.facility)).size;
+  const courses = new Set(rows.map((row) => row.course)).size;
+  const paired = rows.filter((row) => Number.isFinite(row.pre) && Number.isFinite(row.post)).length;
+  const completeness = rows.length ? Math.round((paired / rows.length) * 100) : 0;
+
+  els.dbRecords.textContent = formatNumber(rows.length);
+  els.dbFacilities.textContent = formatNumber(facilities);
+  els.dbCourses.textContent = formatNumber(courses);
+  els.dbCompleteness.textContent = `${completeness}%`;
 }
 
 function renderParticipants(rows) {
