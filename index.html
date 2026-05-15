@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GSD Training Dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="side-nav" aria-label="Dashboard navigation">
+        <div class="brand-lockup">
+          <div class="brand-mark">G</div>
+          <div>
+            <strong>GSD</strong>
+            <span>Training BI</span>
+          </div>
+        </div>
+        <button class="nav-item active" type="button" title="Overview">
+          <span class="nav-icon">●</span>
+          <span>Overview</span>
+        </button>
+        <button class="nav-item" type="button" title="Performance">
+          <span class="nav-icon">◆</span>
+          <span>Scores</span>
+        </button>
+        <button class="nav-item" type="button" title="Coverage">
+          <span class="nav-icon">■</span>
+          <span>Coverage</span>
+        </button>
+        <button class="nav-item" type="button" title="Participants">
+          <span class="nav-icon">▲</span>
+          <span>People</span>
+        </button>
+      </aside>
+
+      <main class="dashboard">
+        <header class="topbar">
+          <div>
+            <p class="eyeline">Google Sheets live extract</p>
+            <h1>GSD Training Performance Dashboard</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost-button" id="resetFilters" type="button">Reset</button>
+            <button class="primary-button" id="refreshData" type="button">Refresh data</button>
+          </div>
+        </header>
+
+        <section class="filter-bar" aria-label="Dashboard filters">
+          <label>
+            Search
+            <input id="searchInput" type="search" placeholder="Name, facility, organization..." />
+          </label>
+          <label>
+            Course
+            <select id="courseFilter"></select>
+          </label>
+          <label>
+            District
+            <select id="districtFilter"></select>
+          </label>
+          <label>
+            Year
+            <select id="yearFilter"></select>
+          </label>
+          <label>
+            Sex
+            <select id="sexFilter"></select>
+          </label>
+        </section>
+
+        <section class="kpi-grid" aria-label="Key performance indicators">
+          <article class="kpi-card">
+            <span>Total participants</span>
+            <strong id="kpiParticipants">0</strong>
+            <small id="kpiFacilities">0 facilities</small>
+          </article>
+          <article class="kpi-card">
+            <span>Average pre-test</span>
+            <strong id="kpiPre">0%</strong>
+            <small>Baseline score</small>
+          </article>
+          <article class="kpi-card">
+            <span>Average post-test</span>
+            <strong id="kpiPost">0%</strong>
+            <small>After training</small>
+          </article>
+          <article class="kpi-card emphasis">
+            <span>Average improvement</span>
+            <strong id="kpiGain">0 pts</strong>
+            <small id="kpiGainContext">Pre to post</small>
+          </article>
+          <article class="kpi-card">
+            <span>Districts covered</span>
+            <strong id="kpiDistricts">0</strong>
+            <small id="kpiCourses">0 courses</small>
+          </article>
+        </section>
+
+        <section class="visual-grid">
+          <article class="panel span-7">
+            <div class="panel-header">
+              <div>
+                <h2>Training Volume Trend</h2>
+                <p>Participants by start month</p>
+              </div>
+              <span id="dateRange">All dates</span>
+            </div>
+            <div class="chart-frame" id="trendChart"></div>
+          </article>
+
+          <article class="panel span-5">
+            <div class="panel-header">
+              <div>
+                <h2>Sex Distribution</h2>
+                <p>Filtered participant mix</p>
+              </div>
+            </div>
+            <div class="donut-layout">
+              <div class="chart-frame donut-frame" id="sexDonut"></div>
+              <div class="legend-list" id="sexLegend"></div>
+            </div>
+          </article>
+
+          <article class="panel span-7">
+            <div class="panel-header">
+              <div>
+                <h2>Pre-Test vs Post-Test by Course</h2>
+                <p>Top courses by participant volume</p>
+              </div>
+            </div>
+            <div class="chart-frame" id="courseBars"></div>
+          </article>
+
+          <article class="panel span-5">
+            <div class="panel-header">
+              <div>
+                <h2>Top Districts</h2>
+                <p>Participant coverage</p>
+              </div>
+            </div>
+            <div class="ranked-bars" id="districtBars"></div>
+          </article>
+
+          <article class="panel span-4">
+            <div class="panel-header">
+              <div>
+                <h2>Job Titles</h2>
+                <p>Top roles trained</p>
+              </div>
+            </div>
+            <div class="ranked-bars compact" id="jobBars"></div>
+          </article>
+
+          <article class="panel span-4">
+            <div class="panel-header">
+              <div>
+                <h2>Organizations</h2>
+                <p>Volume and score lift</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Organization</th>
+                    <th>People</th>
+                    <th>Gain</th>
+                  </tr>
+                </thead>
+                <tbody id="organizationTable"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel span-4">
+            <div class="panel-header">
+              <div>
+                <h2>Score Bands</h2>
+                <p>Post-test distribution</p>
+              </div>
+            </div>
+            <div class="band-stack" id="scoreBands"></div>
+          </article>
+
+          <article class="panel span-12">
+            <div class="panel-header">
+              <div>
+                <h2>Participant Register</h2>
+                <p>Top 40 rows matching current filters</p>
+              </div>
+              <span id="rowCount">0 rows</span>
+            </div>
+            <div class="table-wrap register">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Sex</th>
+                    <th>Job title</th>
+                    <th>Organization</th>
+                    <th>Facility</th>
+                    <th>District</th>
+                    <th>Course</th>
+                    <th>Pre</th>
+                    <th>Post</th>
+                    <th>Gain</th>
+                  </tr>
+                </thead>
+                <tbody id="participantTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
