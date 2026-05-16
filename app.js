@@ -406,11 +406,7 @@ function render() {
   renderGainTrend(rows);
   renderDistrictGains(rows);
   renderImprovementRates(rows);
-  renderRankedBars(
-    els.districtBars,
-    countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10),
-    palette.teal,
-  );
+  renderDistrictTrainingBars(rows);
   renderCourseMix(rows);
   renderRankedBars(els.jobBars, countBy(rows, "jobTitle").slice(0, 8), palette.gold);
   renderRankedBars(els.organizationBars, countBy(rows, "organization").slice(0, 8), palette.coral);
@@ -741,6 +737,31 @@ function renderDistrictGains(rows) {
     .slice(0, 10);
 
   renderMetricBars(els.districtGainBars, data, palette.teal, "pts");
+}
+
+function renderDistrictTrainingBars(rows) {
+  const data = countBy(rows.filter((row) => isRealDistrict(row.district)), "district");
+
+  if (!data.length) {
+    els.districtBars.innerHTML = emptyMarkup("No district data in this filter.");
+    return;
+  }
+
+  const max = Math.max(...data.map((item) => item.count), 1);
+  els.districtBars.innerHTML = data
+    .map(
+      (item) => `<div class="bar-row">
+        <div class="bar-top">
+          <span>${escapeHtml(item.name)}</span>
+          <strong>${formatNumber(item.count)}</strong>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(
+          2,
+          (item.count / max) * 100,
+        )}%; background:${palette.teal};"></div></div>
+      </div>`,
+    )
+    .join("");
 }
 
 function renderImprovementRates(rows) {

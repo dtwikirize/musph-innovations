@@ -901,6 +901,17 @@ h1 {
   padding: 4px 16px 18px;
 }
 
+.district-training-panel {
+  min-height: 0;
+}
+
+.district-training-bars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 18px;
+  padding: 4px 16px 18px;
+}
+
 .insight-panel {
   min-height: 278px;
 }
@@ -1496,6 +1507,7 @@ td {
   .filter-bar,
   .kpi-grid,
   .donut-layout,
+  .district-training-bars,
   .database-metrics {
     grid-template-columns: 1fr;
   }
