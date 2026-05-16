@@ -8,6 +8,32 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <section class="landing-page" id="landingPage">
+      <div class="landing-slides" aria-hidden="true">
+        <span class="landing-slide is-active" style="background-image: url('/images/training-hero-1.webp')"></span>
+        <span class="landing-slide" style="background-image: url('/images/training-hero-2.webp')"></span>
+        <span class="landing-slide" style="background-image: url('/images/training-hero-3.webp')"></span>
+      </div>
+      <div class="landing-shade" aria-hidden="true"></div>
+      <div class="landing-light" aria-hidden="true"></div>
+      <div class="landing-content">
+        <h1>Training and Mentorship of Health Workers in Uganda</h1>
+        <p>Changing attitudes towards people at a higher risk for HIV</p>
+        <button class="landing-button" id="enterDashboard" type="button">
+          <span>Go to Dashboard</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h14M13 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="landing-dots" aria-label="Training slideshow">
+        <button class="is-active" type="button" data-slide="0" aria-label="Show slide 1"></button>
+        <button type="button" data-slide="1" aria-label="Show slide 2"></button>
+        <button type="button" data-slide="2" aria-label="Show slide 3"></button>
+      </div>
+    </section>
+
+    <div class="dashboard-stage" id="dashboardStage" hidden>
     <div class="app-shell">
       <aside class="side-nav" aria-label="Dashboard navigation">
         <p class="nav-section-label">Analytics</p>
@@ -367,6 +393,7 @@
       <i aria-hidden="true"></i>
       <span>Cranesurvey Project</span>
     </footer>
+    </div>
 
     <div class="focus-layer" id="focusLayer" hidden>
       <div class="focus-backdrop" data-close-focus></div>

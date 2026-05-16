@@ -14,6 +14,13 @@ const palette = {
 };
 
 const premiumSelects = new Map();
+const landingSlides = [...document.querySelectorAll(".landing-slide")];
+const landingDots = [...document.querySelectorAll(".landing-dots button")];
+const landingPage = document.querySelector("#landingPage");
+const dashboardStage = document.querySelector("#dashboardStage");
+const enterDashboard = document.querySelector("#enterDashboard");
+let landingSlideIndex = 0;
+let landingTimer;
 
 const state = {
   rows: [],
@@ -344,6 +351,40 @@ function closePremiumSelects() {
     control.root.classList.remove("open");
     control.button.setAttribute("aria-expanded", "false");
   });
+}
+
+function showLandingSlide(index) {
+  landingSlideIndex = index;
+  landingSlides.forEach((slide, slideIndex) => {
+    slide.classList.toggle("is-active", slideIndex === index);
+  });
+  landingDots.forEach((dot, dotIndex) => {
+    dot.classList.toggle("is-active", dotIndex === index);
+  });
+}
+
+function startLandingSlideshow() {
+  window.clearInterval(landingTimer);
+  landingTimer = window.setInterval(() => {
+    showLandingSlide((landingSlideIndex + 1) % landingSlides.length);
+  }, 5200);
+}
+
+function openDashboard() {
+  landingPage.hidden = true;
+  dashboardStage.hidden = false;
+  window.location.hash = "dashboard";
+  window.scrollTo({ top: 0, behavior: "auto" });
+  window.clearInterval(landingTimer);
+}
+
+function openLanding() {
+  landingPage.hidden = false;
+  dashboardStage.hidden = true;
+  window.location.hash = "";
+  showLandingSlide(landingSlideIndex);
+  startLandingSlideshow();
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function uniqueSorted(rows, key) {
@@ -1087,6 +1128,23 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-database-access]")) closeDatabaseAccess();
 });
 
+landingDots.forEach((dot) => {
+  dot.addEventListener("click", () => {
+    showLandingSlide(Number(dot.dataset.slide));
+    startLandingSlideshow();
+  });
+});
+
+enterDashboard.addEventListener("click", openDashboard);
+
+window.addEventListener("hashchange", () => {
+  if (window.location.hash === "#dashboard") {
+    openDashboard();
+    return;
+  }
+  openLanding();
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
   if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
@@ -1122,3 +1180,8 @@ els.databaseAccessForm.addEventListener("submit", (event) => {
 
 enhancePanelsForFocus();
 loadData();
+if (window.location.hash === "#dashboard") {
+  openDashboard();
+} else {
+  openLanding();
+}

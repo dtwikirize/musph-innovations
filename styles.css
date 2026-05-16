@@ -39,6 +39,211 @@ body {
   letter-spacing: 0;
 }
 
+.landing-page {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  align-items: end;
+  isolation: isolate;
+  overflow: hidden;
+  background: #07172f;
+  color: #fff;
+}
+
+.landing-slides,
+.landing-slide,
+.landing-shade,
+.landing-light {
+  position: absolute;
+  inset: 0;
+}
+
+.landing-slide {
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 900ms ease,
+    transform 6200ms ease;
+}
+
+.landing-slide.is-active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.landing-shade {
+  background:
+    linear-gradient(90deg, rgba(7, 23, 47, 0.88) 0%, rgba(7, 23, 47, 0.64) 44%, rgba(7, 23, 47, 0.28) 72%, rgba(7, 23, 47, 0.52) 100%),
+    linear-gradient(180deg, rgba(7, 23, 47, 0.08) 0%, rgba(7, 23, 47, 0.7) 100%);
+}
+
+.landing-light {
+  width: 52%;
+  left: -18%;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.16) 48%, transparent 62%);
+  mix-blend-mode: screen;
+  animation: landingSweep 9s ease-in-out infinite;
+}
+
+.landing-content {
+  position: relative;
+  z-index: 2;
+  width: min(760px, calc(100% - 48px));
+  margin: 0 0 clamp(34px, 8vw, 82px) clamp(18px, 6vw, 72px);
+  animation: landingRise 720ms ease both;
+}
+
+.landing-content h1 {
+  max-width: 760px;
+  margin-bottom: 14px;
+  color: #fff;
+  font-size: clamp(30px, 4vw, 54px);
+  line-height: 1.05;
+  font-weight: 820;
+}
+
+.landing-content p {
+  max-width: 620px;
+  margin-bottom: 26px;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: clamp(15px, 1.7vw, 20px);
+  line-height: 1.45;
+  font-weight: 580;
+}
+
+.landing-button {
+  position: relative;
+  overflow: hidden;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 22px;
+  background: linear-gradient(135deg, #15a29d, #0b7f8a);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow:
+    0 18px 44px rgba(4, 18, 38, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.landing-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.34), transparent);
+  transform: translateX(-180%);
+  animation: landingButtonSheen 4.8s ease-in-out infinite;
+}
+
+.landing-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 24px 54px rgba(4, 18, 38, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+}
+
+.landing-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.landing-dots {
+  position: absolute;
+  z-index: 2;
+  right: clamp(18px, 5vw, 52px);
+  bottom: clamp(24px, 5vw, 42px);
+  display: flex;
+  gap: 10px;
+}
+
+.landing-dots button {
+  width: 34px;
+  height: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  transition:
+    width 180ms ease,
+    background 180ms ease;
+}
+
+.landing-dots button.is-active {
+  width: 52px;
+  background: #fff;
+}
+
+.dashboard-stage[hidden] {
+  display: none;
+}
+
+@keyframes landingSweep {
+  0%,
+  18% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+
+  42% {
+    opacity: 1;
+  }
+
+  68%,
+  100% {
+    transform: translateX(180%);
+    opacity: 0;
+  }
+}
+
+@keyframes landingRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landingButtonSheen {
+  0%,
+  74% {
+    transform: translateX(-180%);
+  }
+
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-slide,
+  .landing-content,
+  .landing-light,
+  .landing-button::after {
+    animation: none;
+    transition: none;
+  }
+}
+
 button,
 input,
 select {
@@ -1558,6 +1763,29 @@ td {
 }
 
 @media (max-width: 760px) {
+  .landing-page {
+    min-height: 100svh;
+  }
+
+  .landing-content {
+    width: calc(100% - 28px);
+    margin: 0 14px 84px;
+  }
+
+  .landing-content h1 {
+    font-size: 28px;
+  }
+
+  .landing-content p {
+    font-size: 15px;
+  }
+
+  .landing-dots {
+    right: auto;
+    left: 14px;
+    bottom: 28px;
+  }
+
   .app-shell {
     display: block;
   }
