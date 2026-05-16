@@ -606,70 +606,62 @@ function renderCourseBars(rows) {
       pre: average(item.rows, "pre") || 0,
       post: average(item.rows, "post") || 0,
       count: item.count,
-    }));
+    }))
+    .sort((a, b) => b.post - b.pre - (a.post - a.pre) || b.count - a.count);
 
   if (!courses.length) {
     els.courseBars.innerHTML = emptyMarkup("No course data in this filter.");
     return;
   }
 
-  const width = 760;
-  const height = 250;
-  const pad = { top: 18, right: 18, bottom: 84, left: 42 };
-  const plotW = width - pad.left - pad.right;
-  const plotH = height - pad.top - pad.bottom;
-  const groupW = plotW / courses.length;
-  const barW = Math.min(26, groupW / 4);
-  const ticks = [0, 25, 50, 75, 100];
-  const yFor = (value) => pad.top + plotH - (value / 100) * plotH;
-
   els.courseBars.innerHTML = `
-    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Course score comparison">
-      ${ticks
-        .map((tick) => {
-          const y = yFor(tick);
-          return `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${
-            width - pad.right
-          }" y2="${y}"></line><text class="axis-label" x="9" y="${y + 4}">${tick}</text>`;
-        })
-        .join("")}
+    <div class="comparison-legend" aria-hidden="true">
+      <span><i class="pre"></i>Pre-test</span>
+      <span><i class="post"></i>Post-test</span>
+    </div>
+    <div class="comparison-rows" role="img" aria-label="Average score improvement by course">
       ${courses
-        .map((course, index) => {
-          const center = pad.left + index * groupW + groupW / 2;
-          const preH = plotH - (yFor(course.pre) - pad.top);
-          const postH = plotH - (yFor(course.post) - pad.top);
-          const lines = wrapLabel(course.name, 15, 2);
+        .map((course) => {
           const gain = Math.round(course.post - course.pre);
-          return `<g>
-            <rect x="${center - barW - 3}" y="${yFor(course.pre)}" width="${barW}" height="${preH}" rx="5" fill="${palette.teal}"><title>${course.name} pre: ${Math.round(
-              course.pre,
-            )}%</title></rect>
-            <rect x="${center + 3}" y="${yFor(course.post)}" width="${barW}" height="${postH}" rx="5" fill="${palette.violet}"><title>${course.name} post: ${Math.round(
-              course.post,
-            )}%</title></rect>
-            <text class="axis-label" x="${center}" y="${Math.max(
-              13,
-              yFor(Math.max(course.pre, course.post)) - 9,
-            )}" text-anchor="middle">+${gain}</text>
-            <text class="axis-label" x="${center}" y="${height - 42}" text-anchor="middle">
-              ${lines
-                .map(
-                  (line, lineIndex) =>
-                    `<tspan x="${center}" dy="${lineIndex ? 13 : 0}">${escapeSvg(line)}</tspan>`,
-                )
-                .join("")}
-            </text>
-            <text class="axis-label" x="${center}" y="${height - 12}" text-anchor="middle">${course.count} people</text>
-          </g>`;
+          const start = Math.min(course.pre, course.post);
+          const width = Math.abs(course.post - course.pre);
+          return `<div class="comparison-row">
+            <div class="comparison-copy">
+              <strong>${escapeHtml(course.name)}</strong>
+              <span>${formatNumber(course.count)} people</span>
+            </div>
+            <div class="comparison-track-wrap">
+              <span class="comparison-track"></span>
+              <span class="comparison-segment" style="left:${start}%; width:${width}%;"></span>
+              <span class="comparison-dot pre" style="left:${course.pre}%;" title="${escapeHtml(
+                course.name,
+              )} pre-test: ${Math.round(course.pre)}%"></span>
+              <span class="comparison-dot post" style="left:${course.post}%;" title="${escapeHtml(
+                course.name,
+              )} post-test: ${Math.round(course.post)}%"></span>
+              <span class="comparison-score pre" style="left:${course.pre}%;">${Math.round(
+                course.pre,
+              )}%</span>
+              <span class="comparison-score post" style="left:${course.post}%;">${Math.round(
+                course.post,
+              )}%</span>
+            </div>
+            <strong class="comparison-gain">${gain >= 0 ? "+" : ""}${gain}</strong>
+          </div>`;
         })
         .join("")}
-      <g transform="translate(${width - 190} 6)">
-        <rect width="10" height="10" rx="2" fill="${palette.teal}"></rect>
-        <text class="axis-label" x="16" y="10">Pre-test</text>
-        <rect x="86" width="10" height="10" rx="2" fill="${palette.violet}"></rect>
-        <text class="axis-label" x="102" y="10">Post-test</text>
-      </g>
-    </svg>`;
+    </div>
+    <div class="comparison-axis-row" aria-hidden="true">
+      <span></span>
+      <div class="comparison-axis">
+        <span>0</span>
+        <span>25</span>
+        <span>50</span>
+        <span>75</span>
+        <span>100</span>
+      </div>
+      <span></span>
+    </div>`;
 }
 
 function renderGainTrend(rows) {

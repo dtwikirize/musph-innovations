@@ -184,7 +184,7 @@
         </section>
 
         <section class="visual-grid">
-          <article class="panel span-3 top-chart" data-section="overview coverage">
+          <article class="panel span-6 top-chart" data-section="overview coverage">
             <div class="panel-header">
               <div>
                 <h2>Score Improvement Over Time</h2>
@@ -193,16 +193,6 @@
               <span id="dateRange">All dates</span>
             </div>
             <div class="chart-frame" id="trendChart"></div>
-          </article>
-
-          <article class="panel span-3 top-chart" data-section="overview scores">
-            <div class="panel-header">
-              <div>
-                <h2>Pre-Test vs Post-Test</h2>
-                <p>Top courses by participant volume</p>
-              </div>
-            </div>
-            <div class="chart-frame compact-chart" id="courseBars"></div>
           </article>
 
           <article class="panel span-3 top-chart" data-section="overview scores coverage">
@@ -223,6 +213,16 @@
               </div>
             </div>
             <div class="ranked-bars dense" id="organizationBars"></div>
+          </article>
+
+          <article class="panel span-12 course-comparison-panel" data-section="overview scores">
+            <div class="panel-header">
+              <div>
+                <h2>Average Score Improvement by Course</h2>
+                <p>Pre-test to post-test comparison</p>
+              </div>
+            </div>
+            <div class="chart-frame comparison-chart" id="courseBars"></div>
           </article>
 
           <article class="panel span-6 insight-panel" data-section="overview scores coverage">
