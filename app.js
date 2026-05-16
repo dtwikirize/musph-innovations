@@ -373,7 +373,7 @@ function startLandingSlideshow() {
 function openDashboard() {
   landingPage.hidden = true;
   dashboardStage.hidden = false;
-  window.location.hash = "dashboard";
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
   window.scrollTo({ top: 0, behavior: "auto" });
   window.clearInterval(landingTimer);
 }
@@ -381,7 +381,7 @@ function openDashboard() {
 function openLanding() {
   landingPage.hidden = false;
   dashboardStage.hidden = true;
-  window.location.hash = "";
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
   showLandingSlide(landingSlideIndex);
   startLandingSlideshow();
   window.scrollTo({ top: 0, behavior: "auto" });
@@ -1136,14 +1136,6 @@ landingDots.forEach((dot) => {
 });
 
 enterDashboard.addEventListener("click", openDashboard);
-
-window.addEventListener("hashchange", () => {
-  if (window.location.hash === "#dashboard") {
-    openDashboard();
-    return;
-  }
-  openLanding();
-});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
