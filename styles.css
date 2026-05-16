@@ -566,7 +566,7 @@ h1 {
   overflow: hidden;
 }
 
-.kpi-card span,
+.kpi-card > span:not(.kpi-icon),
 .kpi-card small {
   display: block;
   color: var(--muted);
@@ -574,7 +574,7 @@ h1 {
   line-height: 1.25;
 }
 
-.kpi-card span {
+.kpi-card > span:not(.kpi-icon) {
   grid-column: 2;
   font-weight: 760;
   text-transform: none;
