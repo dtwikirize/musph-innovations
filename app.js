@@ -1,6 +1,8 @@
 const LOCAL_CSV = "/data/training-data.csv";
 const LIVE_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=328536026&single=true&output=csv";
+const CRANE_POWER_BI_URL =
+  "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9";
 
 const palette = {
   navy: "#14345c",
@@ -775,7 +777,7 @@ function renderCraneEmbed() {
           <div class="embed-loading">Loading CRANE dashboard...</div>
           <iframe
             title="CRANE BBS Sampling and Stewardship Dashboard"
-            src="https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e"
+            src="${CRANE_POWER_BI_URL}"
             loading="lazy"
           ></iframe>
         </div>
@@ -793,7 +795,7 @@ function renderCraneFullscreenPage() {
           ${ctaButton("Back to Overview", "/innovations/crane-dashboard", "secondary")}
           ${externalLinkButton(
             "Open in Power BI",
-            "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e",
+            CRANE_POWER_BI_URL,
           )}
         </div>
       </div>
@@ -801,7 +803,7 @@ function renderCraneFullscreenPage() {
         <div class="embed-loading">Loading CRANE dashboard...</div>
         <iframe
           title="Live CRANE BBS Sampling and Stewardship Dashboard"
-          src="https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e"
+          src="${CRANE_POWER_BI_URL}"
         ></iframe>
       </div>
     </section>
@@ -890,7 +892,7 @@ function renderPortalRoute(path) {
           ctaButton("Open Full-Screen Dashboard", "/innovations/crane-dashboard/live", "theme-button"),
           externalLinkButton(
             "Open in Power BI",
-            "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e",
+            CRANE_POWER_BI_URL,
           ),
         ],
         extra: renderCraneEmbed(),

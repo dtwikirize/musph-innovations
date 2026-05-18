@@ -33,6 +33,19 @@ Install command: npm install
 
 The production build copies `public/data/training-data.csv` into `dist/data/training-data.csv`.
 
+## Sensitive data access
+
+The training database and CRANE Power BI dashboard include sensitive data. Do not protect these with a frontend-only password in `app.js`; browser JavaScript can be inspected and the CSV/Power BI URL can still be reached directly.
+
+Protect these paths at the hosting layer before sharing externally:
+
+- `/innovations/training-database`
+- `/innovations/crane-dashboard`
+- `/innovations/crane-dashboard/live`
+- `/data/training-data.csv`
+
+Also restrict the source Google Sheet or replace the "Refresh data" CSV URL with an authenticated backend endpoint before publishing sensitive records. For Power BI, use Power BI authenticated sharing or an embed flow that requires sign-in; a `view?r=...` publish-to-web link is public to anyone who has the URL.
+
 ## Public routes
 
 - `/`
