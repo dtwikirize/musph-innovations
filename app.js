@@ -20,6 +20,8 @@ const portalMain = document.querySelector("#mainContent");
 const portalFooter = document.querySelector("#portalFooter");
 const primaryNav = document.querySelector("#primaryNav");
 const menuToggle = document.querySelector("#menuToggle");
+const innovationMenuToggle = document.querySelector("#innovationMenuToggle");
+const innovationMenu = document.querySelector("#innovationMenu");
 const trainingLanding = document.querySelector("#trainingLanding");
 const dashboardStage = document.querySelector("#dashboardStage");
 const landingSlides = [...document.querySelectorAll(".landing-slide")];
@@ -135,6 +137,11 @@ const state = {
   filtered: [],
   activeView: "overview",
   databaseUnlocked: false,
+  craneUnlocked: window.sessionStorage.getItem("crane-dashboard-unlocked") === "true",
+  failedAccessAttempts: 0,
+  craneFailedAccessAttempts: 0,
+  accessLockedUntil: 0,
+  craneLockedUntil: 0,
   filters: {
     search: "",
     course: "All",
@@ -191,6 +198,9 @@ const els = {
   databaseAccessLayer: document.querySelector("#databaseAccessLayer"),
   databaseAccessForm: document.querySelector("#databaseAccessForm"),
   databaseAccessCode: document.querySelector("#databaseAccessCode"),
+  craneAccessLayer: document.querySelector("#craneAccessLayer"),
+  craneAccessForm: document.querySelector("#craneAccessForm"),
+  craneAccessCode: document.querySelector("#craneAccessCode"),
   toast: document.querySelector("#toast"),
 };
 
@@ -599,34 +609,12 @@ function renderHomePage() {
       ],
     })}
     <section class="content-section">
-      <div class="section-shell about-grid">
-        <div>
+      <div class="section-shell about-layout">
+        <div class="about-copy">
           ${sectionHeader(
             "Strengthening Digital Health Service Delivery in Uganda",
             "Uganda's changing implementation context requires innovative approaches to health service delivery, especially for underserved populations and people at higher risk for HIV. These digital innovations support decentralized service delivery, virtual access, workforce development, surveillance, and real-time program monitoring.",
           )}
-          ${featureGrid([
-            {
-              title: "Expanding Access",
-              copy: "Extends health information, screening, referrals, and service linkage beyond facility walls.",
-              icon: "access",
-            },
-            {
-              title: "Workforce Capacity Building",
-              copy: "Supports continuous learning and monitoring of health worker training across locations.",
-              icon: "training",
-            },
-            {
-              title: "Real-Time Data Use",
-              copy: "Turns program and surveillance data into timely information for operational decisions.",
-              icon: "data",
-            },
-            {
-              title: "Sustainable Digital Systems",
-              copy: "Builds interoperable tools that can be maintained and used within existing public systems.",
-              icon: "systems",
-            },
-          ])}
         </div>
         <figure class="media-frame">
           <img
@@ -634,6 +622,28 @@ function renderHomePage() {
             alt="Health workers using digital tools across community outreach and clinic settings"
           />
         </figure>
+        ${featureGrid([
+          {
+            title: "Expanding Access",
+            copy: "Extends health information, screening, referrals, and service linkage beyond facility walls.",
+            icon: "access",
+          },
+          {
+            title: "Workforce Capacity Building",
+            copy: "Supports continuous learning and monitoring of health worker training across locations.",
+            icon: "training",
+          },
+          {
+            title: "Real-Time Data Use",
+            copy: "Turns program and surveillance data into timely information for operational decisions.",
+            icon: "data",
+          },
+          {
+            title: "Sustainable Digital Systems",
+            copy: "Builds interoperable tools that can be maintained and used within existing public systems.",
+            icon: "systems",
+          },
+        ])}
       </div>
     </section>
     <section class="content-section muted">
@@ -763,6 +773,22 @@ function renderCraneEmbed() {
 }
 
 function renderCraneFullscreenPage() {
+  if (!state.craneUnlocked) {
+    return `
+      <section class="crane-lock-screen">
+        <article class="crane-lock-card">
+          <span class="icon-chip">${iconMarkup("shield")}</span>
+          <h1>CRANE dashboard access required</h1>
+          <p>Enter the dashboard access code to open the live Power BI view.</p>
+          <button class="cta-button" type="button" data-open-crane-access>
+            <span>Unlock Dashboard</span>
+            ${iconMarkup("arrow")}
+          </button>
+        </article>
+      </section>
+    `;
+  }
+
   return `
     <section class="crane-live-view">
       <div class="crane-live-toolbar">
@@ -941,6 +967,11 @@ function setActiveNavigation(path, dashboardOpen) {
   });
 }
 
+function closeInnovationMenu() {
+  innovationMenu.classList.remove("is-open");
+  innovationMenuToggle.setAttribute("aria-expanded", "false");
+}
+
 function bindDynamicRouteContent() {
   const iframe = document.querySelector("#craneEmbedShell iframe");
   if (iframe) {
@@ -989,6 +1020,7 @@ function renderRoute() {
   updateMeta(path);
   setActiveNavigation(path, dashboardOpen);
   primaryNav.classList.remove("is-open");
+  closeInnovationMenu();
   menuToggle.setAttribute("aria-expanded", "false");
   document.body.classList.toggle("training-landing-route", trainingLandingOpen);
   document.body.classList.toggle("crane-live-route", craneLiveOpen);
@@ -1711,6 +1743,27 @@ function closeDatabaseAccess() {
   if (els.focusLayer.hidden) document.body.style.overflow = "";
 }
 
+function openCraneAccess() {
+  els.craneAccessLayer.hidden = false;
+  els.craneAccessCode.value = "";
+  document.body.style.overflow = "hidden";
+  window.setTimeout(() => els.craneAccessCode.focus(), 0);
+}
+
+function closeCraneAccess() {
+  els.craneAccessLayer.hidden = true;
+  els.craneAccessCode.value = "";
+  if (els.focusLayer.hidden && els.databaseAccessLayer.hidden) document.body.style.overflow = "";
+}
+
+function isTemporarilyLocked(lockedUntil) {
+  return lockedUntil > Date.now();
+}
+
+function remainingLockSeconds(lockedUntil) {
+  return Math.ceil((lockedUntil - Date.now()) / 1000);
+}
+
 let toastTimer;
 function showToast(message) {
   els.toast.textContent = message;
@@ -1781,6 +1834,12 @@ document.addEventListener("click", (event) => {
   if (!event.target.closest(".premium-select")) closePremiumSelects();
   if (event.target.closest("[data-close-focus]")) closeFocusMode();
   if (event.target.closest("[data-close-database-access]")) closeDatabaseAccess();
+  if (event.target.closest("[data-close-crane-access]")) closeCraneAccess();
+  if (!event.target.closest(".nav-group")) closeInnovationMenu();
+  if (event.target.closest("[data-open-crane-access]")) {
+    openCraneAccess();
+    return;
+  }
 
   const routeLink = event.target.closest("a[data-route]");
   if (!routeLink) return;
@@ -1801,13 +1860,22 @@ menuToggle.addEventListener("click", () => {
   menuToggle.setAttribute("aria-expanded", String(open));
 });
 
+innovationMenuToggle.addEventListener("click", () => {
+  const open = innovationMenu.classList.toggle("is-open");
+  innovationMenuToggle.setAttribute("aria-expanded", String(open));
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
   if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
   if (event.key === "Escape" && !els.databaseAccessLayer.hidden) closeDatabaseAccess();
+  if (event.key === "Escape" && !els.craneAccessLayer.hidden) closeCraneAccess();
   if (event.key === "Escape" && primaryNav.classList.contains("is-open")) {
     primaryNav.classList.remove("is-open");
     menuToggle.setAttribute("aria-expanded", "false");
+  }
+  if (event.key === "Escape" && innovationMenu.classList.contains("is-open")) {
+    closeInnovationMenu();
   }
 });
 
@@ -1825,17 +1893,57 @@ els.navItems.forEach((item) => {
 
 els.databaseAccessForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  if (isTemporarilyLocked(state.accessLockedUntil)) {
+    showToast(`Try again in ${remainingLockSeconds(state.accessLockedUntil)} seconds`);
+    return;
+  }
   if (els.databaseAccessCode.value.trim() !== "K2026") {
+    state.failedAccessAttempts += 1;
+    if (state.failedAccessAttempts >= 5) {
+      state.accessLockedUntil = Date.now() + 30000;
+      state.failedAccessAttempts = 0;
+      showToast("Too many attempts. Try again in 30 seconds");
+      closeDatabaseAccess();
+      return;
+    }
     showToast("Incorrect database code");
     els.databaseAccessCode.select();
     return;
   }
   state.databaseUnlocked = true;
+  state.failedAccessAttempts = 0;
   state.activeView = "database";
   closeDatabaseAccess();
   renderView();
   window.scrollTo({ top: 0, behavior: "smooth" });
   showToast("Database unlocked");
+});
+
+els.craneAccessForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (isTemporarilyLocked(state.craneLockedUntil)) {
+    showToast(`Try again in ${remainingLockSeconds(state.craneLockedUntil)} seconds`);
+    return;
+  }
+  if (els.craneAccessCode.value.trim() !== "K2026") {
+    state.craneFailedAccessAttempts += 1;
+    if (state.craneFailedAccessAttempts >= 5) {
+      state.craneLockedUntil = Date.now() + 30000;
+      state.craneFailedAccessAttempts = 0;
+      showToast("Too many attempts. Try again in 30 seconds");
+      closeCraneAccess();
+      return;
+    }
+    showToast("Incorrect dashboard code");
+    els.craneAccessCode.select();
+    return;
+  }
+  state.craneUnlocked = true;
+  state.craneFailedAccessAttempts = 0;
+  window.sessionStorage.setItem("crane-dashboard-unlocked", "true");
+  closeCraneAccess();
+  renderRoute();
+  showToast("Dashboard unlocked");
 });
 
 enhancePanelsForFocus();
