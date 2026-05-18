@@ -1,4 +1,4 @@
-const LOCAL_CSV = "./data/training-data.csv";
+const LOCAL_CSV = "/data/training-data.csv";
 const LIVE_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=328536026&single=true&output=csv";
 
@@ -14,13 +14,121 @@ const palette = {
 };
 
 const premiumSelects = new Map();
+const portalHeader = document.querySelector(".portal-header");
+const portalView = document.querySelector("#portalView");
+const portalMain = document.querySelector("#mainContent");
+const portalFooter = document.querySelector("#portalFooter");
+const primaryNav = document.querySelector("#primaryNav");
+const menuToggle = document.querySelector("#menuToggle");
+const trainingLanding = document.querySelector("#trainingLanding");
+const dashboardStage = document.querySelector("#dashboardStage");
 const landingSlides = [...document.querySelectorAll(".landing-slide")];
 const landingDots = [...document.querySelectorAll(".landing-dots button")];
-const landingPage = document.querySelector("#landingPage");
-const dashboardStage = document.querySelector("#dashboardStage");
 const enterDashboard = document.querySelector("#enterDashboard");
+const metaDescription = document.querySelector('meta[name="description"]');
+const canonicalLink = document.querySelector('link[rel="canonical"]');
+const ogTitle = document.querySelector('meta[property="og:title"]');
+const ogDescription = document.querySelector('meta[property="og:description"]');
+const ogUrl = document.querySelector('meta[property="og:url"]');
+
+const SITE_NAME = "MakSPH Digital Health Innovations";
+const HOME_DESCRIPTION =
+  "A unified portfolio of digital health innovations developed by Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health.";
+const PUBLIC_DOMAIN = "https://musph.cc";
+
+const innovations = [
+  {
+    slug: "netlife",
+    title: "Netlife Online DIC",
+    path: "/innovations/netlife",
+    summary:
+      "Virtual access to screening, appointments, referrals, and linkage to care through an online extension of physical Drop-In Centers.",
+    purpose: "Expands confidential access and supports continuity of care.",
+    icon: "phone",
+  },
+  {
+    slug: "virtual-academy",
+    title: "Virtual Academy",
+    path: "/innovations/virtual-academy",
+    summary:
+      "A centralized online learning platform for professional health training and workforce capacity building.",
+    purpose: "Extends professional development while reducing travel and service disruption.",
+    icon: "book",
+  },
+  {
+    slug: "training-database",
+    title: "Training Database & Dashboard",
+    path: "/innovations/training-database",
+    summary:
+      "A centralized system for tracking trained health workers, geographic coverage, and workforce capacity-building outputs.",
+    purpose: "Supports accountability and real-time workforce monitoring.",
+    icon: "chart",
+  },
+  {
+    slug: "crane-dashboard",
+    title: "CRANE Dashboard",
+    path: "/innovations/crane-dashboard",
+    summary:
+      "Interactive oversight of bio-behavioral survey sampling progress and surveillance outputs.",
+    purpose: "Improves access to timely surveillance intelligence.",
+    icon: "map",
+  },
+  {
+    slug: "acasi",
+    title: "ACASI System",
+    path: "/innovations/acasi",
+    summary:
+      "Private digital screening, risk assessment, triage, and service linkage through self-guided workflows.",
+    purpose: "Strengthens confidentiality, data quality, and rapid linkage.",
+    icon: "shield",
+  },
+];
+
+const routeMeta = {
+  "/": {
+    title: SITE_NAME,
+    description: HOME_DESCRIPTION,
+  },
+  "/innovations": {
+    title: `Digital Health Innovation Portfolio | ${SITE_NAME}`,
+    description:
+      "Explore the MakSPH digital health innovation portfolio supporting access, workforce capacity, surveillance, and integrated health service delivery.",
+  },
+  "/innovations/netlife": {
+    title: `Netlife Online Drop-In-Center | ${SITE_NAME}`,
+    description:
+      "Netlife supports online screening, health information, appointments, referrals, and linkage to physical care.",
+  },
+  "/innovations/virtual-academy": {
+    title: `MakSPH Virtual Academy | ${SITE_NAME}`,
+    description:
+      "The MakSPH Virtual Academy supports self-paced online learning and professional health workforce development.",
+  },
+  "/innovations/training-database": {
+    title: `Training Database & Dashboard | ${SITE_NAME}`,
+    description:
+      "A centralized system for tracking trained health workers, training coverage, and workforce capacity-building outputs.",
+  },
+  "/innovations/crane-dashboard": {
+    title: `CRANE BBS Sampling & Stewardship Dashboard | ${SITE_NAME}`,
+    description:
+      "An interactive dashboard providing real-time oversight of bio-behavioral survey sampling progress and surveillance outputs.",
+  },
+  "/innovations/crane-dashboard/live": {
+    title: `Live CRANE BBS Dashboard | ${SITE_NAME}`,
+    description:
+      "Full-screen live access to the CRANE BBS Sampling and Stewardship Dashboard.",
+  },
+  "/innovations/acasi": {
+    title: `ACASI System | ${SITE_NAME}`,
+    description:
+      "An Audio Computer-Assisted Self-Interview system supporting private screening, risk assessment, triage, and service linkage.",
+  },
+};
+
 let landingSlideIndex = 0;
 let landingTimer;
+let revealObserver;
 
 const state = {
   rows: [],
@@ -370,21 +478,561 @@ function startLandingSlideshow() {
   }, 5200);
 }
 
-function openDashboard() {
-  landingPage.hidden = true;
-  dashboardStage.hidden = false;
-  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-  window.scrollTo({ top: 0, behavior: "auto" });
+function stopLandingSlideshow() {
   window.clearInterval(landingTimer);
 }
 
-function openLanding() {
-  landingPage.hidden = false;
+function iconMarkup(name) {
+  const icons = {
+    access: '<path d="M12 21s6-5.4 6-11a6 6 0 1 0-12 0c0 5.6 6 11 6 11Z"></path><circle cx="12" cy="10" r="2.25"></circle>',
+    training: '<path d="M4 6.5 12 3l8 3.5-8 3.5-8-3.5Z"></path><path d="M7 9.5v4c0 1.8 2.2 3.5 5 3.5s5-1.7 5-3.5v-4"></path>',
+    data: '<path d="M4 19V9M10 19V5M16 19v-8M22 19V3"></path>',
+    systems: '<rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 12h8M12 8v8"></path>',
+    phone: '<rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path>',
+    book: '<path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22V4.5Z"></path><path d="M5 18h15"></path>',
+    chart: '<path d="M4 20h16"></path><path d="M7 20V11h4v9"></path><path d="M13 20V5h4v15"></path>',
+    map: '<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path><path d="M9 3v15M15 6v15"></path>',
+    shield: '<path d="M12 22s8-3 8-10V5l-8-3-8 3v7c0 7 8 10 8 10Z"></path><path d="M9 12l2 2 4-5"></path>',
+    arrow: '<path d="M5 12h14M13 5l7 7-7 7"></path>',
+  };
+
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name] || icons.systems}</svg>`;
+}
+
+function sectionHeader(title, copy) {
+  return `
+    <div class="section-header">
+      <h2>${title}</h2>
+      <p>${copy}</p>
+    </div>
+  `;
+}
+
+function ctaButton(label, href, variant = "") {
+  return `<a class="cta-button ${variant}" href="${href}" data-route="${href}">
+    <span>${label}</span>
+    ${iconMarkup("arrow")}
+  </a>`;
+}
+
+function externalLinkButton(label, href) {
+  return `<a class="text-link-button" href="${href}" target="_blank" rel="noopener noreferrer">
+    <span>${label}</span>
+    ${iconMarkup("arrow")}
+  </a>`;
+}
+
+function heroSection({ title, copy, image, buttons }) {
+  return `
+    <section class="portal-hero">
+      <div class="portal-hero-media" style="background-image: url('${image}')"></div>
+      <div class="portal-hero-inner">
+        <div class="portal-hero-copy">
+          <h1>${title}</h1>
+          <p>${copy}</p>
+          <div class="button-row">${buttons.join("")}</div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function pageBanner({ title, copy, image, buttons = [] }) {
+  return `
+    <section class="page-banner">
+      <div class="page-banner-media" style="background-image: url('${image}')"></div>
+      <div class="page-banner-inner">
+        <div class="page-banner-copy">
+          <h1>${title}</h1>
+          <p>${copy}</p>
+          ${buttons.length ? `<div class="button-row">${buttons.join("")}</div>` : ""}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function featureGrid(items) {
+  return `
+    <div class="feature-grid">
+      ${items
+        .map(
+          (item) => `
+            <article class="feature-card reveal">
+              <span class="icon-chip">${iconMarkup(item.icon)}</span>
+              <h3>${item.title}</h3>
+              <p>${item.copy}</p>
+            </article>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function innovationCard(item) {
+  return `
+    <article class="innovation-card reveal">
+      <header>
+        <span class="icon-chip">${iconMarkup(item.icon)}</span>
+        <div>
+          <h3>${item.title}</h3>
+          <p>${item.summary}</p>
+        </div>
+      </header>
+      <span>${item.purpose}</span>
+      ${ctaButton("Learn More", item.path)}
+    </article>
+  `;
+}
+
+function renderHomePage() {
+  return `
+    ${heroSection({
+      title: SITE_NAME,
+      copy:
+        "A unified portfolio of digital innovations developed by Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health to improve access, strengthen workforce capacity, support surveillance, and enhance data-driven decision-making.",
+      image: "/images/portal-hero.webp",
+      buttons: [
+        ctaButton("Explore Innovations", "/innovations"),
+        ctaButton("View Training Dashboard", "/innovations/training-database", "secondary"),
+      ],
+    })}
+    <section class="content-section">
+      <div class="section-shell about-grid">
+        <div>
+          ${sectionHeader(
+            "Strengthening Digital Health Service Delivery in Uganda",
+            "Uganda's changing implementation context requires innovative approaches to health service delivery, especially for underserved populations and people at higher risk for HIV. These digital innovations support decentralized service delivery, virtual access, workforce development, surveillance, and real-time program monitoring.",
+          )}
+          ${featureGrid([
+            {
+              title: "Expanding Access",
+              copy: "Extends health information, screening, referrals, and service linkage beyond facility walls.",
+              icon: "access",
+            },
+            {
+              title: "Workforce Capacity Building",
+              copy: "Supports continuous learning and monitoring of health worker training across locations.",
+              icon: "training",
+            },
+            {
+              title: "Real-Time Data Use",
+              copy: "Turns program and surveillance data into timely information for operational decisions.",
+              icon: "data",
+            },
+            {
+              title: "Sustainable Digital Systems",
+              copy: "Builds interoperable tools that can be maintained and used within existing public systems.",
+              icon: "systems",
+            },
+          ])}
+        </div>
+        <figure class="media-frame">
+          <img
+            src="/images/innovation-about.webp"
+            alt="Health workers using digital tools across community outreach and clinic settings"
+          />
+        </figure>
+      </div>
+    </section>
+    <section class="content-section muted">
+      <div class="section-shell">
+        ${sectionHeader(
+          "Innovation Portfolio",
+          "MakSPH Digital Health Innovations is a unified portfolio of digital tools developed by Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health to strengthen integrated health service delivery, workforce capacity, surveillance, and data-driven decision-making for underserved populations including people at higher risk for HIV.",
+        )}
+        <div class="innovation-grid">
+          ${innovations.map(innovationCard).join("")}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderInnovationsPage() {
+  return `
+    ${pageBanner({
+      title: "Digital Health Innovation Portfolio",
+      copy:
+        "These innovations were developed by Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health to strengthen access, workforce capacity, surveillance, and integrated health service delivery.",
+      image: "/images/portal-hero.webp",
+    })}
+    <section class="content-section soft">
+      <div class="section-shell overview-grid">
+        ${innovations
+          .map(
+            (item) => `
+              <article class="overview-panel reveal">
+                <span class="icon-chip">${iconMarkup(item.icon)}</span>
+                <div>
+                  <h2>${item.title}</h2>
+                  <p>${item.summary}</p>
+                </div>
+                <p>${item.purpose}</p>
+                ${ctaButton("Learn More", item.path)}
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderDetailPage({
+  title,
+  copy,
+  image,
+  purpose,
+  features,
+  buttons = [],
+  extra = "",
+}) {
+  return `
+    ${pageBanner({ title, copy, image, buttons })}
+    <section class="content-section">
+      <div class="section-shell detail-grid">
+        <article class="detail-card reveal">
+          <h3>Strategic Purpose</h3>
+          <ul class="detail-list">
+            ${purpose.map((item) => `<li>${item}</li>`).join("")}
+          </ul>
+        </article>
+        <article class="detail-card reveal">
+          <h3>Key Features</h3>
+          <ul class="detail-list">
+            ${features.map((item) => `<li>${item}</li>`).join("")}
+          </ul>
+        </article>
+      </div>
+    </section>
+    ${extra}
+  `;
+}
+
+function renderVirtualAcademySteps() {
+  return `
+    <section class="content-section soft">
+      <div class="section-shell">
+        ${sectionHeader(
+          "Access Steps",
+          "The academy is structured for straightforward onboarding and course administration.",
+        )}
+        <div class="step-grid">
+          ${[
+            "Visit the Virtual Academy",
+            "Create a new account",
+            "Verify email",
+            "Contact course administration for enrollment",
+          ]
+            .map(
+              (step, index) => `
+                <article class="step-card reveal">
+                  <strong>${index + 1}</strong>
+                  <h3>${step}</h3>
+                </article>
+              `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderCraneEmbed() {
+  return `
+    <section class="content-section soft">
+      <div class="section-shell">
+        ${sectionHeader(
+          "Live Dashboard",
+          "The dashboard below provides embedded access to the CRANE BBS Sampling and Stewardship view.",
+        )}
+        <div class="embed-shell" id="craneEmbedShell">
+          <div class="embed-loading">Loading CRANE dashboard...</div>
+          <iframe
+            title="CRANE BBS Sampling and Stewardship Dashboard"
+            src="https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e"
+            loading="lazy"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderCraneFullscreenPage() {
+  return `
+    <section class="crane-live-view">
+      <div class="crane-live-toolbar">
+        <strong>CRANE BBS Sampling & Stewardship Dashboard</strong>
+        <div>
+          ${ctaButton("Back to Overview", "/innovations/crane-dashboard", "secondary")}
+          ${externalLinkButton(
+            "Open in Power BI",
+            "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e",
+          )}
+        </div>
+      </div>
+      <div class="crane-live-frame" id="craneLiveShell">
+        <div class="embed-loading">Loading CRANE dashboard...</div>
+        <iframe
+          title="Live CRANE BBS Sampling and Stewardship Dashboard"
+          src="https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e"
+        ></iframe>
+      </div>
+    </section>
+  `;
+}
+
+function renderPortalRoute(path) {
+  switch (path) {
+    case "/":
+      return renderHomePage();
+    case "/innovations":
+      return renderInnovationsPage();
+    case "/innovations/netlife":
+      return renderDetailPage({
+        title: "Netlife Online Drop-In-Center",
+        copy:
+          "Netlife functions as a virtual extension of physical Drop-In Centers, supporting online screening, health information, appointments, referrals, and linkage to physical care.",
+        image: "/images/netlife-hero.webp",
+        purpose: [
+          "Reduces barriers related to stigma and fear of public exposure",
+          "Extends services to hard-to-reach populations",
+          "Supports online screening and referrals",
+          "Promotes proactive health-seeking behavior",
+          "Supports continuity of care",
+        ],
+        features: [
+          "Online screening",
+          "Appointment booking",
+          "Service linkage",
+          "Tele-consultation support",
+          "Prevention information access",
+          "Referral pathways",
+        ],
+        buttons: [
+          externalLinkButton("Open General User Interface", "https://netlife.cc/"),
+          externalLinkButton("Open Service Provider Interface", "http://pro.netlife.cc/"),
+        ],
+      });
+    case "/innovations/virtual-academy":
+      return renderDetailPage({
+        title: "MakSPH Virtual Academy",
+        copy:
+          "The MakSPH Virtual Academy is a centralized online learning platform for professional health training and workforce capacity building.",
+        image: "/images/virtual-academy-hero.webp",
+        purpose: [
+          "Supports self-paced learning",
+          "Reduces travel and logistics costs",
+          "Preserves health service delivery",
+          "Standardizes training quality",
+          "Expands access to professional development",
+        ],
+        features: [
+          "Centralized online learning",
+          "Self-paced course access",
+          "Professional development support",
+          "Course administration pathways",
+        ],
+        buttons: [
+          externalLinkButton("Open Virtual Academy", "https://va.elearning-musph.net:8443/"),
+        ],
+        extra: renderVirtualAcademySteps(),
+      });
+    case "/innovations/crane-dashboard":
+      return renderDetailPage({
+        title: "CRANE BBS Sampling & Stewardship Dashboard",
+        copy:
+          "An interactive dashboard providing real-time oversight of bio-behavioral survey sampling progress and surveillance outputs.",
+        image: "/images/crane-dashboard-hero.webp",
+        purpose: [
+          "Supports monitoring of sample achievement",
+          "Enables surveillance oversight",
+          "Improves data accessibility",
+          "Supports timely decision-making",
+          "Replaces static reporting systems",
+        ],
+        features: [
+          "Sampling progress monitoring",
+          "Surveillance output review",
+          "Interactive data access",
+          "Decision-support visualizations",
+        ],
+        buttons: [
+          ctaButton("Open Full-Screen Dashboard", "/innovations/crane-dashboard/live"),
+          externalLinkButton(
+            "Open in Power BI",
+            "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e",
+          ),
+        ],
+        extra: renderCraneEmbed(),
+      });
+    case "/innovations/crane-dashboard/live":
+      return renderCraneFullscreenPage();
+    case "/innovations/acasi":
+      return renderDetailPage({
+        title: "ACASI System",
+        copy:
+          "An Audio Computer-Assisted Self-Interview system supporting private screening, risk assessment, triage, and service linkage.",
+        image: "/images/acasi-hero.webp",
+        purpose: [
+          "Improves data quality",
+          "Reduces interviewer bias",
+          "Enhances confidentiality",
+          "Supports automated triage",
+          "Enables rapid service linkage",
+        ],
+        features: [
+          "Self-guided screening",
+          "Audio-assisted interaction",
+          "Private risk assessment",
+          "Digital referrals",
+          "Automated workflows",
+        ],
+        buttons: [externalLinkButton("Request Access Information", "mailto:info@musph.cc")],
+      });
+    default:
+      return `
+        <section class="content-section">
+          <div class="section-shell">
+            ${sectionHeader(
+              "Page not found",
+              "The requested page is not available. Use the navigation to return to the innovation portfolio.",
+            )}
+            ${ctaButton("Back to Innovations", "/innovations")}
+          </div>
+        </section>
+      `;
+  }
+}
+
+function normalizePath(pathname) {
+  return pathname.length > 1 ? pathname.replace(/\/+$/, "") : "/";
+}
+
+function updateMeta(path) {
+  const meta = routeMeta[path] || routeMeta["/innovations"];
+  document.title = meta.title;
+  metaDescription?.setAttribute("content", meta.description);
+  canonicalLink?.setAttribute("href", `${PUBLIC_DOMAIN}${path}`);
+  ogTitle?.setAttribute("content", meta.title);
+  ogDescription?.setAttribute("content", meta.description);
+  ogUrl?.setAttribute("content", `${PUBLIC_DOMAIN}${path}`);
+}
+
+function setActiveNavigation(path, dashboardOpen) {
+  document.querySelectorAll(".primary-nav a").forEach((link) => {
+    const nav = link.dataset.nav;
+    const active =
+      (nav === "home" && path === "/") ||
+      (nav === "innovations" &&
+        path.startsWith("/innovations") &&
+        path !== "/innovations/training-database" &&
+        !dashboardOpen) ||
+      (nav === "training" && path === "/innovations/training-database");
+    if (active) {
+      link.setAttribute("aria-current", "page");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  });
+}
+
+function bindDynamicRouteContent() {
+  const iframe = document.querySelector("#craneEmbedShell iframe");
+  if (iframe) {
+    iframe.addEventListener("load", () => {
+      document.querySelector("#craneEmbedShell")?.classList.add("is-loaded");
+    });
+  }
+
+  const liveIframe = document.querySelector("#craneLiveShell iframe");
+  if (liveIframe) {
+    liveIframe.addEventListener("load", () => {
+      document.querySelector("#craneLiveShell")?.classList.add("is-loaded");
+    });
+  }
+
+  revealObserver?.disconnect();
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.18 },
+  );
+
+  document.querySelectorAll(".reveal").forEach((element, index) => {
+    element.style.setProperty("--reveal-delay", `${Math.min(index * 55, 280)}ms`);
+    revealObserver.observe(element);
+  });
+}
+
+function renderRoute() {
+  const path = normalizePath(window.location.pathname);
+  const dashboardOpen = path === "/innovations/training-database" && window.location.hash === "#dashboard";
+  const trainingLandingOpen = path === "/innovations/training-database" && !dashboardOpen;
+  const craneLiveOpen = path === "/innovations/crane-dashboard/live";
+
+  if (window.location.pathname === "/" && window.location.hash === "#dashboard") {
+    navigate("/innovations/training-database#dashboard", true);
+    return;
+  }
+
+  updateMeta(path);
+  setActiveNavigation(path, dashboardOpen);
+  primaryNav.classList.remove("is-open");
+  menuToggle.setAttribute("aria-expanded", "false");
+  document.body.classList.toggle("training-landing-route", trainingLandingOpen);
+  document.body.classList.toggle("crane-live-route", craneLiveOpen);
+
+  if (dashboardOpen) {
+    portalMain.hidden = true;
+    portalFooter.hidden = true;
+    trainingLanding.hidden = true;
+    dashboardStage.hidden = false;
+    stopLandingSlideshow();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    return;
+  }
+
+  if (trainingLandingOpen) {
+    portalMain.hidden = true;
+    portalFooter.hidden = true;
+    trainingLanding.hidden = false;
+    dashboardStage.hidden = true;
+    showLandingSlide(landingSlideIndex);
+    startLandingSlideshow();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    return;
+  }
+
   dashboardStage.hidden = true;
-  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-  showLandingSlide(landingSlideIndex);
-  startLandingSlideshow();
+  trainingLanding.hidden = true;
+  portalMain.hidden = false;
+  portalFooter.hidden = false;
+  stopLandingSlideshow();
+  portalView.innerHTML = renderPortalRoute(path);
+  bindDynamicRouteContent();
   window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function navigate(href, replace = false) {
+  const url = new URL(href, window.location.origin);
+  const method = replace ? "replaceState" : "pushState";
+  window.history[method](null, "", `${url.pathname}${url.hash}`);
+  renderRoute();
+}
+
+function openDashboard() {
+  navigate("/innovations/training-database#dashboard");
 }
 
 function uniqueSorted(rows, key) {
@@ -1122,25 +1770,45 @@ els.toggleFilters.addEventListener("click", () => {
   const collapsed = document.querySelector(".filter-shell").classList.toggle("is-collapsed");
   els.toggleFilters.setAttribute("aria-expanded", String(!collapsed));
 });
-document.addEventListener("click", (event) => {
-  if (!event.target.closest(".premium-select")) closePremiumSelects();
-  if (event.target.closest("[data-close-focus]")) closeFocusMode();
-  if (event.target.closest("[data-close-database-access]")) closeDatabaseAccess();
-});
-
 landingDots.forEach((dot) => {
   dot.addEventListener("click", () => {
     showLandingSlide(Number(dot.dataset.slide));
     startLandingSlideshow();
   });
 });
-
 enterDashboard.addEventListener("click", openDashboard);
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".premium-select")) closePremiumSelects();
+  if (event.target.closest("[data-close-focus]")) closeFocusMode();
+  if (event.target.closest("[data-close-database-access]")) closeDatabaseAccess();
+
+  const routeLink = event.target.closest("a[data-route]");
+  if (!routeLink) return;
+  const url = new URL(routeLink.href, window.location.origin);
+  if (url.origin !== window.location.origin) return;
+  event.preventDefault();
+  navigate(`${url.pathname}${url.hash}`);
+});
+
+function updateScrollProgress() {
+  const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+  const progress = Math.min(window.scrollY / maxScroll, 1);
+  document.documentElement.style.setProperty("--scroll-progress", String(progress));
+}
+
+menuToggle.addEventListener("click", () => {
+  const open = primaryNav.classList.toggle("is-open");
+  menuToggle.setAttribute("aria-expanded", String(open));
+});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
   if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
   if (event.key === "Escape" && !els.databaseAccessLayer.hidden) closeDatabaseAccess();
+  if (event.key === "Escape" && primaryNav.classList.contains("is-open")) {
+    primaryNav.classList.remove("is-open");
+    menuToggle.setAttribute("aria-expanded", "false");
+  }
 });
 
 els.navItems.forEach((item) => {
@@ -1172,8 +1840,8 @@ els.databaseAccessForm.addEventListener("submit", (event) => {
 
 enhancePanelsForFocus();
 loadData();
-if (window.location.hash === "#dashboard") {
-  openDashboard();
-} else {
-  openLanding();
-}
+updateScrollProgress();
+window.addEventListener("scroll", updateScrollProgress, { passive: true });
+window.addEventListener("popstate", renderRoute);
+window.addEventListener("hashchange", renderRoute);
+renderRoute();

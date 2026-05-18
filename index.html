@@ -3,12 +3,65 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Training Dashboard</title>
+    <title>MakSPH Digital Health Innovations</title>
+    <meta
+      name="description"
+      content="A unified portfolio of digital health innovations developed by Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health."
+    />
+    <link rel="canonical" href="https://musph.cc/" />
+    <meta property="og:site_name" content="MakSPH Digital Health Innovations" />
+    <meta property="og:title" content="MakSPH Digital Health Innovations" />
+    <meta
+      property="og:description"
+      content="A unified portfolio of digital health innovations developed by Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health."
+    />
+    <meta property="og:url" content="https://musph.cc/" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <section class="landing-page" id="landingPage">
+    <a class="skip-link" href="#mainContent">Skip to main content</a>
+
+    <header class="portal-header">
+      <div class="portal-header-inner">
+        <a class="portal-brand" href="/" data-route="/" aria-label="MakSPH Digital Health Innovations home">
+          <span class="portal-brand-mark">
+            <img src="/logos/maksph_logo.png" alt="" />
+          </span>
+          <span>
+            <strong>MakSPH Digital Health Innovations</strong>
+            <small>CRANE Survey Project | Ministry of Health partnership</small>
+          </span>
+        </a>
+
+        <button
+          class="menu-toggle"
+          id="menuToggle"
+          type="button"
+          aria-controls="primaryNav"
+          aria-expanded="false"
+          aria-label="Open navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <nav class="primary-nav" id="primaryNav" aria-label="Primary navigation">
+          <a href="/" data-route="/" data-nav="home">Home</a>
+          <a href="/innovations" data-route="/innovations" data-nav="innovations">Innovations</a>
+          <a href="/innovations/training-database" data-route="/innovations/training-database" data-nav="training">
+            Training Dashboard
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="portal-main" id="mainContent">
+      <div class="portal-view" id="portalView" aria-live="polite"></div>
+    </main>
+
+    <section class="landing-page training-landing" id="trainingLanding" hidden>
       <div class="landing-slides" aria-hidden="true">
         <span class="landing-slide is-active" style="background-image: url('/images/training-hero-1.webp')"></span>
         <span class="landing-slide" style="background-image: url('/images/training-hero-2.webp')"></span>
@@ -17,7 +70,7 @@
       <div class="landing-shade" aria-hidden="true"></div>
       <div class="landing-light" aria-hidden="true"></div>
       <header class="landing-topbar">
-        <div class="landing-brand" aria-label="Lead organizations">
+        <div class="landing-brand" aria-label="Lead organization">
           <span>
             <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health" />
           </span>
@@ -119,7 +172,7 @@
             <p class="eyeline" id="activeViewLabel">Overview</p>
             <h1>Training Performance Dashboard</h1>
             <p class="dashboard-description">
-              Training of Health workers in providing Friendly services to High Risk Individuals
+              Training of health workers in providing friendly services to people at higher risk for HIV
             </p>
           </div>
           <div class="topbar-side">
@@ -413,6 +466,13 @@
       <span>Cranesurvey Project</span>
     </footer>
     </div>
+
+    <footer class="portal-footer" id="portalFooter">
+      <strong>MakSPH Digital Health Innovations</strong>
+      <span>Developed by Makerere University School of Public Health</span>
+      <span>Under the CRANE Survey Project</span>
+      <span>In partnership with Ministry of Health</span>
+    </footer>
 
     <div class="focus-layer" id="focusLayer" hidden>
       <div class="focus-backdrop" data-close-focus></div>

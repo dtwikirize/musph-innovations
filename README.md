@@ -1,6 +1,6 @@
-# Training Dashboard
+# MakSPH Digital Health Innovations
 
-Power BI-style web dashboard for the published training register.
+Unified digital health innovation portal for Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health.
 
 ## Preview locally
 
@@ -16,7 +16,7 @@ Then open:
 http://127.0.0.1:4175
 ```
 
-The dashboard loads the bundled CSV from `data/training-data.csv`. Use the **Refresh data** button to pull the latest public Google Sheets CSV.
+The portal includes the existing training dashboard, which loads the bundled CSV from `data/training-data.csv`. Use the **Refresh data** button to pull the latest public Google Sheets CSV.
 
 ## Hostinger deployment
 
@@ -33,7 +33,20 @@ Install command: npm install
 
 The production build copies `public/data/training-data.csv` into `dist/data/training-data.csv`.
 
-## Included views
+## Public routes
+
+- `/`
+- `/innovations`
+- `/innovations/netlife`
+- `/innovations/virtual-academy`
+- `/innovations/training-database`
+- `/innovations/crane-dashboard`
+- `/innovations/crane-dashboard/live`
+- `/innovations/acasi`
+
+The training landing page is available at `/innovations/training-database`, and the dashboard opens at `/innovations/training-database#dashboard`.
+
+## Included dashboard views
 
 - KPI cards for participants, facilities, districts, courses, pre-test, post-test, and improvement
 - Interactive filters for search, course, district, year, and sex
