@@ -386,6 +386,13 @@ body {
     linear-gradient(180deg, rgba(8, 24, 45, 0.12), rgba(8, 24, 45, 0.7));
 }
 
+.page-banner[class*="theme-"]::after {
+  background:
+    radial-gradient(circle at 18% 84%, color-mix(in srgb, var(--theme) 42%, transparent), transparent 34%),
+    linear-gradient(90deg, rgba(8, 24, 45, 0.92) 0%, color-mix(in srgb, var(--theme) 38%, rgba(8, 24, 45, 0.74)) 42%, rgba(8, 24, 45, 0.3) 76%, rgba(8, 24, 45, 0.16) 100%),
+    linear-gradient(180deg, rgba(8, 24, 45, 0.08), rgba(8, 24, 45, 0.74));
+}
+
 .portal-hero-inner,
 .page-banner-inner,
 .section-shell {
@@ -514,6 +521,16 @@ body {
 .text-link-button:hover {
   border-color: rgba(21, 154, 149, 0.44);
   background: #f5fbfb;
+}
+
+.page-banner[class*="theme-"] .text-link-button:hover {
+  border-color: color-mix(in srgb, var(--theme) 42%, white);
+  background: color-mix(in srgb, var(--theme) 8%, white);
+}
+
+.page-banner[class*="theme-"] .text-link-button .button-icon {
+  background: var(--theme-soft);
+  color: var(--theme);
 }
 
 .cta-button svg,
@@ -771,8 +788,35 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.detail-section[class*="theme-"] {
+  background:
+    radial-gradient(circle at 8% 0%, var(--theme-soft), transparent 30%),
+    linear-gradient(180deg, #fff, color-mix(in srgb, var(--theme) 4%, #f8fbfd));
+}
+
 .detail-card {
-  padding: 22px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  border-top: 4px solid var(--theme, var(--teal));
+  padding: 24px;
+}
+
+.detail-card-label {
+  width: max-content;
+  border-radius: 999px;
+  background: var(--theme-soft, rgba(21, 154, 149, 0.12));
+  color: var(--theme, var(--teal));
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.detail-card[class*="theme-"] h3 {
+  color: color-mix(in srgb, var(--theme) 28%, var(--navy));
 }
 
 .detail-list {
@@ -800,7 +844,8 @@ body {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--teal), var(--green));
+  background: var(--theme, var(--teal));
+  box-shadow: 0 0 0 5px var(--theme-soft, rgba(21, 154, 149, 0.12));
 }
 
 .step-card {
@@ -864,12 +909,14 @@ body {
 }
 
 .innovation-card[class*="theme-"],
-.overview-panel[class*="theme-"] {
+.overview-panel[class*="theme-"],
+.detail-card[class*="theme-"] {
   border-top: 4px solid var(--theme);
 }
 
 .innovation-card[class*="theme-"] .icon-chip,
-.overview-panel[class*="theme-"] .icon-chip {
+.overview-panel[class*="theme-"] .icon-chip,
+.detail-card[class*="theme-"] .icon-chip {
   background: var(--theme-soft);
   color: var(--theme);
 }
@@ -895,7 +942,9 @@ body {
 }
 
 .innovation-card[class*="theme-"] .theme-button,
-.overview-panel[class*="theme-"] .theme-button {
+.overview-panel[class*="theme-"] .theme-button,
+.detail-section[class*="theme-"] .theme-button,
+.page-banner[class*="theme-"] .theme-button {
   color: #fff;
   box-shadow: 0 14px 30px rgba(16, 35, 63, 0.18);
 }

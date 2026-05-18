@@ -518,14 +518,16 @@ function sectionHeader(title, copy) {
 }
 
 function ctaButton(label, href, variant = "") {
-  return `<a class="cta-button ${variant}".trim() href="${href}" data-route="${href}">
+  const className = ["cta-button", variant].filter(Boolean).join(" ");
+  return `<a class="${className}" href="${href}" data-route="${href}">
     <span>${label}</span>
     <span class="button-icon">${iconMarkup("arrow")}</span>
   </a>`;
 }
 
-function externalLinkButton(label, href) {
-  return `<a class="text-link-button" href="${href}" target="_blank" rel="noopener noreferrer">
+function externalLinkButton(label, href, variant = "") {
+  const className = ["text-link-button", variant].filter(Boolean).join(" ");
+  return `<a class="${className}" href="${href}" target="_blank" rel="noopener noreferrer">
     <span>${label}</span>
     <span class="button-icon">${iconMarkup("external")}</span>
   </a>`;
@@ -546,9 +548,10 @@ function heroSection({ title, copy, image, buttons }) {
   `;
 }
 
-function pageBanner({ title, copy, image, buttons = [] }) {
+function pageBanner({ title, copy, image, buttons = [], theme = "" }) {
+  const className = ["page-banner", theme ? `theme-${theme}` : ""].filter(Boolean).join(" ");
   return `
-    <section class="page-banner">
+    <section class="${className}">
       <div class="page-banner-media" style="background-image: url('${image}')"></div>
       <div class="page-banner-inner">
         <div class="page-banner-copy">
@@ -701,20 +704,24 @@ function renderDetailPage({
   image,
   purpose,
   features,
+  theme,
   buttons = [],
   extra = "",
 }) {
+  const themeClass = theme ? `theme-${theme}` : "";
   return `
-    ${pageBanner({ title, copy, image, buttons })}
-    <section class="content-section">
+    ${pageBanner({ title, copy, image, buttons, theme })}
+    <section class="content-section detail-section ${themeClass}">
       <div class="section-shell detail-grid">
-        <article class="detail-card reveal">
+        <article class="detail-card ${themeClass} reveal">
+          <span class="detail-card-label">Purpose</span>
           <h3>Strategic Purpose</h3>
           <ul class="detail-list">
             ${purpose.map((item) => `<li>${item}</li>`).join("")}
           </ul>
         </article>
-        <article class="detail-card reveal">
+        <article class="detail-card ${themeClass} reveal">
+          <span class="detail-card-label">Capabilities</span>
           <h3>Key Features</h3>
           <ul class="detail-list">
             ${features.map((item) => `<li>${item}</li>`).join("")}
@@ -813,6 +820,7 @@ function renderPortalRoute(path) {
         copy:
           "Netlife functions as a virtual extension of physical Drop-In Centers, supporting online screening, health information, appointments, referrals, and linkage to physical care.",
         image: "/images/netlife-hero.webp",
+        theme: "purple",
         purpose: [
           "Reduces barriers related to stigma and fear of public exposure",
           "Extends services to hard-to-reach populations",
@@ -839,6 +847,7 @@ function renderPortalRoute(path) {
         copy:
           "The MakSPH Virtual Academy is a centralized online learning platform for professional health training and workforce capacity building.",
         image: "/images/virtual-academy-hero.webp",
+        theme: "green",
         purpose: [
           "Supports self-paced learning",
           "Reduces travel and logistics costs",
@@ -863,6 +872,7 @@ function renderPortalRoute(path) {
         copy:
           "An interactive dashboard providing real-time oversight of bio-behavioral survey sampling progress and surveillance outputs.",
         image: "/images/crane-dashboard-hero.webp",
+        theme: "teal",
         purpose: [
           "Supports monitoring of sample achievement",
           "Enables surveillance oversight",
@@ -877,7 +887,7 @@ function renderPortalRoute(path) {
           "Decision-support visualizations",
         ],
         buttons: [
-          ctaButton("Open Full-Screen Dashboard", "/innovations/crane-dashboard/live"),
+          ctaButton("Open Full-Screen Dashboard", "/innovations/crane-dashboard/live", "theme-button"),
           externalLinkButton(
             "Open in Power BI",
             "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9&pageName=b63172ee8e2e5cadd53e",
@@ -893,6 +903,7 @@ function renderPortalRoute(path) {
         copy:
           "An Audio Computer-Assisted Self-Interview system supporting private screening, risk assessment, triage, and service linkage.",
         image: "/images/acasi-hero.webp",
+        theme: "gold",
         purpose: [
           "Improves data quality",
           "Reduces interviewer bias",
