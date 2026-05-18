@@ -47,6 +47,8 @@ const innovations = [
       "Virtual access to screening, appointments, referrals, and linkage to care through an online extension of physical Drop-In Centers.",
     purpose: "Expands confidential access and supports continuity of care.",
     icon: "phone",
+    theme: "purple",
+    image: "/images/netlife-hero.webp",
   },
   {
     slug: "virtual-academy",
@@ -56,6 +58,8 @@ const innovations = [
       "A centralized online learning platform for professional health training and workforce capacity building.",
     purpose: "Extends professional development while reducing travel and service disruption.",
     icon: "book",
+    theme: "green",
+    image: "/images/virtual-academy-hero.webp",
   },
   {
     slug: "training-database",
@@ -65,6 +69,8 @@ const innovations = [
       "A centralized system for tracking trained health workers, geographic coverage, and workforce capacity-building outputs.",
     purpose: "Supports accountability and real-time workforce monitoring.",
     icon: "chart",
+    theme: "blue",
+    image: "/images/training-hero-1.webp",
   },
   {
     slug: "crane-dashboard",
@@ -74,6 +80,8 @@ const innovations = [
       "Interactive oversight of bio-behavioral survey sampling progress and surveillance outputs.",
     purpose: "Improves access to timely surveillance intelligence.",
     icon: "map",
+    theme: "teal",
+    image: "/images/crane-dashboard-hero.webp",
   },
   {
     slug: "acasi",
@@ -83,6 +91,8 @@ const innovations = [
       "Private digital screening, risk assessment, triage, and service linkage through self-guided workflows.",
     purpose: "Strengthens confidentiality, data quality, and rapid linkage.",
     icon: "shield",
+    theme: "gold",
+    image: "/images/acasi-hero.webp",
   },
 ];
 
@@ -136,12 +146,6 @@ const state = {
   rows: [],
   filtered: [],
   activeView: "overview",
-  databaseUnlocked: false,
-  craneUnlocked: window.sessionStorage.getItem("crane-dashboard-unlocked") === "true",
-  failedAccessAttempts: 0,
-  craneFailedAccessAttempts: 0,
-  accessLockedUntil: 0,
-  craneLockedUntil: 0,
   filters: {
     search: "",
     course: "All",
@@ -195,12 +199,6 @@ const els = {
   focusLayer: document.querySelector("#focusLayer"),
   focusTitle: document.querySelector("#focusTitle"),
   focusBody: document.querySelector("#focusBody"),
-  databaseAccessLayer: document.querySelector("#databaseAccessLayer"),
-  databaseAccessForm: document.querySelector("#databaseAccessForm"),
-  databaseAccessCode: document.querySelector("#databaseAccessCode"),
-  craneAccessLayer: document.querySelector("#craneAccessLayer"),
-  craneAccessForm: document.querySelector("#craneAccessForm"),
-  craneAccessCode: document.querySelector("#craneAccessCode"),
   toast: document.querySelector("#toast"),
 };
 
@@ -504,6 +502,7 @@ function iconMarkup(name) {
     map: '<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path><path d="M9 3v15M15 6v15"></path>',
     shield: '<path d="M12 22s8-3 8-10V5l-8-3-8 3v7c0 7 8 10 8 10Z"></path><path d="M9 12l2 2 4-5"></path>',
     arrow: '<path d="M5 12h14M13 5l7 7-7 7"></path>',
+    external: '<path d="M14 3h7v7"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path>',
   };
 
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name] || icons.systems}</svg>`;
@@ -519,16 +518,16 @@ function sectionHeader(title, copy) {
 }
 
 function ctaButton(label, href, variant = "") {
-  return `<a class="cta-button ${variant}" href="${href}" data-route="${href}">
+  return `<a class="cta-button ${variant}".trim() href="${href}" data-route="${href}">
     <span>${label}</span>
-    ${iconMarkup("arrow")}
+    <span class="button-icon">${iconMarkup("arrow")}</span>
   </a>`;
 }
 
 function externalLinkButton(label, href) {
   return `<a class="text-link-button" href="${href}" target="_blank" rel="noopener noreferrer">
     <span>${label}</span>
-    ${iconMarkup("arrow")}
+    <span class="button-icon">${iconMarkup("external")}</span>
   </a>`;
 }
 
@@ -582,7 +581,10 @@ function featureGrid(items) {
 
 function innovationCard(item) {
   return `
-    <article class="innovation-card reveal">
+    <article class="innovation-card theme-${item.theme} reveal">
+      <figure class="innovation-card-media">
+        <img src="${item.image}" alt="" loading="lazy" />
+      </figure>
       <header>
         <span class="icon-chip">${iconMarkup(item.icon)}</span>
         <div>
@@ -591,7 +593,7 @@ function innovationCard(item) {
         </div>
       </header>
       <span>${item.purpose}</span>
-      ${ctaButton("Learn More", item.path)}
+      ${ctaButton("Learn More", item.path, "theme-button")}
     </article>
   `;
 }
@@ -673,14 +675,17 @@ function renderInnovationsPage() {
         ${innovations
           .map(
             (item) => `
-              <article class="overview-panel reveal">
+              <article class="overview-panel theme-${item.theme} reveal">
+                <figure class="innovation-card-media">
+                  <img src="${item.image}" alt="" loading="lazy" />
+                </figure>
                 <span class="icon-chip">${iconMarkup(item.icon)}</span>
                 <div>
                   <h2>${item.title}</h2>
                   <p>${item.summary}</p>
                 </div>
                 <p>${item.purpose}</p>
-                ${ctaButton("Learn More", item.path)}
+                ${ctaButton("Learn More", item.path, "theme-button")}
               </article>
             `,
           )
@@ -773,22 +778,6 @@ function renderCraneEmbed() {
 }
 
 function renderCraneFullscreenPage() {
-  if (!state.craneUnlocked) {
-    return `
-      <section class="crane-lock-screen">
-        <article class="crane-lock-card">
-          <span class="icon-chip">${iconMarkup("shield")}</span>
-          <h1>CRANE dashboard access required</h1>
-          <p>Enter the dashboard access code to open the live Power BI view.</p>
-          <button class="cta-button" type="button" data-open-crane-access>
-            <span>Unlock Dashboard</span>
-            ${iconMarkup("arrow")}
-          </button>
-        </article>
-      </section>
-    `;
-  }
-
   return `
     <section class="crane-live-view">
       <div class="crane-live-toolbar">
@@ -1730,40 +1719,6 @@ function closeFocusMode() {
   document.body.style.overflow = "";
 }
 
-function openDatabaseAccess() {
-  els.databaseAccessLayer.hidden = false;
-  els.databaseAccessCode.value = "";
-  document.body.style.overflow = "hidden";
-  window.setTimeout(() => els.databaseAccessCode.focus(), 0);
-}
-
-function closeDatabaseAccess() {
-  els.databaseAccessLayer.hidden = true;
-  els.databaseAccessCode.value = "";
-  if (els.focusLayer.hidden) document.body.style.overflow = "";
-}
-
-function openCraneAccess() {
-  els.craneAccessLayer.hidden = false;
-  els.craneAccessCode.value = "";
-  document.body.style.overflow = "hidden";
-  window.setTimeout(() => els.craneAccessCode.focus(), 0);
-}
-
-function closeCraneAccess() {
-  els.craneAccessLayer.hidden = true;
-  els.craneAccessCode.value = "";
-  if (els.focusLayer.hidden && els.databaseAccessLayer.hidden) document.body.style.overflow = "";
-}
-
-function isTemporarilyLocked(lockedUntil) {
-  return lockedUntil > Date.now();
-}
-
-function remainingLockSeconds(lockedUntil) {
-  return Math.ceil((lockedUntil - Date.now()) / 1000);
-}
-
 let toastTimer;
 function showToast(message) {
   els.toast.textContent = message;
@@ -1833,13 +1788,7 @@ enterDashboard.addEventListener("click", openDashboard);
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".premium-select")) closePremiumSelects();
   if (event.target.closest("[data-close-focus]")) closeFocusMode();
-  if (event.target.closest("[data-close-database-access]")) closeDatabaseAccess();
-  if (event.target.closest("[data-close-crane-access]")) closeCraneAccess();
   if (!event.target.closest(".nav-group")) closeInnovationMenu();
-  if (event.target.closest("[data-open-crane-access]")) {
-    openCraneAccess();
-    return;
-  }
 
   const routeLink = event.target.closest("a[data-route]");
   if (!routeLink) return;
@@ -1868,8 +1817,6 @@ innovationMenuToggle.addEventListener("click", () => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
   if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
-  if (event.key === "Escape" && !els.databaseAccessLayer.hidden) closeDatabaseAccess();
-  if (event.key === "Escape" && !els.craneAccessLayer.hidden) closeCraneAccess();
   if (event.key === "Escape" && primaryNav.classList.contains("is-open")) {
     primaryNav.classList.remove("is-open");
     menuToggle.setAttribute("aria-expanded", "false");
@@ -1881,69 +1828,10 @@ document.addEventListener("keydown", (event) => {
 
 els.navItems.forEach((item) => {
   item.addEventListener("click", () => {
-    if (item.dataset.view === "database" && !state.databaseUnlocked) {
-      openDatabaseAccess();
-      return;
-    }
     state.activeView = item.dataset.view;
     renderView();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
-});
-
-els.databaseAccessForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (isTemporarilyLocked(state.accessLockedUntil)) {
-    showToast(`Try again in ${remainingLockSeconds(state.accessLockedUntil)} seconds`);
-    return;
-  }
-  if (els.databaseAccessCode.value.trim() !== "K2026") {
-    state.failedAccessAttempts += 1;
-    if (state.failedAccessAttempts >= 5) {
-      state.accessLockedUntil = Date.now() + 30000;
-      state.failedAccessAttempts = 0;
-      showToast("Too many attempts. Try again in 30 seconds");
-      closeDatabaseAccess();
-      return;
-    }
-    showToast("Incorrect database code");
-    els.databaseAccessCode.select();
-    return;
-  }
-  state.databaseUnlocked = true;
-  state.failedAccessAttempts = 0;
-  state.activeView = "database";
-  closeDatabaseAccess();
-  renderView();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  showToast("Database unlocked");
-});
-
-els.craneAccessForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (isTemporarilyLocked(state.craneLockedUntil)) {
-    showToast(`Try again in ${remainingLockSeconds(state.craneLockedUntil)} seconds`);
-    return;
-  }
-  if (els.craneAccessCode.value.trim() !== "K2026") {
-    state.craneFailedAccessAttempts += 1;
-    if (state.craneFailedAccessAttempts >= 5) {
-      state.craneLockedUntil = Date.now() + 30000;
-      state.craneFailedAccessAttempts = 0;
-      showToast("Too many attempts. Try again in 30 seconds");
-      closeCraneAccess();
-      return;
-    }
-    showToast("Incorrect dashboard code");
-    els.craneAccessCode.select();
-    return;
-  }
-  state.craneUnlocked = true;
-  state.craneFailedAccessAttempts = 0;
-  window.sessionStorage.setItem("crane-dashboard-unlocked", "true");
-  closeCraneAccess();
-  renderRoute();
-  showToast("Dashboard unlocked");
 });
 
 enhancePanelsForFocus();
@@ -1953,3 +1841,11 @@ window.addEventListener("scroll", updateScrollProgress, { passive: true });
 window.addEventListener("popstate", renderRoute);
 window.addEventListener("hashchange", renderRoute);
 renderRoute();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.warn("Service worker registration failed", error);
+    });
+  });
+}
