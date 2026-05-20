@@ -22,7 +22,6 @@ const portalMain = document.querySelector("#mainContent");
 const portalFooter = document.querySelector("#portalFooter");
 const primaryNav = document.querySelector("#primaryNav");
 const menuToggle = document.querySelector("#menuToggle");
-const innovationMenuToggle = document.querySelector("#innovationMenuToggle");
 const innovationMenu = document.querySelector("#innovationMenu");
 const trainingLanding = document.querySelector("#trainingLanding");
 const dashboardStage = document.querySelector("#dashboardStage");
@@ -981,7 +980,6 @@ function setActiveNavigation(path, dashboardOpen) {
 
 function closeInnovationMenu() {
   innovationMenu.classList.remove("is-open");
-  innovationMenuToggle.setAttribute("aria-expanded", "false");
 }
 
 function bindDynamicRouteContent() {
@@ -1830,11 +1828,7 @@ function updateScrollProgress() {
 menuToggle.addEventListener("click", () => {
   const open = primaryNav.classList.toggle("is-open");
   menuToggle.setAttribute("aria-expanded", String(open));
-});
-
-innovationMenuToggle.addEventListener("click", () => {
-  const open = innovationMenu.classList.toggle("is-open");
-  innovationMenuToggle.setAttribute("aria-expanded", String(open));
+  menuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
 });
 
 document.addEventListener("keydown", (event) => {
@@ -1843,6 +1837,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && primaryNav.classList.contains("is-open")) {
     primaryNav.classList.remove("is-open");
     menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open navigation");
   }
   if (event.key === "Escape" && innovationMenu.classList.contains("is-open")) {
     closeInnovationMenu();
