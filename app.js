@@ -3,6 +3,12 @@ const LIVE_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=328536026&single=true&output=csv";
 const CRANE_POWER_BI_URL =
   "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9";
+const HOME_HERO_IMAGES = [
+  "/images/portal-hero.webp",
+  "/images/home-hero-digital-1.webp",
+  "/images/home-hero-digital-2.webp",
+  "/images/home-hero-digital-3.webp",
+];
 
 const palette = {
   navy: "#14345c",
@@ -141,6 +147,8 @@ const routeMeta = {
 
 let landingSlideIndex = 0;
 let landingTimer;
+let homeHeroSlideIndex = 0;
+let homeHeroTimer;
 let revealObserver;
 
 const state = {
@@ -491,6 +499,42 @@ function stopLandingSlideshow() {
   window.clearInterval(landingTimer);
 }
 
+function showHomeHeroSlide(hero, index) {
+  const slides = [...hero.querySelectorAll(".portal-hero-slide")];
+  const dots = [...hero.querySelectorAll("[data-home-hero-slide]")];
+  if (!slides.length) return;
+
+  homeHeroSlideIndex = (index + slides.length) % slides.length;
+  slides.forEach((slide, slideIndex) => {
+    slide.classList.toggle("is-active", slideIndex === homeHeroSlideIndex);
+    slide.classList.toggle("is-previous", slideIndex < homeHeroSlideIndex);
+  });
+  dots.forEach((dot, dotIndex) => {
+    dot.classList.toggle("is-active", dotIndex === homeHeroSlideIndex);
+  });
+}
+
+function startHomeHeroSlideshow(hero) {
+  stopHomeHeroSlideshow();
+  const slides = [...hero.querySelectorAll(".portal-hero-slide")];
+  if (slides.length < 2) return;
+
+  showHomeHeroSlide(hero, homeHeroSlideIndex);
+  hero.querySelectorAll("[data-home-hero-slide]").forEach((dot) => {
+    dot.addEventListener("click", () => {
+      showHomeHeroSlide(hero, Number(dot.dataset.homeHeroSlide));
+      startHomeHeroSlideshow(hero);
+    });
+  });
+  homeHeroTimer = window.setInterval(() => {
+    showHomeHeroSlide(hero, homeHeroSlideIndex + 1);
+  }, 6500);
+}
+
+function stopHomeHeroSlideshow() {
+  window.clearInterval(homeHeroTimer);
+}
+
 function iconMarkup(name) {
   const icons = {
     access: '<path d="M12 21s6-5.4 6-11a6 6 0 1 0-12 0c0 5.6 6 11 6 11Z"></path><circle cx="12" cy="10" r="2.25"></circle>',
@@ -534,10 +578,20 @@ function externalLinkButton(label, href, variant = "") {
   </a>`;
 }
 
-function heroSection({ title, copy, image, buttons }) {
+function heroSection({ title, copy, image, images = [], buttons }) {
+  const heroImages = images.length ? images : [image];
+  const hasCarousel = heroImages.length > 1;
   return `
-    <section class="portal-hero">
-      <div class="portal-hero-media" style="background-image: url('${image}')"></div>
+    <section class="portal-hero"${hasCarousel ? " data-hero-carousel" : ""}>
+      <div class="portal-hero-media" aria-hidden="true">
+        ${heroImages
+          .map(
+            (heroImage, index) => `<span class="portal-hero-slide${
+              index === 0 ? " is-active" : ""
+            }" style="background-image: url('${heroImage}')"></span>`,
+          )
+          .join("")}
+      </div>
       <div class="hero-effects" aria-hidden="true">
         <span class="hero-orbit one"></span>
         <span class="hero-orbit two"></span>
@@ -548,6 +602,21 @@ function heroSection({ title, copy, image, buttons }) {
           <h1>${title}</h1>
           <p>${copy}</p>
           <div class="button-row">${buttons.join("")}</div>
+          ${
+            hasCarousel
+              ? `<div class="hero-slide-dots" aria-label="Home hero slides">
+                  ${heroImages
+                    .map(
+                      (_, index) => `<button class="${
+                        index === 0 ? "is-active" : ""
+                      }" type="button" data-home-hero-slide="${index}" aria-label="Show hero image ${
+                        index + 1
+                      }"></button>`,
+                    )
+                    .join("")}
+                </div>`
+              : ""
+          }
         </div>
       </div>
     </section>
@@ -618,7 +687,7 @@ function renderHomePage() {
       title: SITE_NAME,
       copy:
         "A unified portfolio of digital innovations developed by Makerere University School of Public Health under the CRANE Survey Project in partnership with the Ministry of Health to improve access, strengthen workforce capacity, support surveillance, and enhance data-driven decision-making.",
-      image: "/images/portal-hero.webp",
+      images: HOME_HERO_IMAGES,
       buttons: [
         ctaButton("Explore Innovations", "/innovations"),
         ctaButton("View Training Dashboard", "/innovations/training-database", "secondary"),
@@ -983,6 +1052,9 @@ function closeInnovationMenu() {
 }
 
 function bindDynamicRouteContent() {
+  const heroCarousel = document.querySelector("[data-hero-carousel]");
+  if (heroCarousel) startHomeHeroSlideshow(heroCarousel);
+
   const iframe = document.querySelector("#craneEmbedShell iframe");
   if (iframe) {
     iframe.addEventListener("load", () => {
@@ -1029,6 +1101,7 @@ function renderRoute() {
 
   updateMeta(path);
   setActiveNavigation(path, dashboardOpen);
+  stopHomeHeroSlideshow();
   primaryNav.classList.remove("is-open");
   closeInnovationMenu();
   menuToggle.setAttribute("aria-expanded", "false");

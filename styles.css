@@ -480,6 +480,27 @@ body {
   background-size: cover;
 }
 
+.portal-hero-slide {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  transform: translateX(28px) scale(1.045);
+  transition:
+    opacity 900ms ease,
+    transform 1500ms ease;
+}
+
+.portal-hero-slide.is-active {
+  opacity: 1;
+  transform: translateX(0) scale(1.08);
+}
+
+.portal-hero-slide.is-previous {
+  transform: translateX(-28px) scale(1.04);
+}
+
 .portal-hero::after,
 .page-banner::after {
   content: "";
@@ -641,6 +662,42 @@ body {
 .portal-hero-copy .button-row,
 .page-banner-copy .button-row {
   animation-delay: 240ms;
+}
+
+.hero-slide-dots {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin-top: 22px;
+}
+
+.hero-slide-dots button {
+  position: relative;
+  width: 36px;
+  height: 5px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  cursor: pointer;
+}
+
+.hero-slide-dots button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #fff;
+  transform: translateX(-100%);
+}
+
+.hero-slide-dots button.is-active {
+  width: 54px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.hero-slide-dots button.is-active::after {
+  animation: heroDotProgress 6500ms linear both;
 }
 
 .portal-hero h1,
@@ -1441,6 +1498,16 @@ body {
   }
 }
 
+@keyframes heroDotProgress {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
 .landing-page {
   position: relative;
   min-height: 100vh;
@@ -1720,6 +1787,8 @@ body {
   .page-banner-copy h1,
   .page-banner-copy p,
   .page-banner-copy .button-row,
+  .portal-hero-slide,
+  .hero-slide-dots button.is-active::after,
   .reveal,
   .cta-button::after,
   .text-link-button::after {
