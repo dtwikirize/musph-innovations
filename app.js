@@ -539,6 +539,11 @@ function heroSection({ title, copy, image, buttons }) {
   return `
     <section class="portal-hero">
       <div class="portal-hero-media" style="background-image: url('${image}')"></div>
+      <div class="hero-effects" aria-hidden="true">
+        <span class="hero-orbit one"></span>
+        <span class="hero-orbit two"></span>
+        <span class="hero-scanline"></span>
+      </div>
       <div class="portal-hero-inner">
         <div class="portal-hero-copy">
           <h1>${title}</h1>
@@ -555,6 +560,11 @@ function pageBanner({ title, copy, image, buttons = [], theme = "" }) {
   return `
     <section class="${className}">
       <div class="page-banner-media" style="background-image: url('${image}')"></div>
+      <div class="hero-effects" aria-hidden="true">
+        <span class="hero-orbit one"></span>
+        <span class="hero-orbit two"></span>
+        <span class="hero-scanline"></span>
+      </div>
       <div class="page-banner-inner">
         <div class="page-banner-copy">
           <h1>${title}</h1>

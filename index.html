@@ -51,9 +51,27 @@
         </button>
 
         <nav class="primary-nav" id="primaryNav" aria-label="Primary navigation">
-          <a href="/" data-route="/" data-nav="home">Home</a>
+          <a href="/" data-route="/" data-nav="home">
+            <span class="nav-flat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 11.5 12 4l9 7.5"></path>
+                <path d="M5.5 10.5V20h13v-9.5"></path>
+                <path d="M9.5 20v-5h5v5"></path>
+              </svg>
+            </span>
+            <span>Home</span>
+          </a>
           <div class="nav-group">
-            <a href="/innovations" data-route="/innovations" data-nav="innovations">Innovations</a>
+            <a href="/innovations" data-route="/innovations" data-nav="innovations">
+              <span class="nav-flat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3 4 7l8 4 8-4-8-4Z"></path>
+                  <path d="m4 12 8 4 8-4"></path>
+                  <path d="m4 17 8 4 8-4"></path>
+                </svg>
+              </span>
+              <span>Innovations</span>
+            </a>
             <button
               class="submenu-toggle"
               id="innovationMenuToggle"
@@ -67,15 +85,81 @@
               </svg>
             </button>
             <div class="nav-submenu" id="innovationMenu">
-              <a href="/innovations/netlife" data-route="/innovations/netlife">Netlife Online DIC</a>
-              <a href="/innovations/virtual-academy" data-route="/innovations/virtual-academy">Virtual Academy</a>
-              <a href="/innovations/training-database" data-route="/innovations/training-database">Training Database</a>
-              <a href="/innovations/crane-dashboard" data-route="/innovations/crane-dashboard">CRANE Dashboard</a>
-              <a href="/innovations/acasi" data-route="/innovations/acasi">ACASI System</a>
+              <a class="submenu-link theme-purple" href="/innovations/netlife" data-route="/innovations/netlife">
+                <span class="submenu-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="7" y="3" width="10" height="18" rx="2"></rect>
+                    <path d="M11 18h2"></path>
+                  </svg>
+                </span>
+                <span>
+                  <strong>Netlife Online DIC</strong>
+                  <small>Virtual drop-in services</small>
+                </span>
+              </a>
+              <a class="submenu-link theme-green" href="/innovations/virtual-academy" data-route="/innovations/virtual-academy">
+                <span class="submenu-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M3 7.5 12 4l9 3.5-9 3.5-9-3.5Z"></path>
+                    <path d="M6 10v4.5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V10"></path>
+                  </svg>
+                </span>
+                <span>
+                  <strong>Virtual Academy</strong>
+                  <small>Online health training</small>
+                </span>
+              </a>
+              <a class="submenu-link theme-blue" href="/innovations/training-database" data-route="/innovations/training-database">
+                <span class="submenu-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <ellipse cx="12" cy="5" rx="7" ry="3"></ellipse>
+                    <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"></path>
+                    <path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"></path>
+                  </svg>
+                </span>
+                <span>
+                  <strong>Training Database</strong>
+                  <small>Workforce dashboard</small>
+                </span>
+              </a>
+              <a class="submenu-link theme-teal" href="/innovations/crane-dashboard" data-route="/innovations/crane-dashboard">
+                <span class="submenu-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 19V9"></path>
+                    <path d="M10 19V5"></path>
+                    <path d="M16 19v-8"></path>
+                    <path d="M22 19H2"></path>
+                  </svg>
+                </span>
+                <span>
+                  <strong>CRANE Dashboard</strong>
+                  <small>Sampling stewardship</small>
+                </span>
+              </a>
+              <a class="submenu-link theme-gold" href="/innovations/acasi" data-route="/innovations/acasi">
+                <span class="submenu-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 22s7-3 7-10V5l-7-3-7 3v7c0 7 7 10 7 10Z"></path>
+                    <path d="M9.5 12.5 11.5 14.5 15 9.5"></path>
+                  </svg>
+                </span>
+                <span>
+                  <strong>ACASI System</strong>
+                  <small>Private digital screening</small>
+                </span>
+              </a>
             </div>
           </div>
           <a href="/innovations/training-database" data-route="/innovations/training-database" data-nav="training">
-            Training Dashboard
+            <span class="nav-flat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 19h16"></path>
+                <path d="M7 19V10h3v9"></path>
+                <path d="M12 19V5h3v14"></path>
+                <path d="M17 19v-7h3v7"></path>
+              </svg>
+            </span>
+            <span>Training Dashboard</span>
           </a>
         </nav>
       </div>
