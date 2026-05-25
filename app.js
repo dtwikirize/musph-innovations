@@ -1865,7 +1865,10 @@ function renderElearning(rows) {
 
   const completed = rows.filter((row) => row.completed).length;
   const completionRate = rows.length ? Math.round((completed / rows.length) * 100) : 0;
-  const avgGrade = average(rows.filter((row) => Number.isFinite(row.grade)), "grade");
+  const avgGrade = average(
+    rows.filter((row) => row.completed && Number.isFinite(row.grade)),
+    "grade",
+  );
   const totalVisits = rows.reduce((sum, row) => sum + row.visits, 0);
 
   if (state.activeView === "elearning") {
