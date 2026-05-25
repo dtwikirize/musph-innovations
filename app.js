@@ -2078,7 +2078,7 @@ function showToast(message) {
   toastTimer = window.setTimeout(() => els.toast.classList.remove("is-visible"), 1800);
 }
 
-async function loadData(source = LOCAL_CSV) {
+async function loadData(source = LIVE_CSV, fallbackSource = LOCAL_CSV) {
   els.refreshData.disabled = true;
   els.refreshData.textContent = source === LIVE_CSV ? "Refreshing..." : "Loading...";
   try {
@@ -2089,6 +2089,11 @@ async function loadData(source = LOCAL_CSV) {
     setupFilters();
     applyFilters();
   } catch (error) {
+    if (fallbackSource && source !== fallbackSource) {
+      console.warn("Live training sheet failed, loading local fallback.", error);
+      await loadData(fallbackSource, null);
+      return;
+    }
     console.error(error);
     document.querySelector(".visual-grid").innerHTML = `<article class="panel span-12">${emptyMarkup(
       "The dashboard could not load the CSV. Start it from a local web server and try again.",
@@ -2099,9 +2104,9 @@ async function loadData(source = LOCAL_CSV) {
   }
 }
 
-async function loadElearningData() {
+async function loadElearningData(source = ELEARNING_CSV) {
   try {
-    const response = await fetch(ELEARNING_CSV, { cache: "no-store" });
+    const response = await fetch(source, { cache: "no-store" });
     if (!response.ok) throw new Error(`Could not load e-learning CSV (${response.status})`);
     const csv = await response.text();
     state.elearningRows = parseCsv(csv)
@@ -2123,7 +2128,7 @@ async function refreshDashboardData() {
   els.refreshData.disabled = true;
   els.refreshData.textContent = "Refreshing...";
   try {
-    await Promise.all([loadData(LIVE_CSV), loadElearningData()]);
+    await Promise.all([loadData(LIVE_CSV), loadElearningData(ELEARNING_CSV)]);
   } finally {
     els.refreshData.disabled = false;
     els.refreshData.textContent = "Refresh data";
@@ -2214,7 +2219,7 @@ els.navItems.forEach((item) => {
 });
 
 enhancePanelsForFocus();
-loadData();
+loadData(LIVE_CSV);
 loadElearningData();
 updateScrollProgress();
 window.addEventListener("scroll", updateScrollProgress, { passive: true });
