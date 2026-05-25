@@ -2776,6 +2776,110 @@ h1 {
   stroke-width: 1;
 }
 
+.timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px 16px;
+  margin: -2px 8px 4px;
+  color: #53657d;
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.timeline-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.timeline-legend i {
+  width: 18px;
+  height: 9px;
+  display: inline-block;
+  border-radius: 999px;
+}
+
+.timeline-legend .legend-total {
+  background: #dbe7f3;
+}
+
+.timeline-legend .legend-completed {
+  background: linear-gradient(90deg, #4dad77, #0d9b74);
+}
+
+.timeline-legend .legend-rate {
+  height: 3px;
+  background: #dda324;
+  box-shadow: 11px 0 0 #dda324;
+}
+
+.elearning-trend-chart .grid-line {
+  stroke: rgba(96, 112, 135, 0.15);
+}
+
+.elearning-trend-chart .axis-title {
+  fill: #5b6d84;
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.elearning-trend-chart .rate-axis-label {
+  fill: #8b6b13;
+}
+
+.elearning-trend-chart .month-axis-label {
+  font-size: 10.5px;
+  font-weight: 760;
+}
+
+.elearning-trend-chart .timeline-total-bar,
+.elearning-trend-chart .timeline-completed-bar {
+  transition:
+    opacity 160ms ease,
+    filter 160ms ease;
+}
+
+.elearning-trend-chart .timeline-total-bar {
+  filter: drop-shadow(0 7px 12px rgba(41, 87, 184, 0.08));
+}
+
+.elearning-trend-chart .timeline-completed-bar {
+  filter: drop-shadow(0 8px 12px rgba(13, 155, 116, 0.14));
+}
+
+.elearning-trend-chart .trend-value-label {
+  fill: #26405d;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.elearning-trend-chart .rate-line-shadow,
+.elearning-trend-chart .rate-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.elearning-trend-chart .rate-line-shadow {
+  stroke: rgba(221, 163, 36, 0.18);
+  stroke-width: 9;
+}
+
+.elearning-trend-chart .rate-line {
+  stroke: #dda324;
+  stroke-width: 3.4;
+}
+
+.elearning-trend-chart .rate-dot {
+  fill: #fff;
+  stroke: #dda324;
+  stroke-width: 3;
+  filter: drop-shadow(0 4px 9px rgba(221, 163, 36, 0.28));
+}
+
 .tooltip-label {
   fill: var(--ink);
   font-size: 12px;
