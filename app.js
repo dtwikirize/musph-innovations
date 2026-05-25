@@ -1,6 +1,8 @@
 const LOCAL_CSV = "/data/training-data.csv";
 const LIVE_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=328536026&single=true&output=csv";
+const ELEARNING_CSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=1859402851&single=true&output=csv";
 const CRANE_POWER_BI_URL =
   "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9";
 const HOME_HERO_IMAGES = [
@@ -154,6 +156,9 @@ let revealObserver;
 const state = {
   rows: [],
   filtered: [],
+  elearningRows: [],
+  filteredElearning: [],
+  elearningError: "",
   activeView: "overview",
   filters: {
     search: "",
@@ -173,6 +178,8 @@ const els = {
   navItems: document.querySelectorAll(".nav-item[data-view]"),
   panels: document.querySelectorAll(".panel[data-section]"),
   activeViewLabel: document.querySelector("#activeViewLabel"),
+  dashboardTitle: document.querySelector("#dashboardTitle"),
+  dashboardDescription: document.querySelector("#dashboardDescription"),
   filterSummary: document.querySelector("#filterSummary"),
   activeFilters: document.querySelector("#activeFilters"),
   resetFilters: document.querySelector("#resetFilters"),
@@ -205,6 +212,17 @@ const els = {
   dbFacilities: document.querySelector("#dbFacilities"),
   dbCourses: document.querySelector("#dbCourses"),
   dbCompleteness: document.querySelector("#dbCompleteness"),
+  elearningRecords: document.querySelector("#elearningRecords"),
+  elearningCompletion: document.querySelector("#elearningCompletion"),
+  elearningAvgGrade: document.querySelector("#elearningAvgGrade"),
+  elearningVisits: document.querySelector("#elearningVisits"),
+  elearningStatusBars: document.querySelector("#elearningStatusBars"),
+  elearningDistrictBars: document.querySelector("#elearningDistrictBars"),
+  elearningMechanismBars: document.querySelector("#elearningMechanismBars"),
+  elearningCadreBars: document.querySelector("#elearningCadreBars"),
+  elearningTimeline: document.querySelector("#elearningTimeline"),
+  elearningTable: document.querySelector("#elearningTable"),
+  elearningRowCount: document.querySelector("#elearningRowCount"),
   focusLayer: document.querySelector("#focusLayer"),
   focusTitle: document.querySelector("#focusTitle"),
   focusBody: document.querySelector("#focusBody"),
@@ -277,6 +295,11 @@ function parseDate(value) {
   if (match) {
     const [, day, month, year] = match;
     return new Date(Number(year), months[month.toLowerCase()], Number(day));
+  }
+  const slashMatch = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    const [, day, month, year] = slashMatch;
+    return new Date(Number(year), Number(month) - 1, Number(day));
   }
   const fallback = new Date(clean);
   return Number.isNaN(fallback.getTime()) ? null : fallback;
@@ -497,6 +520,39 @@ function startLandingSlideshow() {
 
 function stopLandingSlideshow() {
   window.clearInterval(landingTimer);
+}
+
+function parsePercent(value) {
+  const number = Number(String(value || "").replace("%", "").trim());
+  return Number.isFinite(number) ? number : null;
+}
+
+function normalizeElearningRow(row) {
+  const enrolledDate = parseDate(row["Enrolled On"]);
+  const completionDate = /^na$/i.test(cleanLabel(row["Course Completion Date"]))
+    ? null
+    : parseDate(row["Course Completion Date"]);
+  const visits = Number(row["Number of Visits"]);
+  const completed = /^yes$/i.test(cleanLabel(row["Course Completion"]));
+  const district = cleanDistrict(row.District) || "Unspecified district";
+
+  return {
+    id: cleanLabel(row.ID),
+    username: cleanLabel(row.Username),
+    fullName: cleanLabel(row["Full Name"]) || "Unnamed learner",
+    district,
+    mechanism: cleanLabel(row.Mechanism) || "Unspecified mechanism",
+    organizationUnit: cleanLabel(row["Organisation Unit"]) || "Unspecified unit",
+    department: cleanLabel(row.Department) || "Unspecified cadre",
+    enrolledDate,
+    enrolledYear: enrolledDate ? String(enrolledDate.getFullYear()) : "Unknown",
+    enrolledMonth: enrolledDate ? monthKey(enrolledDate) : "Unknown",
+    visits: Number.isFinite(visits) ? visits : 0,
+    completed,
+    completionLabel: completed ? "Completed" : "In progress",
+    completionDate,
+    grade: parsePercent(row.Grade),
+  };
 }
 
 function showHomeHeroSlide(hero, index) {
@@ -1157,23 +1213,20 @@ function uniqueSorted(rows, key) {
 }
 
 function setupFilters() {
+  const districtRows = [
+    ...state.rows.filter((row) => isRealDistrict(row.district)),
+    ...state.elearningRows.filter((row) => isRealDistrict(row.district)),
+  ];
+  const yearRows = [
+    ...state.rows.filter((row) => row.startYear !== "Unknown"),
+    ...state.elearningRows
+      .filter((row) => row.enrolledYear !== "Unknown")
+      .map((row) => ({ startYear: row.enrolledYear })),
+  ];
+
   fillSelect(els.courseFilter, uniqueSorted(state.rows, "course"), state.filters.course);
-  fillSelect(
-    els.districtFilter,
-    uniqueSorted(
-      state.rows.filter((row) => isRealDistrict(row.district)),
-      "district",
-    ),
-    state.filters.district,
-  );
-  fillSelect(
-    els.yearFilter,
-    uniqueSorted(
-      state.rows.filter((row) => row.startYear !== "Unknown"),
-      "startYear",
-    ).reverse(),
-    state.filters.year,
-  );
+  fillSelect(els.districtFilter, uniqueSorted(districtRows, "district"), state.filters.district);
+  fillSelect(els.yearFilter, uniqueSorted(yearRows, "startYear").reverse(), state.filters.year);
   fillSelect(
     els.sexFilter,
     uniqueSorted(
@@ -1196,13 +1249,21 @@ function applyFilters() {
       (state.filters.sex === "All" || row.sex === state.filters.sex)
     );
   });
+  state.filteredElearning = state.elearningRows.filter((row) => {
+    const text = `${row.fullName} ${row.username} ${row.mechanism} ${row.organizationUnit} ${row.department} ${row.district} ${row.completionLabel}`.toLowerCase();
+    return (
+      (!needle || text.includes(needle)) &&
+      (state.filters.district === "All" || row.district === state.filters.district) &&
+      (state.filters.year === "All" || row.enrolledYear === state.filters.year)
+    );
+  });
   render();
 }
 
 function render() {
   const rows = state.filtered;
   renderView();
-  renderFilterSummary(rows);
+  renderFilterSummary(state.activeView === "elearning" ? state.filteredElearning : rows);
   renderKpis(rows);
   renderTrend(rows);
   renderSex(rows);
@@ -1216,6 +1277,7 @@ function render() {
   renderRankedBars(els.organizationBars, countBy(rows, "organization").slice(0, 8), palette.coral);
   renderDatabaseSnapshot(rows);
   renderParticipants(rows);
+  renderElearning(state.filteredElearning);
 }
 
 function renderView() {
@@ -1224,10 +1286,32 @@ function renderView() {
     scores: "Score Analysis",
     coverage: "District Coverage",
     people: "Participants",
+    elearning: "E-learning",
     database: "Database",
   };
+  const viewCopy = {
+    elearning: {
+      title: "E-learning Performance Dashboard",
+      description:
+        "Virtual Academy learner enrollment, engagement, completion, and grade performance",
+    },
+    database: {
+      title: "Training Database",
+      description:
+        "Protected training record snapshot for workforce monitoring and follow-up",
+    },
+    default: {
+      title: "Training Performance Dashboard",
+      description:
+        "Training of health workers in providing friendly services to people at higher risk for HIV",
+    },
+  };
+  const copy = viewCopy[state.activeView] || viewCopy.default;
 
+  dashboardStage.dataset.activeView = state.activeView;
   els.activeViewLabel.textContent = labels[state.activeView] || "Overview";
+  els.dashboardTitle.textContent = copy.title;
+  els.dashboardDescription.textContent = copy.description;
   els.navItems.forEach((item) => {
     const active = item.dataset.view === state.activeView;
     item.classList.toggle("active", active);
@@ -1240,6 +1324,23 @@ function renderView() {
 }
 
 function renderFilterSummary(rows) {
+  if (state.activeView === "elearning") {
+    const districtCount = new Set(rows.map((row) => row.district).filter(isRealDistrict)).size;
+    const active = [
+      state.filters.district !== "All" ? `District: ${state.filters.district}` : "",
+      state.filters.year !== "All" ? `Year: ${state.filters.year}` : "",
+      state.filters.search ? "Search active" : "",
+    ].filter(Boolean);
+
+    els.filterSummary.textContent = `${formatNumber(rows.length)} learners across ${formatNumber(
+      districtCount,
+    )} districts`;
+    els.activeFilters.textContent = active.length
+      ? active.join(" | ")
+      : "Course and sex filters apply to training records only";
+    return;
+  }
+
   const districtCount = new Set(rows.map((row) => row.district).filter(isRealDistrict)).size;
   const active = [
     state.filters.course !== "All" ? `Course: ${shorten(state.filters.course, 22)}` : "",
@@ -1711,6 +1812,162 @@ function renderParticipants(rows) {
     .join("");
 }
 
+function renderElearning(rows) {
+  if (!els.elearningRecords) return;
+
+  if (state.elearningError) {
+    els.elearningRecords.textContent = "0";
+    els.elearningCompletion.textContent = "N/A";
+    els.elearningAvgGrade.textContent = "N/A";
+    els.elearningVisits.textContent = "0";
+    els.elearningStatusBars.innerHTML = emptyMarkup(state.elearningError);
+    els.elearningDistrictBars.innerHTML = emptyMarkup("E-learning data is unavailable.");
+    els.elearningMechanismBars.innerHTML = emptyMarkup("E-learning data is unavailable.");
+    els.elearningCadreBars.innerHTML = emptyMarkup("E-learning data is unavailable.");
+    els.elearningTimeline.innerHTML = emptyMarkup("E-learning data is unavailable.");
+    els.elearningTable.innerHTML = "";
+    els.elearningRowCount.textContent = "0 rows";
+    return;
+  }
+
+  const completed = rows.filter((row) => row.completed).length;
+  const completionRate = rows.length ? Math.round((completed / rows.length) * 100) : 0;
+  const avgGrade = average(rows.filter((row) => Number.isFinite(row.grade)), "grade");
+  const totalVisits = rows.reduce((sum, row) => sum + row.visits, 0);
+
+  if (state.activeView === "elearning") {
+    els.dateWindow.textContent = elearningDateRange(rows);
+  }
+
+  els.elearningRecords.textContent = formatNumber(rows.length);
+  els.elearningCompletion.textContent = `${completionRate}%`;
+  els.elearningAvgGrade.textContent = avgGrade == null ? "N/A" : `${Math.round(avgGrade)}%`;
+  els.elearningVisits.textContent = formatNumber(totalVisits);
+  els.elearningRowCount.textContent = `${formatNumber(rows.length)} rows`;
+
+  renderElearningStatus(rows);
+  renderRankedBars(els.elearningDistrictBars, countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10), palette.teal);
+  renderRankedBars(els.elearningMechanismBars, countBy(rows, "mechanism").slice(0, 8), palette.blue);
+  renderRankedBars(els.elearningCadreBars, countBy(rows, "department").slice(0, 8), palette.gold);
+  renderElearningTimeline(rows);
+  renderElearningTable(rows);
+}
+
+function elearningDateRange(rows) {
+  const dated = rows
+    .map((row) => row.enrolledDate)
+    .filter(Boolean)
+    .sort((a, b) => a.getTime() - b.getTime());
+  if (dated.length < 2) return "All dates";
+  return `${monthLabel(monthKey(dated[0]))} - ${monthLabel(monthKey(dated[dated.length - 1]))}`;
+}
+
+function renderElearningStatus(rows) {
+  const data = [
+    { name: "Completed", count: rows.filter((row) => row.completed).length, color: palette.green },
+    { name: "In progress", count: rows.filter((row) => !row.completed).length, color: palette.violet },
+  ];
+  const max = Math.max(...data.map((item) => item.count), 1);
+
+  els.elearningStatusBars.innerHTML = data
+    .map(
+      (item) => `<div class="bar-row">
+        <div class="bar-top">
+          <span>${item.name}</span>
+          <strong>${formatNumber(item.count)}</strong>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(
+          3,
+          (item.count / max) * 100,
+        )}%; background:${item.color};"></div></div>
+      </div>`,
+    )
+    .join("");
+}
+
+function renderElearningTimeline(rows) {
+  const grouped = [...groupBy(rows.filter((row) => row.enrolledMonth !== "Unknown"), "enrolledMonth")]
+    .map(([name, items]) => ({
+      name,
+      count: items.length,
+      completed: items.filter((row) => row.completed).length,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!grouped.length) {
+    els.elearningTimeline.innerHTML = emptyMarkup("No enrollment dates in this filter.");
+    return;
+  }
+
+  const width = 760;
+  const height = 250;
+  const pad = { top: 24, right: 26, bottom: 42, left: 48 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const max = Math.max(...grouped.map((item) => item.count), 1);
+  const groupW = plotW / grouped.length;
+  const barW = Math.min(44, Math.max(16, groupW * 0.58));
+  const xLabels = grouped.filter((_, index) => index % Math.ceil(grouped.length / 7) === 0);
+  const ticks = [0, max * 0.5, max].map((value) => Math.round(value));
+
+  els.elearningTimeline.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="E-learning enrollment timeline">
+      ${ticks
+        .map((tick) => {
+          const y = pad.top + plotH - (tick / max) * plotH;
+          return `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${
+            width - pad.right
+          }" y2="${y}"></line><text class="axis-label" x="8" y="${y + 4}">${tick}</text>`;
+        })
+        .join("")}
+      ${grouped
+        .map((item, index) => {
+          const x = pad.left + index * groupW + (groupW - barW) / 2;
+          const barH = (item.count / max) * plotH;
+          const completedH = item.count ? (item.completed / item.count) * barH : 0;
+          const y = pad.top + plotH - barH;
+          return `<g>
+            <rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="7" fill="#dbe7f3">
+              <title>${monthLabel(item.name)}: ${formatNumber(item.count)} enrolled</title>
+            </rect>
+            <rect x="${x}" y="${pad.top + plotH - completedH}" width="${barW}" height="${completedH}" rx="7" fill="${palette.green}">
+              <title>${monthLabel(item.name)}: ${formatNumber(item.completed)} completed</title>
+            </rect>
+          </g>`;
+        })
+        .join("")}
+      ${xLabels
+        .map((item) => {
+          const index = grouped.indexOf(item);
+          const x = pad.left + index * groupW + groupW / 2;
+          return `<text class="axis-label" x="${x}" y="${height - 14}" text-anchor="middle">${monthLabel(
+            item.name,
+          )}</text>`;
+        })
+        .join("")}
+    </svg>`;
+}
+
+function renderElearningTable(rows) {
+  els.elearningTable.innerHTML = rows
+    .slice()
+    .sort((a, b) => (b.enrolledDate?.getTime() || 0) - (a.enrolledDate?.getTime() || 0))
+    .slice(0, 40)
+    .map(
+      (row) => `<tr>
+        <td>${escapeHtml(shorten(row.fullName, 28))}</td>
+        <td>${escapeHtml(row.district)}</td>
+        <td>${escapeHtml(shorten(row.mechanism, 22))}</td>
+        <td>${escapeHtml(shorten(row.organizationUnit, 30))}</td>
+        <td>${escapeHtml(shorten(row.department, 28))}</td>
+        <td>${formatNumber(row.visits)}</td>
+        <td><span class="status-pill ${row.completed ? "complete" : ""}">${row.completionLabel}</span></td>
+        <td>${row.grade == null ? "N/A" : `${Math.round(row.grade)}%`}</td>
+      </tr>`,
+    )
+    .join("");
+}
+
 function emptyMarkup(message) {
   return `<div class="empty-state">${escapeHtml(message)}</div>`;
 }
@@ -1842,6 +2099,37 @@ async function loadData(source = LOCAL_CSV) {
   }
 }
 
+async function loadElearningData() {
+  try {
+    const response = await fetch(ELEARNING_CSV, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Could not load e-learning CSV (${response.status})`);
+    const csv = await response.text();
+    state.elearningRows = parseCsv(csv)
+      .map(normalizeElearningRow)
+      .filter((row) => row.fullName !== "Unnamed learner");
+    state.elearningError = "";
+    setupFilters();
+    applyFilters();
+  } catch (error) {
+    console.error(error);
+    state.elearningRows = [];
+    state.elearningError =
+      "The e-learning sheet could not load. Confirm the Virtual academy sheet is published and protected with the dashboard.";
+    applyFilters();
+  }
+}
+
+async function refreshDashboardData() {
+  els.refreshData.disabled = true;
+  els.refreshData.textContent = "Refreshing...";
+  try {
+    await Promise.all([loadData(LIVE_CSV), loadElearningData()]);
+  } finally {
+    els.refreshData.disabled = false;
+    els.refreshData.textContent = "Refresh data";
+  }
+}
+
 els.searchInput.addEventListener("input", (event) => {
   state.filters.search = event.target.value;
   applyFilters();
@@ -1867,7 +2155,7 @@ els.resetFilters.addEventListener("click", () => {
   applyFilters();
 });
 
-els.refreshData.addEventListener("click", () => loadData(LIVE_CSV));
+els.refreshData.addEventListener("click", refreshDashboardData);
 els.toggleFilters.addEventListener("click", () => {
   const collapsed = document.querySelector(".filter-shell").classList.toggle("is-collapsed");
   els.toggleFilters.setAttribute("aria-expanded", String(!collapsed));
@@ -1920,13 +2208,14 @@ document.addEventListener("keydown", (event) => {
 els.navItems.forEach((item) => {
   item.addEventListener("click", () => {
     state.activeView = item.dataset.view;
-    renderView();
+    render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 });
 
 enhancePanelsForFocus();
 loadData();
+loadElearningData();
 updateScrollProgress();
 window.addEventListener("scroll", updateScrollProgress, { passive: true });
 window.addEventListener("popstate", renderRoute);

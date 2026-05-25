@@ -241,6 +241,16 @@
           <span>People</span>
         </button>
         <p class="nav-section-label secondary">Records</p>
+        <button class="nav-item" type="button" title="E-learning" data-view="elearning" aria-pressed="false">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 7l9-4 9 4-9 4-9-4Z"></path>
+              <path d="M5 10v6c2.1 2 4.4 3 7 3s4.9-1 7-3v-6"></path>
+              <path d="M21 8v7"></path>
+            </svg>
+          </span>
+          <span>E-learning</span>
+        </button>
         <button class="nav-item" type="button" title="Database" data-view="database" aria-pressed="false">
           <span class="nav-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
@@ -266,8 +276,8 @@
         <header class="topbar">
           <div class="title-block">
             <p class="eyeline" id="activeViewLabel">Overview</p>
-            <h1>Training Performance Dashboard</h1>
-            <p class="dashboard-description">
+            <h1 id="dashboardTitle">Training Performance Dashboard</h1>
+            <p class="dashboard-description" id="dashboardDescription">
               Training of health workers in providing friendly services to people at higher risk for HIV
             </p>
           </div>
@@ -492,6 +502,123 @@
             <div class="donut-layout">
               <div class="chart-frame donut-frame" id="sexDonut"></div>
               <div class="legend-list" id="sexLegend"></div>
+            </div>
+          </article>
+
+          <article class="panel span-12 elearning-summary" data-section="elearning">
+            <div class="panel-header">
+              <div>
+                <h2>E-learning Snapshot</h2>
+                <p>Virtual Academy enrollment, completion, visits, and grade performance</p>
+              </div>
+            </div>
+            <div class="database-note">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 8v5"></path>
+                  <path d="M12 16h.01"></path>
+                </svg>
+              </span>
+              <p>
+                This E-learning tab reads the Virtual academy source sheet and summarizes sensitive learner data.
+                Keep it behind the same hosting-level protection as the training database.
+              </p>
+            </div>
+            <div class="database-metrics elearning-metrics">
+              <article>
+                <span>Total learners</span>
+                <strong id="elearningRecords">0</strong>
+              </article>
+              <article>
+                <span>Completion rate</span>
+                <strong id="elearningCompletion">0%</strong>
+              </article>
+              <article>
+                <span>Average grade</span>
+                <strong id="elearningAvgGrade">0%</strong>
+              </article>
+              <article>
+                <span>Total visits</span>
+                <strong id="elearningVisits">0</strong>
+              </article>
+            </div>
+          </article>
+
+          <article class="panel span-4" data-section="elearning">
+            <div class="panel-header">
+              <div>
+                <h2>Completion Status</h2>
+                <p>Completed versus in-progress learners</p>
+              </div>
+            </div>
+            <div class="ranked-bars compact" id="elearningStatusBars"></div>
+          </article>
+
+          <article class="panel span-8" data-section="elearning">
+            <div class="panel-header">
+              <div>
+                <h2>E-learning Enrollment Trend</h2>
+                <p>Monthly enrollments with completed learners highlighted</p>
+              </div>
+            </div>
+            <div class="chart-frame" id="elearningTimeline"></div>
+          </article>
+
+          <article class="panel span-4" data-section="elearning">
+            <div class="panel-header">
+              <div>
+                <h2>District Reach</h2>
+                <p>Learners by district</p>
+              </div>
+            </div>
+            <div class="ranked-bars compact" id="elearningDistrictBars"></div>
+          </article>
+
+          <article class="panel span-4" data-section="elearning">
+            <div class="panel-header">
+              <div>
+                <h2>Mechanism Mix</h2>
+                <p>Learners by implementing mechanism</p>
+              </div>
+            </div>
+            <div class="ranked-bars compact" id="elearningMechanismBars"></div>
+          </article>
+
+          <article class="panel span-4" data-section="elearning">
+            <div class="panel-header">
+              <div>
+                <h2>Cadre Mix</h2>
+                <p>Learners by department or role</p>
+              </div>
+            </div>
+            <div class="ranked-bars compact" id="elearningCadreBars"></div>
+          </article>
+
+          <article class="panel span-12 database-panel elearning-panel" data-section="elearning">
+            <div class="panel-header">
+              <div>
+                <h2>E-learning Dataset</h2>
+                <p>Top 40 matching learner records without email or phone columns</p>
+              </div>
+              <span id="elearningRowCount">0 rows</span>
+            </div>
+            <div class="table-wrap elearning-register">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Learner</th>
+                    <th>District</th>
+                    <th>Mechanism</th>
+                    <th>Organisation unit</th>
+                    <th>Department</th>
+                    <th>Visits</th>
+                    <th>Status</th>
+                    <th>Grade</th>
+                  </tr>
+                </thead>
+                <tbody id="elearningTable"></tbody>
+              </table>
             </div>
           </article>
 

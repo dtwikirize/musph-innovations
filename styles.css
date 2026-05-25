@@ -2305,6 +2305,10 @@ h1 {
   margin-bottom: 14px;
 }
 
+.dashboard-stage[data-active-view="elearning"] .kpi-grid {
+  display: none;
+}
+
 .kpi-card {
   min-height: 78px;
   display: grid;
@@ -2890,6 +2894,10 @@ h1 {
   min-height: 0;
 }
 
+.elearning-summary {
+  min-height: 0;
+}
+
 .database-note {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -2960,8 +2968,18 @@ h1 {
   line-height: 1;
 }
 
+.elearning-metrics article {
+  background:
+    linear-gradient(135deg, rgba(47, 88, 191, 0.08), rgba(255, 255, 255, 0.98) 56%),
+    linear-gradient(180deg, #fff, #f8fbff);
+}
+
 .database-panel {
   min-height: 420px;
+}
+
+.elearning-panel {
+  min-height: 390px;
 }
 
 table {
@@ -3022,6 +3040,27 @@ table {
 .register td {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.elearning-register table {
+  min-width: 940px;
+}
+
+.status-pill {
+  display: inline-flex;
+  min-width: 86px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgba(116, 69, 198, 0.12);
+  color: #6540b4;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.status-pill.complete {
+  background: rgba(47, 159, 107, 0.13);
+  color: #257d56;
 }
 
 th,
@@ -3657,7 +3696,7 @@ td {
     position: static;
     height: auto;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
     padding: 12px;
   }
