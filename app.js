@@ -2169,7 +2169,7 @@ function enhancePanelsForFocus() {
     panel.setAttribute("aria-label", `${panelTitle(panel)} visual`);
 
     const header = panel.querySelector(".panel-header");
-    if (!header || header.querySelector("[data-open-focus]")) return;
+    if (!header) return;
 
     let meta = header.querySelector(".panel-meta");
     if (!meta) {
@@ -2180,21 +2180,44 @@ function enhancePanelsForFocus() {
       header.append(meta);
     }
 
-    const button = document.createElement("button");
-    button.className = "icon-button";
-    button.type = "button";
-    button.dataset.openFocus = "true";
-    button.setAttribute("aria-label", `Focus ${panelTitle(panel)} visual`);
-    button.innerHTML = `
-      <svg viewBox="0 0 24 24">
-        <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path>
-      </svg>
-    `;
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openFocusMode(panel);
-    });
-    meta.append(button);
+    if (!header.querySelector("[data-export-toggle]")) {
+      const exportMenu = document.createElement("div");
+      exportMenu.className = "export-menu export-ignore";
+      exportMenu.innerHTML = `
+        <button class="icon-button export-toggle" type="button" data-export-toggle aria-haspopup="true" aria-expanded="false" aria-label="Download ${escapeHtml(
+          panelTitle(panel),
+        )}">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v12"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+        </button>
+        <div class="export-menu-list" role="menu" hidden>
+          <button type="button" role="menuitem" data-export-format="png">Download image</button>
+          <button type="button" role="menuitem" data-export-format="pdf">Download PDF</button>
+        </div>
+      `;
+      meta.append(exportMenu);
+    }
+
+    if (!header.querySelector("[data-open-focus]")) {
+      const button = document.createElement("button");
+      button.className = "icon-button export-ignore";
+      button.type = "button";
+      button.dataset.openFocus = "true";
+      button.setAttribute("aria-label", `Focus ${panelTitle(panel)} visual`);
+      button.innerHTML = `
+        <svg viewBox="0 0 24 24">
+          <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path>
+        </svg>
+      `;
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openFocusMode(panel);
+      });
+      meta.append(button);
+    }
 
     panel.addEventListener("keydown", (event) => {
       if (event.key === "Enter") openFocusMode(panel);
@@ -2202,8 +2225,178 @@ function enhancePanelsForFocus() {
   });
 }
 
+function closeExportMenus(exceptMenu = null) {
+  document.querySelectorAll(".export-menu").forEach((menu) => {
+    if (menu === exceptMenu) return;
+    menu.classList.remove("is-open");
+    menu.querySelector("[data-export-toggle]")?.setAttribute("aria-expanded", "false");
+    const list = menu.querySelector(".export-menu-list");
+    if (list) list.hidden = true;
+  });
+}
+
+function toggleExportMenu(menu) {
+  const open = !menu.classList.contains("is-open");
+  closeExportMenus(menu);
+  menu.classList.toggle("is-open", open);
+  menu.querySelector("[data-export-toggle]")?.setAttribute("aria-expanded", String(open));
+  const list = menu.querySelector(".export-menu-list");
+  if (list) list.hidden = !open;
+}
+
+async function exportPanel(panel, format) {
+  const title = panelTitle(panel);
+  showToast(`Preparing ${format === "pdf" ? "PDF" : "image"}...`);
+  try {
+    const canvas = await renderPanelToCanvas(panel);
+    const filename = `${slugify(title)}-${new Date().toISOString().slice(0, 10)}`;
+    if (format === "pdf") {
+      const pdfBlob = await canvasToPdfBlob(canvas, title);
+      downloadBlob(pdfBlob, `${filename}.pdf`);
+    } else {
+      const pngBlob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 0.98));
+      downloadBlob(pngBlob, `${filename}.png`);
+    }
+    showToast(`${title} download ready`);
+  } catch (error) {
+    console.error(error);
+    showToast("Download failed. Try again after the chart finishes loading.");
+  }
+}
+
+function renderPanelToCanvas(panel) {
+  const rect = panel.getBoundingClientRect();
+  const width = Math.ceil(rect.width);
+  const height = Math.ceil(rect.height);
+  const scale = Math.min(2, Math.max(1, 2200 / Math.max(width, height)));
+  const clone = panel.cloneNode(true);
+
+  inlineComputedStyles(panel, clone);
+  clone.querySelectorAll(".export-ignore, .export-menu, [data-open-focus]").forEach((node) => node.remove());
+  clone.style.margin = "0";
+  clone.style.transform = "none";
+  clone.style.boxShadow = "none";
+
+  const serialized = new XMLSerializer().serializeToString(clone);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <foreignObject width="100%" height="100%">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;background:#fff;">
+          ${serialized}
+        </div>
+      </foreignObject>
+    </svg>`;
+  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not render chart image."));
+    };
+    image.src = url;
+  });
+}
+
+function inlineComputedStyles(source, target) {
+  const computed = window.getComputedStyle(source);
+  target.style.cssText = Array.from(computed)
+    .map((property) => `${property}:${computed.getPropertyValue(property)};`)
+    .join("");
+  target.style.transform = "none";
+  target.style.animation = "none";
+  target.style.transition = "none";
+  target.querySelectorAll("input, select, textarea").forEach((field, index) => {
+    const sourceField = source.querySelectorAll("input, select, textarea")[index];
+    if (!sourceField) return;
+    field.value = sourceField.value;
+  });
+
+  [...source.children].forEach((child, index) => {
+    const clonedChild = target.children[index];
+    if (clonedChild) inlineComputedStyles(child, clonedChild);
+  });
+}
+
+async function canvasToPdfBlob(canvas, title) {
+  const imageData = canvas.toDataURL("image/jpeg", 0.92);
+  const imageBytes = atob(imageData.split(",")[1]);
+  const landscape = canvas.width > canvas.height;
+  const pageWidth = landscape ? 841.89 : 595.28;
+  const pageHeight = landscape ? 595.28 : 841.89;
+  const margin = 30;
+  const maxWidth = pageWidth - margin * 2;
+  const maxHeight = pageHeight - margin * 2;
+  const fit = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
+  const imageWidth = canvas.width * fit;
+  const imageHeight = canvas.height * fit;
+  const x = (pageWidth - imageWidth) / 2;
+  const y = (pageHeight - imageHeight) / 2;
+  const content = `q\n${imageWidth.toFixed(2)} 0 0 ${imageHeight.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(
+    2,
+  )} cm\n/Im0 Do\nQ\n`;
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth.toFixed(2)} ${pageHeight.toFixed(
+      2,
+    )}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>`,
+    `<< /Length ${content.length} >>\nstream\n${content}endstream`,
+    `<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n${imageBytes}\nendstream`,
+  ];
+  let pdf = "%PDF-1.4\n%âãÏÓ\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length);
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R /Title (${escapePdf(title)}) >>\nstartxref\n${xref}\n%%EOF`;
+  return new Blob([Uint8Array.from(pdf, (char) => char.charCodeAt(0))], { type: "application/pdf" });
+}
+
+function downloadBlob(blob, filename) {
+  if (!blob) throw new Error("No file was generated.");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+function slugify(value) {
+  return String(value || "dashboard-chart")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 70);
+}
+
+function escapePdf(value) {
+  return String(value || "").replace(/[\\()]/g, "\\$&");
+}
+
 function openFocusMode(panel) {
   const clone = panel.cloneNode(true);
+  clone.querySelectorAll(".export-ignore").forEach((node) => node.remove());
   els.focusTitle.textContent = panelTitle(panel);
   els.focusBody.replaceChildren(clone);
   els.focusLayer.hidden = false;
@@ -2330,8 +2523,28 @@ landingDots.forEach((dot) => {
 enterDashboard.addEventListener("click", openDashboard);
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".premium-select")) closePremiumSelects();
+  if (!event.target.closest(".export-menu")) closeExportMenus();
   if (event.target.closest("[data-close-focus]")) closeFocusMode();
   if (!event.target.closest(".nav-group")) closeInnovationMenu();
+
+  const exportToggle = event.target.closest("[data-export-toggle]");
+  if (exportToggle) {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleExportMenu(exportToggle.closest(".export-menu"));
+    return;
+  }
+
+  const exportOption = event.target.closest("[data-export-format]");
+  if (exportOption) {
+    event.preventDefault();
+    event.stopPropagation();
+    const panel = exportOption.closest(".panel");
+    const format = exportOption.dataset.exportFormat;
+    closeExportMenus();
+    if (panel && format) exportPanel(panel, format);
+    return;
+  }
 
   const routeLink = event.target.closest("a[data-route]");
   if (!routeLink) return;
@@ -2355,6 +2568,7 @@ menuToggle.addEventListener("click", () => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePremiumSelects();
+  if (event.key === "Escape") closeExportMenus();
   if (event.key === "Escape" && !els.focusLayer.hidden) closeFocusMode();
   if (event.key === "Escape" && primaryNav.classList.contains("is-open")) {
     primaryNav.classList.remove("is-open");
