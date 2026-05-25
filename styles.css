@@ -2136,6 +2136,15 @@ h1 {
   letter-spacing: 0.06em;
 }
 
+.filter-bar [data-filter-scope="elearning"],
+.filter-bar [data-filter-scope].is-hidden {
+  display: none;
+}
+
+.dashboard-stage[data-active-view="elearning"] .filter-bar [data-filter-scope="elearning"] {
+  display: grid;
+}
+
 .filter-bar input,
 .filter-bar select {
   width: 100%;

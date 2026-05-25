@@ -166,15 +166,20 @@ const state = {
     district: "All",
     year: "All",
     sex: "All",
+    mechanism: "All",
+    completion: "All",
   },
 };
 
 const els = {
   searchInput: document.querySelector("#searchInput"),
   courseFilter: document.querySelector("#courseFilter"),
+  mechanismFilter: document.querySelector("#mechanismFilter"),
+  completionFilter: document.querySelector("#completionFilter"),
   districtFilter: document.querySelector("#districtFilter"),
   yearFilter: document.querySelector("#yearFilter"),
   sexFilter: document.querySelector("#sexFilter"),
+  scopedFilters: document.querySelectorAll("[data-filter-scope]"),
   navItems: document.querySelectorAll(".nav-item[data-view]"),
   panels: document.querySelectorAll(".panel[data-section]"),
   activeViewLabel: document.querySelector("#activeViewLabel"),
@@ -415,6 +420,7 @@ function fillSelect(select, values, current = "All") {
   });
   select.value = values.includes(current) ? current : "All";
   renderPremiumSelect(select);
+  return select.value;
 }
 
 function renderPremiumSelect(select) {
@@ -1224,10 +1230,24 @@ function setupFilters() {
       .map((row) => ({ startYear: row.enrolledYear })),
   ];
 
-  fillSelect(els.courseFilter, uniqueSorted(state.rows, "course"), state.filters.course);
-  fillSelect(els.districtFilter, uniqueSorted(districtRows, "district"), state.filters.district);
-  fillSelect(els.yearFilter, uniqueSorted(yearRows, "startYear").reverse(), state.filters.year);
-  fillSelect(
+  state.filters.course = fillSelect(els.courseFilter, uniqueSorted(state.rows, "course"), state.filters.course);
+  state.filters.mechanism = fillSelect(
+    els.mechanismFilter,
+    uniqueSorted(state.elearningRows, "mechanism"),
+    state.filters.mechanism,
+  );
+  state.filters.completion = fillSelect(
+    els.completionFilter,
+    uniqueSorted(state.elearningRows, "completionLabel"),
+    state.filters.completion,
+  );
+  state.filters.district = fillSelect(
+    els.districtFilter,
+    uniqueSorted(districtRows, "district"),
+    state.filters.district,
+  );
+  state.filters.year = fillSelect(els.yearFilter, uniqueSorted(yearRows, "startYear").reverse(), state.filters.year);
+  state.filters.sex = fillSelect(
     els.sexFilter,
     uniqueSorted(
       state.rows.filter((row) => row.sex !== "Unspecified"),
@@ -1254,7 +1274,9 @@ function applyFilters() {
     return (
       (!needle || text.includes(needle)) &&
       (state.filters.district === "All" || row.district === state.filters.district) &&
-      (state.filters.year === "All" || row.enrolledYear === state.filters.year)
+      (state.filters.year === "All" || row.enrolledYear === state.filters.year) &&
+      (state.filters.mechanism === "All" || row.mechanism === state.filters.mechanism) &&
+      (state.filters.completion === "All" || row.completionLabel === state.filters.completion)
     );
   });
   render();
@@ -1312,6 +1334,17 @@ function renderView() {
   els.activeViewLabel.textContent = labels[state.activeView] || "Overview";
   els.dashboardTitle.textContent = copy.title;
   els.dashboardDescription.textContent = copy.description;
+  els.searchInput.placeholder =
+    state.activeView === "elearning"
+      ? "Search learners, mechanisms, units, departments..."
+      : "Search records, facilities, organizations...";
+  els.scopedFilters.forEach((filter) => {
+    const hidden =
+      state.activeView === "elearning"
+        ? filter.dataset.filterScope === "training"
+        : filter.dataset.filterScope === "elearning";
+    filter.classList.toggle("is-hidden", hidden);
+  });
   els.navItems.forEach((item) => {
     const active = item.dataset.view === state.activeView;
     item.classList.toggle("active", active);
@@ -1329,15 +1362,15 @@ function renderFilterSummary(rows) {
     const active = [
       state.filters.district !== "All" ? `District: ${state.filters.district}` : "",
       state.filters.year !== "All" ? `Year: ${state.filters.year}` : "",
+      state.filters.mechanism !== "All" ? `Mechanism: ${state.filters.mechanism}` : "",
+      state.filters.completion !== "All" ? `Completion: ${state.filters.completion}` : "",
       state.filters.search ? "Search active" : "",
     ].filter(Boolean);
 
     els.filterSummary.textContent = `${formatNumber(rows.length)} learners across ${formatNumber(
       districtCount,
     )} districts`;
-    els.activeFilters.textContent = active.length
-      ? active.join(" | ")
-      : "Course and sex filters apply to training records only";
+    els.activeFilters.textContent = active.length ? active.join(" | ") : "No filters applied";
     return;
   }
 
@@ -2142,6 +2175,8 @@ els.searchInput.addEventListener("input", (event) => {
 
 [
   [els.courseFilter, "course"],
+  [els.mechanismFilter, "mechanism"],
+  [els.completionFilter, "completion"],
   [els.districtFilter, "district"],
   [els.yearFilter, "year"],
   [els.sexFilter, "sex"],
@@ -2154,7 +2189,15 @@ els.searchInput.addEventListener("input", (event) => {
 });
 
 els.resetFilters.addEventListener("click", () => {
-  state.filters = { search: "", course: "All", district: "All", year: "All", sex: "All" };
+  state.filters = {
+    search: "",
+    course: "All",
+    district: "All",
+    year: "All",
+    sex: "All",
+    mechanism: "All",
+    completion: "All",
+  };
   els.searchInput.value = "";
   setupFilters();
   applyFilters();
