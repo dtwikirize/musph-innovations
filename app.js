@@ -223,6 +223,7 @@ const els = {
   elearningVisits: document.querySelector("#elearningVisits"),
   elearningStatusBars: document.querySelector("#elearningStatusBars"),
   elearningDistrictBars: document.querySelector("#elearningDistrictBars"),
+  elearningDistrictCompletionBars: document.querySelector("#elearningDistrictCompletionBars"),
   elearningMechanismBars: document.querySelector("#elearningMechanismBars"),
   elearningCadreBars: document.querySelector("#elearningCadreBars"),
   elearningTimeline: document.querySelector("#elearningTimeline"),
@@ -1855,6 +1856,7 @@ function renderElearning(rows) {
     els.elearningVisits.textContent = "0";
     els.elearningStatusBars.innerHTML = emptyMarkup(state.elearningError);
     els.elearningDistrictBars.innerHTML = emptyMarkup("E-learning data is unavailable.");
+    els.elearningDistrictCompletionBars.innerHTML = emptyMarkup("E-learning data is unavailable.");
     els.elearningMechanismBars.innerHTML = emptyMarkup("E-learning data is unavailable.");
     els.elearningCadreBars.innerHTML = emptyMarkup("E-learning data is unavailable.");
     els.elearningTimeline.innerHTML = emptyMarkup("E-learning data is unavailable.");
@@ -1883,6 +1885,7 @@ function renderElearning(rows) {
 
   renderElearningStatus(rows);
   renderRankedBars(els.elearningDistrictBars, countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10), palette.teal);
+  renderElearningDistrictCompletion(rows);
   renderRankedBars(els.elearningMechanismBars, countBy(rows, "mechanism").slice(0, 8), palette.blue);
   renderRankedBars(els.elearningCadreBars, countBy(rows, "department").slice(0, 8), palette.gold);
   renderElearningTimeline(rows);
@@ -1916,6 +1919,42 @@ function renderElearningStatus(rows) {
           3,
           (item.count / max) * 100,
         )}%; background:${item.color};"></div></div>
+      </div>`,
+    )
+    .join("");
+}
+
+function renderElearningDistrictCompletion(rows) {
+  const data = countBy(rows.filter((row) => isRealDistrict(row.district)), "district")
+    .map((item) => {
+      const completed = item.rows.filter((row) => row.completed).length;
+      return {
+        name: item.name,
+        count: item.count,
+        completed,
+        rate: item.count ? Math.round((completed / item.count) * 100) : 0,
+      };
+    })
+    .sort((a, b) => b.rate - a.rate || b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, 10);
+
+  if (!data.length) {
+    els.elearningDistrictCompletionBars.innerHTML = emptyMarkup("No district completion data in this filter.");
+    return;
+  }
+
+  els.elearningDistrictCompletionBars.innerHTML = data
+    .map(
+      (item) => `<div class="bar-row">
+        <div class="bar-top">
+          <span>${escapeHtml(shorten(item.name, 34))}</span>
+          <strong>${item.rate}%</strong>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(
+          3,
+          item.rate,
+        )}%; background:${palette.green};"></div></div>
+        <small class="bar-note">${formatNumber(item.completed)} of ${formatNumber(item.count)} completed</small>
       </div>`,
     )
     .join("");
