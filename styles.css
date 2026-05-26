@@ -1266,6 +1266,11 @@ body {
   border: 0;
 }
 
+.acasi-embed-shell,
+.acasi-embed-shell iframe {
+  min-height: 720px;
+}
+
 .embed-loading {
   position: absolute;
   inset: 0;
@@ -1278,6 +1283,11 @@ body {
 }
 
 .embed-shell.is-loaded .embed-loading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.crane-live-frame.is-loaded .embed-loading {
   opacity: 0;
   pointer-events: none;
 }

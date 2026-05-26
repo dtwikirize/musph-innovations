@@ -5,6 +5,7 @@ const ELEARNING_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=1859402851&single=true&output=csv";
 const CRANE_POWER_BI_URL =
   "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9";
+const ACASI_DASHBOARD_URL = window.EHSS_ACASI_DASHBOARD_URL || "http://localhost:3000";
 const HOME_HERO_IMAGES = [
   "/images/portal-hero.webp",
   "/images/home-hero-digital-1.webp",
@@ -144,6 +145,11 @@ const routeMeta = {
     title: `ACASI System | ${SITE_NAME}`,
     description:
       "An Audio Computer-Assisted Self-Interview system supporting private screening, risk assessment, triage, and service linkage.",
+  },
+  "/innovations/acasi/dashboard": {
+    title: `eHSS ACASI Dashboard | ${SITE_NAME}`,
+    description:
+      "Embedded access to the eHSS ACASI analytics dashboard for monitoring enrollment, coverage, high-risk identification, and data quality.",
   },
 };
 
@@ -951,6 +957,48 @@ function renderCraneFullscreenPage() {
   `;
 }
 
+function renderAcasiEmbed() {
+  return `
+    <section class="content-section soft">
+      <div class="section-shell">
+        ${sectionHeader(
+          "eHSS ACASI Dashboard",
+          "The dashboard below connects this innovation profile to the eHSS ACASI analytics workspace.",
+        )}
+        <div class="embed-shell acasi-embed-shell" id="acasiEmbedShell">
+          <div class="embed-loading">Loading eHSS ACASI dashboard...</div>
+          <iframe
+            title="eHSS ACASI Analytics Dashboard"
+            src="${ACASI_DASHBOARD_URL}"
+            loading="lazy"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderAcasiFullscreenPage() {
+  return `
+    <section class="crane-live-view">
+      <div class="crane-live-toolbar">
+        <strong>eHSS ACASI Dashboard</strong>
+        <div>
+          ${ctaButton("Back to ACASI Overview", "/innovations/acasi", "secondary")}
+          ${externalLinkButton("Open Dashboard App", ACASI_DASHBOARD_URL)}
+        </div>
+      </div>
+      <div class="crane-live-frame" id="acasiLiveShell">
+        <div class="embed-loading">Loading eHSS ACASI dashboard...</div>
+        <iframe
+          title="Full-screen eHSS ACASI Analytics Dashboard"
+          src="${ACASI_DASHBOARD_URL}"
+        ></iframe>
+      </div>
+    </section>
+  `;
+}
+
 function renderPortalRoute(path) {
   switch (path) {
     case "/":
@@ -1061,8 +1109,15 @@ function renderPortalRoute(path) {
           "Digital referrals",
           "Automated workflows",
         ],
-        buttons: [externalLinkButton("Request Access Information", "mailto:info@musph.cc")],
+        buttons: [
+          ctaButton("Open eHSS ACASI Dashboard", "/innovations/acasi/dashboard", "theme-button"),
+          externalLinkButton("Open Dashboard App", ACASI_DASHBOARD_URL),
+          externalLinkButton("Request Access Information", "mailto:info@musph.cc"),
+        ],
+        extra: renderAcasiEmbed(),
       });
+    case "/innovations/acasi/dashboard":
+      return renderAcasiFullscreenPage();
     default:
       return `
         <section class="content-section">
@@ -1132,6 +1187,20 @@ function bindDynamicRouteContent() {
     });
   }
 
+  const acasiIframe = document.querySelector("#acasiEmbedShell iframe");
+  if (acasiIframe) {
+    acasiIframe.addEventListener("load", () => {
+      document.querySelector("#acasiEmbedShell")?.classList.add("is-loaded");
+    });
+  }
+
+  const acasiLiveIframe = document.querySelector("#acasiLiveShell iframe");
+  if (acasiLiveIframe) {
+    acasiLiveIframe.addEventListener("load", () => {
+      document.querySelector("#acasiLiveShell")?.classList.add("is-loaded");
+    });
+  }
+
   revealObserver?.disconnect();
   revealObserver = new IntersectionObserver(
     (entries) => {
@@ -1156,6 +1225,7 @@ function renderRoute() {
   const dashboardOpen = path === "/innovations/training-database" && window.location.hash === "#dashboard";
   const trainingLandingOpen = path === "/innovations/training-database" && !dashboardOpen;
   const craneLiveOpen = path === "/innovations/crane-dashboard/live";
+  const acasiLiveOpen = path === "/innovations/acasi/dashboard";
 
   if (window.location.pathname === "/" && window.location.hash === "#dashboard") {
     navigate("/innovations/training-database#dashboard", true);
@@ -1169,7 +1239,7 @@ function renderRoute() {
   closeInnovationMenu();
   menuToggle.setAttribute("aria-expanded", "false");
   document.body.classList.toggle("training-landing-route", trainingLandingOpen);
-  document.body.classList.toggle("crane-live-route", craneLiveOpen);
+  document.body.classList.toggle("crane-live-route", craneLiveOpen || acasiLiveOpen);
 
   if (dashboardOpen) {
     portalMain.hidden = true;

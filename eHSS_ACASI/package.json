@@ -1,0 +1,26 @@
+{
+  "name": "ehss-acasi",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deployable eHSS ACASI dashboard package with Express API and built Vite frontend.",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "health": "node -e \"fetch('http://localhost:' + (process.env.PORT || 3000) + '/api/health').then(r => r.json()).then(console.log)\""
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "axios": "^1.8.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "node-cron": "^4.0.7",
+    "xlsx": "^0.18.5"
+  }
+}
