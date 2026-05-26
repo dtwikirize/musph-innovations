@@ -2285,7 +2285,7 @@ async function exportPanel(panel, format) {
       const pdfBlob = await canvasToPdfBlob(canvas, title);
       downloadBlob(pdfBlob, `${filename}.pdf`);
     } else {
-      const pngBlob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 0.98));
+      const pngBlob = await canvasToBlob(canvas, "image/png", 0.98);
       downloadBlob(pngBlob, `${filename}.png`);
     }
     showToast(`${title} download ready`);
@@ -2340,7 +2340,12 @@ function renderPanelToCanvasWithForeignObject(panel) {
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-      resolve(canvas);
+      try {
+        assertCanvasReadable(canvas);
+        resolve(canvas);
+      } catch (error) {
+        reject(error);
+      }
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
@@ -2407,8 +2412,12 @@ async function drawExportSvgs(context, panel, panelRect) {
   for (const svg of svgs) {
     const rect = svg.getBoundingClientRect();
     if (!rect.width || !rect.height) continue;
-    const image = await svgElementToImage(svg);
-    context.drawImage(image, rect.left - panelRect.left, rect.top - panelRect.top, rect.width, rect.height);
+    try {
+      const image = await svgElementToImage(svg);
+      context.drawImage(image, rect.left - panelRect.left, rect.top - panelRect.top, rect.width, rect.height);
+    } catch (error) {
+      console.warn("Skipping SVG during export.", error);
+    }
   }
 }
 
@@ -2533,6 +2542,45 @@ function solidColor(value, fallback) {
 
 function fontFamilyForCanvas(value) {
   return value?.split(",")[0]?.replace(/["']/g, "").trim() || "Arial";
+}
+
+function assertCanvasReadable(canvas) {
+  canvas.toDataURL("image/png");
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    try {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+        try {
+          resolve(dataUrlToBlob(canvas.toDataURL(type, quality)));
+        } catch (error) {
+          reject(error);
+        }
+      }, type, quality);
+    } catch (error) {
+      try {
+        resolve(dataUrlToBlob(canvas.toDataURL(type, quality)));
+      } catch (fallbackError) {
+        reject(fallbackError);
+      }
+    }
+  });
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [header, data] = dataUrl.split(",");
+  const mime = header.match(/data:([^;]+)/)?.[1] || "application/octet-stream";
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new Blob([bytes], { type: mime });
 }
 
 function inlineComputedStyles(source, target) {

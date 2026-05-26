@@ -4035,8 +4035,11 @@ td {
     position: static;
     height: auto;
     display: flex;
-    gap: 9px;
-    padding: 12px 12px 14px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 10px 12px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x proximity;
@@ -4054,27 +4057,32 @@ td {
   }
 
   .nav-item {
-    flex: 0 0 84px;
-    width: 84px;
-    min-width: 84px;
-    min-height: 72px;
+    flex: 0 0 68px;
+    width: 68px;
+    min-width: 68px;
+    min-height: 58px;
     display: grid;
     justify-items: center;
     align-content: center;
-    gap: 6px;
-    padding: 8px 7px;
+    gap: 4px;
+    padding: 6px 5px;
     margin: 0;
-    border-radius: 12px;
-    font-size: 11.5px;
+    border-radius: 10px;
+    font-size: 10.5px;
     line-height: 1.15;
     scroll-snap-align: start;
     transform: none;
   }
 
   .nav-icon {
-    width: 36px;
-    height: 34px;
-    border-radius: 9px;
+    width: 30px;
+    height: 28px;
+    border-radius: 8px;
+  }
+
+  .nav-icon svg {
+    width: 15px;
+    height: 15px;
   }
 
   .nav-item span:last-child {
@@ -4092,9 +4100,9 @@ td {
   }
 
   .nav-item.active {
-    flex-basis: 96px;
-    width: 96px;
-    min-width: 96px;
+    flex-basis: 74px;
+    width: 74px;
+    min-width: 74px;
     box-shadow:
       inset 0 0 0 2px rgba(34, 170, 161, 0.52),
       0 14px 28px rgba(0, 0, 0, 0.16);
