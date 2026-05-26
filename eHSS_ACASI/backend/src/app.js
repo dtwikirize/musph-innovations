@@ -16,23 +16,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 const frontendDist = path.resolve(__dirname, "../../frontend/dist");
-const frameAncestors = (
-  process.env.FRAME_ANCESTORS ||
-  "'self' http://127.0.0.1:4175 http://localhost:4175 http://127.0.0.1:4176 http://localhost:4176 https://musph.cc"
-)
+
+const frameAncestors = (process.env.FRAME_ANCESTORS || "'self'")
   .split(/\s+/)
+  .map((value) => value.trim())
   .filter(Boolean);
 
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        "frame-ancestors": frameAncestors,
-      },
-    },
-    frameguard: false,
-  }),
-);
+app.use(helmet({
+  frameguard: false,
+  contentSecurityPolicy: {
+    directives: {
+      frameAncestors
+    }
+  }
+}));
 app.use(cors({ origin: true, credentials: false }));
 app.use(express.json({ limit: "25mb" }));
 app.use(morgan("tiny"));
