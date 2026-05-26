@@ -1219,27 +1219,58 @@ function uniqueSorted(rows, key) {
   );
 }
 
-function setupFilters() {
-  const districtRows = [
-    ...state.rows.filter((row) => isRealDistrict(row.district)),
-    ...state.elearningRows.filter((row) => isRealDistrict(row.district)),
-  ];
-  const yearRows = [
-    ...state.rows.filter((row) => row.startYear !== "Unknown"),
-    ...state.elearningRows
-      .filter((row) => row.enrolledYear !== "Unknown")
-      .map((row) => ({ startYear: row.enrolledYear })),
-  ];
+function trainingOptionRows(excludeKey) {
+  const needle = state.filters.search.toLowerCase();
+  return state.rows.filter((row) => {
+    const text = `${row.name} ${row.jobTitle} ${row.organization} ${row.facility} ${row.district} ${row.course}`.toLowerCase();
+    return (
+      (!needle || text.includes(needle)) &&
+      (excludeKey === "course" || state.filters.course === "All" || row.course === state.filters.course) &&
+      (excludeKey === "district" || state.filters.district === "All" || row.district === state.filters.district) &&
+      (excludeKey === "year" || state.filters.year === "All" || row.startYear === state.filters.year) &&
+      (excludeKey === "sex" || state.filters.sex === "All" || row.sex === state.filters.sex)
+    );
+  });
+}
 
-  state.filters.course = fillSelect(els.courseFilter, uniqueSorted(state.rows, "course"), state.filters.course);
+function elearningOptionRows(excludeKey) {
+  const needle = state.filters.search.toLowerCase();
+  return state.elearningRows.filter((row) => {
+    const text = `${row.fullName} ${row.username} ${row.mechanism} ${row.organizationUnit} ${row.department} ${row.district} ${row.completionLabel}`.toLowerCase();
+    return (
+      (!needle || text.includes(needle)) &&
+      (excludeKey === "district" || state.filters.district === "All" || row.district === state.filters.district) &&
+      (excludeKey === "year" || state.filters.year === "All" || row.enrolledYear === state.filters.year) &&
+      (excludeKey === "mechanism" || state.filters.mechanism === "All" || row.mechanism === state.filters.mechanism) &&
+      (excludeKey === "completion" || state.filters.completion === "All" || row.completionLabel === state.filters.completion)
+    );
+  });
+}
+
+function setupFilters() {
+  const isElearningView = state.activeView === "elearning";
+  const districtRows = isElearningView
+    ? elearningOptionRows("district").filter((row) => isRealDistrict(row.district))
+    : trainingOptionRows("district").filter((row) => isRealDistrict(row.district));
+  const yearRows = isElearningView
+    ? elearningOptionRows("year")
+        .filter((row) => row.enrolledYear !== "Unknown")
+        .map((row) => ({ startYear: row.enrolledYear }))
+    : trainingOptionRows("year").filter((row) => row.startYear !== "Unknown");
+
+  state.filters.course = fillSelect(
+    els.courseFilter,
+    uniqueSorted(trainingOptionRows("course"), "course"),
+    state.filters.course,
+  );
   state.filters.mechanism = fillSelect(
     els.mechanismFilter,
-    uniqueSorted(state.elearningRows, "mechanism"),
+    uniqueSorted(elearningOptionRows("mechanism"), "mechanism"),
     state.filters.mechanism,
   );
   state.filters.completion = fillSelect(
     els.completionFilter,
-    uniqueSorted(state.elearningRows, "completionLabel"),
+    uniqueSorted(elearningOptionRows("completion"), "completionLabel"),
     state.filters.completion,
   );
   state.filters.district = fillSelect(
@@ -1251,7 +1282,7 @@ function setupFilters() {
   state.filters.sex = fillSelect(
     els.sexFilter,
     uniqueSorted(
-      state.rows.filter((row) => row.sex !== "Unspecified"),
+      trainingOptionRows("sex").filter((row) => row.sex !== "Unspecified"),
       "sex",
     ),
     state.filters.sex,
@@ -2264,7 +2295,16 @@ async function exportPanel(panel, format) {
   }
 }
 
-function renderPanelToCanvas(panel) {
+async function renderPanelToCanvas(panel) {
+  try {
+    return await renderPanelToCanvasWithForeignObject(panel);
+  } catch (error) {
+    console.warn("Falling back to canvas chart export.", error);
+    return renderPanelToCanvasFallback(panel);
+  }
+}
+
+function renderPanelToCanvasWithForeignObject(panel) {
   const rect = panel.getBoundingClientRect();
   const width = Math.ceil(rect.width);
   const height = Math.ceil(rect.height);
@@ -2308,6 +2348,191 @@ function renderPanelToCanvas(panel) {
     };
     image.src = url;
   });
+}
+
+async function renderPanelToCanvasFallback(panel) {
+  const rect = panel.getBoundingClientRect();
+  const width = Math.ceil(rect.width);
+  const height = Math.ceil(rect.height);
+  const scale = Math.min(2, Math.max(1, 2200 / Math.max(width, height)));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(width * scale);
+  canvas.height = Math.round(height * scale);
+  const context = canvas.getContext("2d");
+  context.scale(scale, scale);
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, width, height);
+  drawRoundedRect(context, 0.5, 0.5, width - 1, height - 1, 8, "#ffffff", "#dfe6ef");
+
+  drawExportBlocks(context, panel, rect);
+  await drawExportSvgs(context, panel, rect);
+  drawExportText(context, panel, rect);
+  return canvas;
+}
+
+function drawExportBlocks(context, panel, panelRect) {
+  const selectors = [
+    ".database-metrics article",
+    ".band-card",
+    ".bar-track",
+    ".bar-fill",
+    ".status-pill",
+    ".gain-pill",
+    "th",
+    "td",
+  ];
+  panel.querySelectorAll(selectors.join(",")).forEach((element) => {
+    if (element.closest(".export-ignore") || element.closest("svg")) return;
+    const rect = element.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const styles = window.getComputedStyle(element);
+    const fill = solidColor(styles.backgroundColor, "#ffffff");
+    const stroke = solidColor(styles.borderTopColor, "transparent");
+    const radius = Math.min(parseFloat(styles.borderTopLeftRadius) || 0, 10);
+    drawRoundedRect(
+      context,
+      rect.left - panelRect.left,
+      rect.top - panelRect.top,
+      rect.width,
+      rect.height,
+      radius,
+      fill,
+      styles.borderTopWidth !== "0px" ? stroke : "transparent",
+    );
+  });
+}
+
+async function drawExportSvgs(context, panel, panelRect) {
+  const svgs = [...panel.querySelectorAll("svg")].filter((svg) => !svg.closest(".export-ignore"));
+  for (const svg of svgs) {
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width || !rect.height) continue;
+    const image = await svgElementToImage(svg);
+    context.drawImage(image, rect.left - panelRect.left, rect.top - panelRect.top, rect.width, rect.height);
+  }
+}
+
+function drawExportText(context, panel, panelRect) {
+  const selectors = "h2, p, span, strong, small, th, td";
+  panel.querySelectorAll(selectors).forEach((element) => {
+    if (element.closest(".export-ignore") || element.closest("svg")) return;
+    const text = element.textContent?.replace(/\s+/g, " ").trim();
+    if (!text) return;
+    const rect = element.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const styles = window.getComputedStyle(element);
+    if (styles.visibility === "hidden" || styles.display === "none") return;
+    const size = parseFloat(styles.fontSize) || 12;
+    const weight = styles.fontWeight || "600";
+    context.fillStyle = solidColor(styles.color, "#10233f");
+    context.font = `${weight} ${size}px ${fontFamilyForCanvas(styles.fontFamily)}`;
+    context.textBaseline = "top";
+    drawWrappedCanvasText(
+      context,
+      text,
+      rect.left - panelRect.left,
+      rect.top - panelRect.top,
+      rect.width,
+      size * 1.25,
+      Math.max(1, Math.floor(rect.height / (size * 1.1))),
+    );
+  });
+}
+
+function svgElementToImage(svg) {
+  const clone = svg.cloneNode(true);
+  inlineSvgStyles(svg, clone);
+  const rect = svg.getBoundingClientRect();
+  clone.setAttribute("width", String(Math.ceil(rect.width)));
+  clone.setAttribute("height", String(Math.ceil(rect.height)));
+  if (!clone.getAttribute("xmlns")) clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  const serialized = new XMLSerializer().serializeToString(clone);
+  const blob = new Blob([serialized], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not render embedded SVG."));
+    };
+    image.src = url;
+  });
+}
+
+function inlineSvgStyles(source, target) {
+  const styles = window.getComputedStyle(source);
+  const keep = [
+    "fill",
+    "stroke",
+    "stroke-width",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "font-size",
+    "font-weight",
+    "font-family",
+    "opacity",
+  ];
+  keep.forEach((property) => {
+    const value = styles.getPropertyValue(property);
+    if (value) target.style.setProperty(property, value);
+  });
+  [...source.children].forEach((child, index) => {
+    const clonedChild = target.children[index];
+    if (clonedChild) inlineSvgStyles(child, clonedChild);
+  });
+}
+
+function drawRoundedRect(context, x, y, width, height, radius, fill, stroke) {
+  const r = Math.min(radius, width / 2, height / 2);
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.arcTo(x + width, y, x + width, y + height, r);
+  context.arcTo(x + width, y + height, x, y + height, r);
+  context.arcTo(x, y + height, x, y, r);
+  context.arcTo(x, y, x + width, y, r);
+  context.closePath();
+  if (fill && fill !== "transparent") {
+    context.fillStyle = fill;
+    context.fill();
+  }
+  if (stroke && stroke !== "transparent") {
+    context.strokeStyle = stroke;
+    context.lineWidth = 1;
+    context.stroke();
+  }
+}
+
+function drawWrappedCanvasText(context, text, x, y, maxWidth, lineHeight, maxLines) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+  words.forEach((word) => {
+    const next = line ? `${line} ${word}` : word;
+    if (context.measureText(next).width <= maxWidth || !line) {
+      line = next;
+      return;
+    }
+    lines.push(line);
+    line = word;
+  });
+  if (line) lines.push(line);
+  lines.slice(0, maxLines).forEach((lineText, index) => {
+    context.fillText(lineText, x, y + index * lineHeight);
+  });
+}
+
+function solidColor(value, fallback) {
+  if (!value || value === "transparent" || value === "rgba(0, 0, 0, 0)") return fallback;
+  return value;
+}
+
+function fontFamilyForCanvas(value) {
+  return value?.split(",")[0]?.replace(/["']/g, "").trim() || "Arial";
 }
 
 function inlineComputedStyles(source, target) {
@@ -2476,6 +2701,7 @@ async function refreshDashboardData() {
 
 els.searchInput.addEventListener("input", (event) => {
   state.filters.search = event.target.value;
+  setupFilters();
   applyFilters();
 });
 
@@ -2489,7 +2715,7 @@ els.searchInput.addEventListener("input", (event) => {
 ].forEach(([select, key]) => {
   select.addEventListener("change", (event) => {
     state.filters[key] = event.target.value;
-    renderPremiumSelect(select);
+    setupFilters();
     applyFilters();
   });
 });
@@ -2583,7 +2809,8 @@ document.addEventListener("keydown", (event) => {
 els.navItems.forEach((item) => {
   item.addEventListener("click", () => {
     state.activeView = item.dataset.view;
-    render();
+    setupFilters();
+    applyFilters();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 });
