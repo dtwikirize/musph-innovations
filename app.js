@@ -2414,14 +2414,7 @@ async function drawExportSvgs(context, panel, panelRect, scale = 1) {
     const rect = svg.getBoundingClientRect();
     if (!rect.width || !rect.height) continue;
     try {
-      const image = await svgElementToImage(svg);
-      context.drawImage(
-        image,
-        (rect.left - panelRect.left) * scale,
-        (rect.top - panelRect.top) * scale,
-        rect.width * scale,
-        rect.height * scale,
-      );
+      drawSvgDirectly(context, svg, rect, panelRect, scale);
     } catch (error) {
       console.warn("Skipping SVG during export.", error);
     }
@@ -2478,6 +2471,173 @@ function svgElementToImage(svg) {
     };
     image.src = url;
   });
+}
+
+function drawSvgDirectly(context, svg, rect, panelRect, scale) {
+  const viewBox = svg.viewBox.baseVal;
+  const viewW = viewBox?.width || rect.width;
+  const viewH = viewBox?.height || rect.height;
+  context.save();
+  context.translate((rect.left - panelRect.left) * scale, (rect.top - panelRect.top) * scale);
+  context.scale((rect.width * scale) / viewW, (rect.height * scale) / viewH);
+  context.translate(-(viewBox?.x || 0), -(viewBox?.y || 0));
+  drawSvgChildren(context, svg);
+  context.restore();
+}
+
+function drawSvgChildren(context, element) {
+  [...element.children].forEach((child) => drawSvgNode(context, child));
+}
+
+function drawSvgNode(context, element) {
+  if (element.tagName?.toLowerCase() === "title") return;
+  context.save();
+  applySvgTransform(context, element.getAttribute("transform"));
+  const tag = element.tagName?.toLowerCase();
+  if (tag === "g" || tag === "defs" || tag === "lineargradient") {
+    drawSvgChildren(context, element);
+  } else if (tag === "line") {
+    drawSvgLine(context, element);
+  } else if (tag === "rect") {
+    drawSvgRect(context, element);
+  } else if (tag === "circle") {
+    drawSvgCircle(context, element);
+  } else if (tag === "path") {
+    drawSvgPath(context, element);
+  } else if (tag === "text") {
+    drawSvgText(context, element);
+  }
+  context.restore();
+}
+
+function applySvgTransform(context, transform) {
+  if (!transform) return;
+  const translate = transform.match(/translate\(([-.\d]+)[,\s]+([-.\d]+)\)/);
+  if (translate) context.translate(Number(translate[1]), Number(translate[2]));
+  const rotate = transform.match(/rotate\(([-.\d]+)(?:[,\s]+([-.\d]+)[,\s]+([-.\d]+))?\)/);
+  if (rotate) {
+    const angle = (Number(rotate[1]) * Math.PI) / 180;
+    const cx = Number(rotate[2] || 0);
+    const cy = Number(rotate[3] || 0);
+    context.translate(cx, cy);
+    context.rotate(angle);
+    context.translate(-cx, -cy);
+  }
+}
+
+function drawSvgLine(context, element) {
+  applySvgStroke(context, element, palette.muted);
+  context.beginPath();
+  context.moveTo(svgNumber(element, "x1"), svgNumber(element, "y1"));
+  context.lineTo(svgNumber(element, "x2"), svgNumber(element, "y2"));
+  context.stroke();
+}
+
+function drawSvgRect(context, element) {
+  const x = svgNumber(element, "x");
+  const y = svgNumber(element, "y");
+  const width = svgNumber(element, "width");
+  const height = svgNumber(element, "height");
+  const radius = svgNumber(element, "rx");
+  const fill = svgFill(element, "transparent");
+  const stroke = svgStroke(element, "transparent");
+  drawRoundedRect(context, x, y, width, height, radius, fill, stroke);
+}
+
+function drawSvgCircle(context, element) {
+  const fill = svgFill(element, "transparent");
+  const stroke = svgStroke(element, "transparent");
+  const radius = svgNumber(element, "r");
+  context.beginPath();
+  context.arc(svgNumber(element, "cx"), svgNumber(element, "cy"), radius, 0, Math.PI * 2);
+  if (fill !== "transparent") {
+    context.fillStyle = fill;
+    context.fill();
+  }
+  if (stroke !== "transparent") {
+    applySvgStroke(context, element, stroke);
+    context.stroke();
+  }
+}
+
+function drawSvgPath(context, element) {
+  const d = element.getAttribute("d");
+  if (!d || typeof Path2D === "undefined") return;
+  const path = new Path2D(d);
+  const fill = svgFill(element, "transparent");
+  const stroke = svgStroke(element, "transparent");
+  if (fill !== "transparent") {
+    context.fillStyle = fill;
+    context.fill(path);
+  }
+  if (stroke !== "transparent") {
+    applySvgStroke(context, element, stroke);
+    context.stroke(path);
+  }
+}
+
+function drawSvgText(context, element) {
+  const styles = window.getComputedStyle(element);
+  const fill = svgFill(element, palette.muted);
+  const size = parseFloat(styles.fontSize || element.getAttribute("font-size")) || 11;
+  const weight = styles.fontWeight || element.getAttribute("font-weight") || "700";
+  const anchor = element.getAttribute("text-anchor") || styles.textAnchor || "start";
+  context.fillStyle = fill;
+  context.font = `${weight} ${size}px ${fontFamilyForCanvas(styles.fontFamily)}`;
+  context.textBaseline = "alphabetic";
+  context.textAlign = anchor === "middle" ? "center" : anchor === "end" ? "right" : "left";
+
+  const tspans = [...element.querySelectorAll("tspan")];
+  if (tspans.length) {
+    let y = svgNumber(element, "y");
+    tspans.forEach((tspan) => {
+      y += Number(tspan.getAttribute("dy") || 0);
+      const x = Number(tspan.getAttribute("x") || element.getAttribute("x") || 0);
+      context.fillText(tspan.textContent || "", x, y);
+    });
+    return;
+  }
+
+  context.fillText(element.textContent || "", svgNumber(element, "x"), svgNumber(element, "y"));
+}
+
+function applySvgStroke(context, element, fallback) {
+  context.strokeStyle = svgStroke(element, fallback);
+  context.lineWidth = Number(element.getAttribute("stroke-width")) || parseFloat(window.getComputedStyle(element).strokeWidth) || 1;
+  const lineCap = element.getAttribute("stroke-linecap") || window.getComputedStyle(element).strokeLinecap;
+  const lineJoin = element.getAttribute("stroke-linejoin") || window.getComputedStyle(element).strokeLinejoin;
+  context.lineCap = lineCap === "butt" ? "butt" : lineCap === "square" ? "square" : "round";
+  context.lineJoin = lineJoin === "miter" ? "miter" : lineJoin === "bevel" ? "bevel" : "round";
+}
+
+function svgFill(element, fallback) {
+  return svgPaint(element, "fill", fallback);
+}
+
+function svgStroke(element, fallback) {
+  return svgPaint(element, "stroke", fallback);
+}
+
+function svgPaint(element, property, fallback) {
+  const attr = element.getAttribute(property);
+  const styles = window.getComputedStyle(element);
+  let value = attr && attr !== "currentColor" ? attr : styles.getPropertyValue(property);
+  if (!value || value === "none" || value === "rgba(0, 0, 0, 0)") return fallback;
+  if (value.startsWith("url(")) return svgUrlFallback(element, property, fallback);
+  if (value === "currentColor") value = styles.color;
+  return solidColor(value, fallback);
+}
+
+function svgUrlFallback(element, property, fallback) {
+  const className = element.getAttribute("class") || "";
+  if (className.includes("timeline-total-bar")) return "#dbe7f3";
+  if (className.includes("timeline-completed-bar")) return "#2f9f6b";
+  if (property === "fill" && element.tagName?.toLowerCase() === "rect") return "#dbe7f3";
+  return fallback;
+}
+
+function svgNumber(element, name) {
+  return Number(element.getAttribute(name) || 0);
 }
 
 function inlineSvgStyles(source, target) {
