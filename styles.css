@@ -2242,16 +2242,18 @@ h1 {
 }
 
 .premium-select-chevron {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   color: var(--teal);
+  transform: rotate(45deg) translateY(-2px);
   transition: transform 160ms ease;
 }
 
 .premium-select.open .premium-select-chevron {
-  transform: rotate(180deg);
+  transform: rotate(225deg) translate(-2px, -1px);
 }
 
 .premium-select-menu {

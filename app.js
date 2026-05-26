@@ -456,7 +456,7 @@ function createPremiumSelect(select) {
   root.innerHTML = `
     <button class="premium-select-button" type="button" aria-haspopup="listbox" aria-expanded="false">
       <span class="premium-select-value">All</span>
-      <span class="premium-select-chevron">v</span>
+      <span class="premium-select-chevron" aria-hidden="true"></span>
     </button>
     <div class="premium-select-menu">
       <input class="premium-select-search" type="search" placeholder="Search options..." />
@@ -2331,7 +2331,7 @@ function renderPanelToCanvasWithForeignObject(panel) {
 
   return new Promise((resolve, reject) => {
     const image = new Image();
-    image.onload = () => {
+    image.onload = async () => {
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(width * scale);
       canvas.height = Math.round(height * scale);
@@ -2341,6 +2341,7 @@ function renderPanelToCanvasWithForeignObject(panel) {
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
       try {
+        await drawExportSvgs(context, panel, rect, scale);
         assertCanvasReadable(canvas);
         resolve(canvas);
       } catch (error) {
@@ -2407,14 +2408,20 @@ function drawExportBlocks(context, panel, panelRect) {
   });
 }
 
-async function drawExportSvgs(context, panel, panelRect) {
+async function drawExportSvgs(context, panel, panelRect, scale = 1) {
   const svgs = [...panel.querySelectorAll("svg")].filter((svg) => !svg.closest(".export-ignore"));
   for (const svg of svgs) {
     const rect = svg.getBoundingClientRect();
     if (!rect.width || !rect.height) continue;
     try {
       const image = await svgElementToImage(svg);
-      context.drawImage(image, rect.left - panelRect.left, rect.top - panelRect.top, rect.width, rect.height);
+      context.drawImage(
+        image,
+        (rect.left - panelRect.left) * scale,
+        (rect.top - panelRect.top) * scale,
+        rect.width * scale,
+        rect.height * scale,
+      );
     } catch (error) {
       console.warn("Skipping SVG during export.", error);
     }
