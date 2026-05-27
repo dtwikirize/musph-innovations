@@ -4,11 +4,30 @@ import XLSX from "xlsx";
 import { monthlyDataCacheDir } from "../config/paths.js";
 
 const resolveExcelPath = () => {
+  const searchDirs = [
+    process.cwd(),
+    path.resolve(process.cwd(), "eHSS_ACASI"),
+    path.resolve(process.cwd(), "eHSS_ACASI/backend"),
+    path.resolve(process.cwd(), "../"),
+    path.resolve(process.cwd(), "../../")
+  ];
   const candidates = [
     process.env.ACASI_EXCEL_PATH,
+    path.resolve(process.cwd(), "eHSS_Data_With_District_Region.xlsx"),
+    path.resolve(process.cwd(), "eHSS_ACASI", "eHSS_Data_With_District_Region.xlsx"),
     path.resolve(process.cwd(), "eHSS_ACASI Cumm Jan 2026.xlsx"),
     path.resolve(process.cwd(), "../eHSS_ACASI Cumm Jan 2026.xlsx"),
-    path.resolve(process.cwd(), "../../eHSS_ACASI Cumm Jan 2026.xlsx")
+    path.resolve(process.cwd(), "../../eHSS_ACASI Cumm Jan 2026.xlsx"),
+    ...searchDirs.flatMap((dir) => {
+      try {
+        return fs
+          .readdirSync(dir, { withFileTypes: true })
+          .filter((entry) => entry.isFile() && /\.xlsx$/i.test(entry.name) && !entry.name.startsWith("~$"))
+          .map((entry) => path.join(dir, entry.name));
+      } catch {
+        return [];
+      }
+    })
   ].filter(Boolean);
   const found = candidates.find((p) => fs.existsSync(p));
   if (found) return found;

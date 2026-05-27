@@ -32,7 +32,7 @@ npm install --omit=dev
 npm start
 ```
 
-By default it runs at `http://localhost:3000`. The deployed ACASI dashboard uses the uploaded Excel workbook data, not a live DHIS2 API token. Upload the workbook to the app root as `eHSS_ACASI Cumm Jan 2026.xlsx`, or set `ACASI_EXCEL_PATH` to its server path.
+By default it runs at `http://localhost:3000`. The deployed ACASI dashboard uses the uploaded Excel workbook data, not a live DHIS2 API token. Upload the workbook to the app root or `eHSS_ACASI/`; the loader will use `ACASI_EXCEL_PATH` when set, otherwise it will find the first `.xlsx` workbook such as `eHSS_Data_With_District_Region.xlsx`.
 
 ## Hostinger deployment
 
