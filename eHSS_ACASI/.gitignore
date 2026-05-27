@@ -1,7 +1,9 @@
 node_modules/
 .env
-backend/data/
-cache/
+backend/data/*
+!backend/data/.gitkeep
+cache/*
+!cache/.gitkeep
 *.log
 npm-debug.log*
 .DS_Store

@@ -26,7 +26,7 @@ app.use(helmet({
   frameguard: false,
   contentSecurityPolicy: {
     directives: {
-      frameAncestors
+      "frame-ancestors": frameAncestors,
     }
   }
 }));
