@@ -2,7 +2,6 @@
   "name": "training-dashboard",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "main": "app.js",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4175",
