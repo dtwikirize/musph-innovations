@@ -5,7 +5,7 @@ const ELEARNING_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=1859402851&single=true&output=csv";
 const CRANE_POWER_BI_URL =
   "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9";
-const ACASI_DASHBOARD_URL = window.EHSS_ACASI_DASHBOARD_URL || "http://localhost:3000";
+const ACASI_DASHBOARD_URL = window.EHSS_ACASI_DASHBOARD_URL || "/acasi-app";
 const HOME_HERO_IMAGES = [
   "/images/portal-hero.webp",
   "/images/home-hero-digital-1.webp",

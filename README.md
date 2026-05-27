@@ -38,18 +38,20 @@ By default it runs at `http://localhost:3000`, which is what the portal embeds. 
 
 ## Hostinger deployment
 
-This repository is configured as a Vite app so Hostinger can detect the project.
+This repository is configured as a single Node app that serves the Vite portal and mounts the eHSS ACASI dashboard under the same domain at `/acasi-app`.
 
 Use these settings:
 
 ```text
-Framework: Vite
+Framework/runtime: Node.js
 Build command: npm run build
-Publish directory: dist
 Install command: npm install
+Start command: npm start
+Node version: 22.13.0 or newer
 ```
 
 The production build copies `public/data/training-data.csv` into `dist/data/training-data.csv`.
+The Node server serves `dist/` for the public portal and serves ACASI API/assets from `eHSS_ACASI/`.
 
 ## Sensitive data access
 
@@ -77,6 +79,7 @@ Also restrict the source Google Sheet or replace the "Refresh data" CSV URL with
 - `/innovations/acasi/dashboard`
 
 The training landing page is available at `/innovations/training-database`, and the dashboard opens at `/innovations/training-database#dashboard`.
+The ACASI dashboard is available at `/innovations/acasi/dashboard` and is embedded from the same domain path `/acasi-app`.
 
 ## Included dashboard views
 
