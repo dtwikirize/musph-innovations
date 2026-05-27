@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authRefreshSecret } from "../middleware/authRefreshSecret.js";
 import { cacheStatus, readCache } from "../services/cacheService.js";
-import { refreshExcelCache } from "../services/excelDashboardService.js";
+import { excelImportStatus, importExcelWorkbook, refreshExcelCache } from "../services/excelDashboardService.js";
 import { getTargets, saveTargets } from "../services/targetService.js";
 import { clearDashboardCache } from "../services/dashboardCache.js";
 
@@ -13,8 +13,15 @@ router.get("/cache-status", async (req, res) => res.json(await cacheStatus()));
 router.get("/refresh-health", (req, res) => {
   res.json({ status: "excel-only", rowsImported: 0, lastRefresh: null, nextRefresh: null });
 });
-router.get("/csv-import-status", (req, res) => {
-  res.json({ status: "excel-only", lastImport: null });
+router.get("/csv-import-status", async (req, res) => res.json(await excelImportStatus()));
+router.post("/import-data-file", async (req, res, next) => {
+  try {
+    const result = await importExcelWorkbook(req.body || {});
+    clearDashboardCache();
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
 });
 router.get("/store-status", (req, res) => {
   res.json({ mode: "excel-only", rowCount: 0, orgUnitCount: 0, dataElementCount: 0 });

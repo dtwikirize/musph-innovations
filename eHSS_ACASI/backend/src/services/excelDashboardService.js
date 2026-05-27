@@ -2,11 +2,26 @@ import path from "path";
 import fs from "fs";
 import XLSX from "xlsx";
 import { monthlyDataCacheDir } from "../config/paths.js";
+import { appendRefreshLog, readCache, writeCache } from "./cacheService.js";
+
+const uploadDir = path.resolve(process.cwd(), "eHSS_ACASI", "uploads");
+const normalizeHeader = (value = "") => String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+const columnAliases = {
+  dataElement: ["dataelement", "dataelementname", "indicator", "indicatorname"],
+  categoryOptionCombo: ["categoryoptioncombo", "category", "disaggregation"],
+  orgUnit: ["organisationunit", "orgunit", "facility", "facilityname", "site", "sitename"],
+  district: ["district"],
+  region: ["region"],
+  implementingPartner: ["implementingmechanism2024", "implementingmechanism", "implementingpartner", "mechanism", "im"],
+  period: ["period", "month", "reportingperiod"],
+  value: ["value", "count", "datavalue", "val"]
+};
 
 const resolveExcelPath = () => {
   const searchDirs = [
     process.cwd(),
     path.resolve(process.cwd(), "eHSS_ACASI"),
+    uploadDir,
     path.resolve(process.cwd(), "eHSS_ACASI/backend"),
     path.resolve(process.cwd(), "../"),
     path.resolve(process.cwd(), "../../")
@@ -34,17 +49,34 @@ const resolveExcelPath = () => {
   return candidates[0];
 };
 
-const excelPath = resolveExcelPath();
+let activeExcelPath = resolveExcelPath();
 let cache = null;
 const cacheDirs = () => (fs.existsSync(monthlyDataCacheDir) ? [monthlyDataCacheDir] : []);
 
 const normalizePeriod = (value) => {
   if (!value) return "";
-  if (typeof value === "number") return String(value);
-  const s = String(value);
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return `${value.getFullYear()}${String(value.getMonth() + 1).padStart(2, "0")}`;
+  }
+  const s = String(value).replace(/\s+/g, " ").trim();
+  const monthMatch = /^(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{4})$/i.exec(s);
+  if (monthMatch) {
+    const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    const monthIndex = monthNames.findIndex((name) => monthMatch[1].toLowerCase().startsWith(name));
+    if (monthIndex >= 0) return `${monthMatch[2]}${String(monthIndex + 1).padStart(2, "0")}`;
+  }
   if (/^\d{6}$/.test(s)) return s;
   if (/^\d{8}$/.test(s)) return s.slice(0, 6);
   if (/^\d{4}-\d{2}/.test(s)) return s.slice(0, 4) + s.slice(5, 7);
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const parsed = XLSX.SSF.parse_date_code(value);
+    if (parsed?.y && parsed?.m) return `${parsed.y}${String(parsed.m).padStart(2, "0")}`;
+    return String(value);
+  }
+  if (/^\d+(\.\d+)?$/.test(s) && Number(s) > 20000) {
+    const parsed = XLSX.SSF.parse_date_code(Number(s));
+    if (parsed?.y && parsed?.m) return `${parsed.y}${String(parsed.m).padStart(2, "0")}`;
+  }
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return "";
   return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -52,16 +84,82 @@ const normalizePeriod = (value) => {
 
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const isAll = (orgUnit) => !orgUnit || orgUnit === "__ALL__";
+const cleanValue = (value = "") => String(value || "").replace(/\s+/g, " ").trim();
+
+const findColumn = (headers, key) => {
+  const wanted = new Set(columnAliases[key] || [key]);
+  return headers.find((header) => wanted.has(normalizeHeader(header)));
+};
+
+const workbookRows = (workbook, preferredSheet = "") => {
+  const sheetName = preferredSheet && workbook.Sheets[preferredSheet] ? preferredSheet : workbook.SheetNames[0];
+  return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+};
+
+const isLongWorkbook = (rows = []) => {
+  const headers = Object.keys(rows[0] || {});
+  return Boolean(findColumn(headers, "dataElement") && findColumn(headers, "orgUnit") && findColumn(headers, "period") && findColumn(headers, "value"));
+};
+
+const longRowsToDashboardRows = (rows = []) => {
+  const headers = Object.keys(rows[0] || {});
+  const columns = Object.fromEntries(Object.keys(columnAliases).map((key) => [key, findColumn(headers, key)]));
+  const groups = new Map();
+  const masterMap = new Map();
+
+  for (const source of rows) {
+    const periodid = normalizePeriod(source[columns.period]);
+    const site = cleanValue(source[columns.orgUnit]);
+    const dataElement = cleanValue(source[columns.dataElement]);
+    if (!periodid || !site || !dataElement) continue;
+
+    const key = `${periodid}::${site}`;
+    const district = cleanValue(source[columns.district]);
+    const region = cleanValue(source[columns.region]);
+    const mechanism = cleanValue(source[columns.implementingPartner]);
+    const value = Number(String(source[columns.value] ?? "0").replace(/,/g, ""));
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        agency: mechanism,
+        mechanism,
+        region,
+        district,
+        site,
+        site_id: site,
+        periodid,
+        unique_id: `${periodid}-${site}`,
+        period: `${periodid.slice(0, 4)}-${periodid.slice(4, 6)}-01`
+      });
+    }
+    const target = groups.get(key);
+    target[dataElement] = (Number(target[dataElement]) || 0) + (Number.isFinite(value) ? value : 0);
+
+    if (!masterMap.has(site)) {
+      masterMap.set(site, { agency: mechanism, mechanism, region, district, site, site_id: site });
+    }
+  }
+
+  return { master: [...masterMap.values()], allExcel: [...groups.values()] };
+};
 
 const ensure = () => {
   if (cache) return cache;
-  if (!excelPath || !fs.existsSync(excelPath)) {
+  activeExcelPath = fs.existsSync(activeExcelPath || "") ? activeExcelPath : resolveExcelPath();
+  if (!activeExcelPath || !fs.existsSync(activeExcelPath)) {
     cache = { master: [], allExcel: [], all: [] };
     return cache;
   }
-  const wb = XLSX.readFile(excelPath, { cellDates: true });
-  const master = XLSX.utils.sheet_to_json(wb.Sheets["Master"] || wb.Sheets[wb.SheetNames[0]], { defval: "" });
-  const allExcel = XLSX.utils.sheet_to_json(wb.Sheets["All_data"] || wb.Sheets[wb.SheetNames[1]], { defval: "" });
+  const wb = XLSX.readFile(activeExcelPath, { cellDates: true });
+  const firstRows = workbookRows(wb);
+  const parsedWorkbook = isLongWorkbook(firstRows)
+    ? longRowsToDashboardRows(firstRows)
+    : {
+        master: XLSX.utils.sheet_to_json(wb.Sheets["Master"] || wb.Sheets[wb.SheetNames[0]], { defval: "" }),
+        allExcel: XLSX.utils.sheet_to_json(wb.Sheets["All_data"] || wb.Sheets[wb.SheetNames[1]] || wb.Sheets[wb.SheetNames[0]], { defval: "" })
+      };
+  const master = parsedWorkbook.master;
+  const allExcel = parsedWorkbook.allExcel;
   const masterBySiteId = Object.fromEntries(master.map((m) => [String(m.site_id || ""), m]));
   const excelKeys = new Set(
     allExcel.map((r) => `${normalizePeriod(r.periodid || r.period)}::${String(r.site_id || "")}`)
@@ -424,3 +522,48 @@ export const refreshExcelCache = () => {
   cache = null;
   return ensure();
 };
+
+export const importExcelWorkbook = async ({ fileName = "eHSS_Data_With_District_Region.xlsx", base64 = "", content = "" } = {}) => {
+  const startedAt = new Date().toISOString();
+  const extension = path.extname(fileName).toLowerCase();
+  if (![".xlsx", ".xls"].includes(extension)) {
+    const error = new Error("Please upload an Excel workbook (.xlsx or .xls).");
+    error.status = 400;
+    throw error;
+  }
+
+  const safeName = path.basename(fileName).replace(/[^\w .()-]/g, "_");
+  fs.mkdirSync(uploadDir, { recursive: true });
+  const destination = path.join(uploadDir, safeName || "eHSS_Data_With_District_Region.xlsx");
+  const buffer = Buffer.from(base64 || content, "base64");
+  fs.writeFileSync(destination, buffer);
+
+  activeExcelPath = destination;
+  cache = null;
+  const parsed = ensure();
+  const periods = excelYears();
+  const log = {
+    type: "excel-import",
+    status: parsed.all.length ? "success" : "empty",
+    fileName: safeName,
+    path: destination,
+    startedAt,
+    finishedAt: new Date().toISOString(),
+    rows: parsed.all.length,
+    sourceRows: parsed.allExcel.length,
+    periods,
+    orgUnits: parsed.master.length,
+    dataElements: excelDataElementOptions().length,
+    regions: new Set(parsed.master.map((row) => row.region).filter(Boolean)).size,
+    districts: new Set(parsed.master.map((row) => row.district).filter(Boolean)).size,
+    implementingPartners: new Set(parsed.master.map((row) => row.mechanism).filter(Boolean)).size,
+    warnings: parsed.all.length ? [] : ["Workbook imported, but no dashboard rows were found."]
+  };
+  await appendRefreshLog(log);
+  await writeCache("last-csv-import", log);
+  return log;
+};
+
+export const excelImportStatus = async () => ({
+  lastImport: await readCache("last-csv-import", null)
+});
