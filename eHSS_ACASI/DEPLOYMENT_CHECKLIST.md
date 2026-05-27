@@ -41,15 +41,28 @@ FRAME_ANCESTORS='self' https://musph.cc
 APP_TIMEZONE=Africa/Kampala
 PORT=3000
 NODE_ENV=production
+ACASI_UPLOAD_DIR=/home/your-user/acasi-data/uploads
+ACASI_CACHE_DIR=/home/your-user/acasi-data/cache
+ACASI_EXCEL_PATH=/home/your-user/acasi-data/uploads/eHSS_Data_With_District_Region.xlsx
 ```
 
 ## Private Files
 
-These are included in this local ready folder, but if you deploy through GitHub, upload them manually to the server:
+These are included in this local ready folder, but if you deploy through GitHub, upload them manually to the server.
+
+Do not store the active Excel workbook inside the Git deployment directory. Git redeploys can replace that directory and erase runtime uploads. Create a persistent folder outside the app, for example:
+
+```bash
+mkdir -p /home/your-user/acasi-data/uploads
+mkdir -p /home/your-user/acasi-data/cache
+```
+
+Then set the `ACASI_UPLOAD_DIR`, `ACASI_CACHE_DIR`, and `ACASI_EXCEL_PATH` values above in Hostinger. After that, Excel uploads from the Admin screen are written to the persistent path and should survive future Git pushes.
 
 - `.env`
 - `backend/data/acasi.sqlite`
-- `cache/`
+- persistent `ACASI_EXCEL_PATH`
+- persistent `ACASI_CACHE_DIR`
 
 ## Verify
 

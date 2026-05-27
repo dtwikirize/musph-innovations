@@ -5,7 +5,10 @@ import { monthlyDataCacheDir } from "../config/paths.js";
 import highRiskCategoryCombos from "../config/highRiskCategoryCombos.js";
 import { appendRefreshLog, readCache, writeCache } from "./cacheService.js";
 
-const uploadDir = path.resolve(process.cwd(), "eHSS_ACASI", "uploads");
+const configuredExcelPath = () => (process.env.ACASI_EXCEL_PATH ? path.resolve(process.env.ACASI_EXCEL_PATH) : "");
+const uploadDir = path.resolve(
+  process.env.ACASI_UPLOAD_DIR || process.env.ACASI_DATA_DIR || path.resolve(process.cwd(), "eHSS_ACASI", "uploads")
+);
 const normalizeHeader = (value = "") => String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
 const columnAliases = {
   dataElement: ["dataelement", "dataelementname", "indicator", "indicatorname"],
@@ -28,7 +31,7 @@ const resolveExcelPath = () => {
     path.resolve(process.cwd(), "../../")
   ];
   const candidates = [
-    process.env.ACASI_EXCEL_PATH,
+    configuredExcelPath(),
     path.resolve(process.cwd(), "eHSS_Data_With_District_Region.xlsx"),
     path.resolve(process.cwd(), "eHSS_ACASI", "eHSS_Data_With_District_Region.xlsx"),
     path.resolve(process.cwd(), "eHSS_ACASI Cumm Jan 2026.xlsx"),
@@ -1177,8 +1180,9 @@ export const importExcelWorkbook = async ({ fileName = "eHSS_Data_With_District_
   }
 
   const safeName = path.basename(fileName).replace(/[^\w .()-]/g, "_");
-  fs.mkdirSync(uploadDir, { recursive: true });
-  const destination = path.join(uploadDir, safeName || "eHSS_Data_With_District_Region.xlsx");
+  const configuredPath = configuredExcelPath();
+  const destination = configuredPath || path.join(uploadDir, safeName || "eHSS_Data_With_District_Region.xlsx");
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
   const buffer = Buffer.from(base64 || content, "base64");
   fs.writeFileSync(destination, buffer);
 
