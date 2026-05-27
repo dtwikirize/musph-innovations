@@ -25,16 +25,14 @@ The `eHSS_ACASI` folder is attached to the portal from the ACASI innovation page
 - `/innovations/acasi`
 - `/innovations/acasi/dashboard`
 
-Run the ACASI dashboard service in a second terminal before opening those routes:
+The portal serves the ACASI dashboard from the same Node app under `/acasi-app`. For local development, start the combined app from the repository root:
 
 ```powershell
-cd eHSS_ACASI
-Copy-Item .env.example .env
 npm install --omit=dev
 npm start
 ```
 
-By default it runs at `http://localhost:3000`, which is what the portal embeds. For production, host `eHSS_ACASI` as its own Node service, set `FRAME_ANCESTORS` in the ACASI `.env` to include the portal domain, and set `window.EHSS_ACASI_DASHBOARD_URL` before `portal.js` loads if the service URL is different.
+By default it runs at `http://localhost:3000`. The deployed ACASI dashboard uses the uploaded Excel workbook data, not a live DHIS2 API token. Upload the workbook to the app root as `eHSS_ACASI Cumm Jan 2026.xlsx`, or set `ACASI_EXCEL_PATH` to its server path.
 
 ## Hostinger deployment
 

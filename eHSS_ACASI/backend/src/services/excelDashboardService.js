@@ -5,10 +5,11 @@ import { monthlyDataCacheDir } from "../config/paths.js";
 
 const resolveExcelPath = () => {
   const candidates = [
+    process.env.ACASI_EXCEL_PATH,
     path.resolve(process.cwd(), "eHSS_ACASI Cumm Jan 2026.xlsx"),
     path.resolve(process.cwd(), "../eHSS_ACASI Cumm Jan 2026.xlsx"),
     path.resolve(process.cwd(), "../../eHSS_ACASI Cumm Jan 2026.xlsx")
-  ];
+  ].filter(Boolean);
   const found = candidates.find((p) => fs.existsSync(p));
   if (found) return found;
   return candidates[0];
@@ -35,6 +36,10 @@ const isAll = (orgUnit) => !orgUnit || orgUnit === "__ALL__";
 
 const ensure = () => {
   if (cache) return cache;
+  if (!excelPath || !fs.existsSync(excelPath)) {
+    cache = { master: [], allExcel: [], all: [] };
+    return cache;
+  }
   const wb = XLSX.readFile(excelPath, { cellDates: true });
   const master = XLSX.utils.sheet_to_json(wb.Sheets["Master"] || wb.Sheets[wb.SheetNames[0]], { defval: "" });
   const allExcel = XLSX.utils.sheet_to_json(wb.Sheets["All_data"] || wb.Sheets[wb.SheetNames[1]], { defval: "" });

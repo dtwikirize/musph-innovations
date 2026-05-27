@@ -5,7 +5,6 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
-import dhis2Routes from "./routes/dhis2Routes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import { apiLimiter } from "./middleware/rateLimit.js";
@@ -39,7 +38,6 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", appTimezone: process.env.APP_TIMEZONE || "Africa/Kampala" });
 });
 
-app.use("/api/dhis2", dhis2Routes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/admin", adminRoutes);
 
