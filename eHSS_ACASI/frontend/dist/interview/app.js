@@ -1,4 +1,83 @@
+const generateClientNumber = () => {
+  const stamp = new Date()
+    .toISOString()
+    .replace(/[-:TZ.]/g, "")
+    .slice(0, 14);
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `ACASI-${stamp}-${suffix}`;
+};
+
 const questions = [
+  {
+    id: "sex",
+    text: "What is your sex?",
+    help: "This helps the system provide the right screening summary.",
+    options: [
+      { label: "Female", score: 0, value: "Female" },
+      { label: "Male", score: 0, value: "Male" },
+      { label: "Other", score: 0, value: "Other" },
+      { label: "Prefer not to answer", score: 0, value: "Not answered" }
+    ]
+  },
+  {
+    id: "age",
+    text: "What is your age group?",
+    help: "Choose the age group that fits you best.",
+    options: [
+      { label: "15 to 19 years", score: 0, value: "15-19 years" },
+      { label: "20 to 24 years", score: 0, value: "20-24 years" },
+      { label: "25 to 34 years", score: 0, value: "25-34 years" },
+      { label: "35 years and above", score: 0, value: "35+ years" }
+    ]
+  },
+  {
+    id: "occupation",
+    text: "Which occupation or community best describes you?",
+    help: "This helps identify people who may benefit from focused HIV prevention support.",
+    options: [
+      { label: "Truck driver", score: 2, group: "Truck drivers", flag: "Mobile occupation" },
+      { label: "Uniformed services", score: 2, group: "Uniformed services", flag: "Uniformed services" },
+      { label: "Business person", score: 1, group: "Business community", flag: "Business community" },
+      { label: "Working in fishing community", score: 2, group: "Fisher folk", flag: "Fishing community" },
+      { label: "Sex worker", score: 4, group: "SW", flag: "Sex worker" },
+      { label: "Bar, lodge, or entertainment worker", score: 2, group: "Entertainment workers", flag: "Entertainment work" },
+      { label: "Student", score: 0 },
+      { label: "Other", score: 0 }
+    ]
+  },
+  {
+    id: "sellSex",
+    text: "In the last 12 months, have you sold sex for money, gifts, or support?",
+    help: "Your answer is private and helps recommend confidential services.",
+    options: [
+      { label: "No", score: 0 },
+      { label: "Yes", score: 4, group: "SW", flag: "Sold sex" },
+      { label: "Prefer not to answer", score: 0 },
+      { label: "I am not sure", score: 1 }
+    ]
+  },
+  {
+    id: "buySex",
+    text: "In the last 12 months, have you bought sex or exchanged money or gifts for sex?",
+    help: "Choose the answer that best describes your situation.",
+    options: [
+      { label: "No", score: 0 },
+      { label: "Yes", score: 3, group: "Client of sex worker", flag: "Bought sex" },
+      { label: "Prefer not to answer", score: 0 },
+      { label: "I am not sure", score: 1 }
+    ]
+  },
+  {
+    id: "injectDrugs",
+    text: "Have you injected drugs or shared needles or injecting equipment?",
+    help: "This helps recommend harm reduction and HIV prevention services.",
+    options: [
+      { label: "No", score: 0 },
+      { label: "Yes", score: 4, group: "PWID", flag: "Injected drugs" },
+      { label: "Prefer not to answer", score: 0 },
+      { label: "I am not sure", score: 1 }
+    ]
+  },
   {
     id: "partners",
     text: "In the last 12 months, have you had more than one sexual partner?",
@@ -33,28 +112,6 @@ const questions = [
     ]
   },
   {
-    id: "sti",
-    text: "Have you had genital sores, discharge, pain, or burning when urinating?",
-    help: "These symptoms may need clinical assessment.",
-    options: [
-      { label: "No", score: 0 },
-      { label: "Yes", score: 3, flag: "Possible STI symptoms" },
-      { label: "I am not sure", score: 1 },
-      { label: "Prefer not to answer", score: 0 }
-    ]
-  },
-  {
-    id: "prep",
-    text: "Would you like information about PrEP for HIV prevention?",
-    help: "PrEP is one prevention option for people with ongoing HIV risk.",
-    options: [
-      { label: "Yes", score: 1, flag: "Interested in PrEP" },
-      { label: "No", score: 0 },
-      { label: "I am already on PrEP", score: 0, flag: "PrEP follow-up" },
-      { label: "I need counselling first", score: 1, flag: "PrEP counselling" }
-    ]
-  },
-  {
     id: "violence",
     text: "Have you experienced forced sex or sexual violence recently?",
     help: "You can choose not to answer. Support services are available.",
@@ -64,33 +121,14 @@ const questions = [
       { label: "Prefer not to answer", score: 0 },
       { label: "I need help now", score: 4, flag: "Urgent support requested" }
     ]
-  },
-  {
-    id: "alcohol",
-    text: "Does alcohol or drug use make it harder for you to make safer sex choices?",
-    help: "This can help identify counselling topics.",
-    options: [
-      { label: "No", score: 0 },
-      { label: "Sometimes", score: 1, flag: "Alcohol or drug counselling" },
-      { label: "Often", score: 2, flag: "Alcohol or drug counselling" },
-      { label: "Prefer not to answer", score: 0 }
-    ]
-  },
-  {
-    id: "population",
-    text: "Do you identify with any group that may need focused HIV prevention support?",
-    help: "Examples include fisher folk, sex workers, MSM, PWID, AGYW, PBFW, and mobile populations.",
-    options: [
-      { label: "Yes", score: 2, flag: "People at higher risk for HIV" },
-      { label: "No", score: 0 },
-      { label: "I am not sure", score: 1 },
-      { label: "Prefer not to answer", score: 0 }
-    ]
   }
 ];
 
 const responses = {};
 let currentIndex = 0;
+let clientNumber = generateClientNumber();
+let speechRun = 0;
+let speechTimer = null;
 
 const screens = {
   start: document.querySelector('[data-screen="start"]'),
@@ -103,24 +141,95 @@ const showScreen = (screen) => {
   screens[screen].classList.remove("hidden");
 };
 
-const speak = (text) => {
+const selectedOptionFor = (questionId) => {
+  const question = questions.find((item) => item.id === questionId);
+  const selectedIndex = responses[questionId];
+  return selectedIndex === undefined ? null : question.options[selectedIndex];
+};
+
+const profileValue = (questionId, fallback = "Not answered") =>
+  selectedOptionFor(questionId)?.value || selectedOptionFor(questionId)?.label || fallback;
+
+const clearOptionSpeech = () => {
+  document.querySelectorAll(".option-button.speaking").forEach((button) => button.classList.remove("speaking"));
+};
+
+const stopAudio = () => {
+  speechRun += 1;
+  window.clearTimeout(speechTimer);
+  clearOptionSpeech();
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+};
+
+const speakSegment = (text, { onStart, onEnd } = {}) => {
   if (!("speechSynthesis" in window)) return false;
-  window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.92;
+  utterance.rate = 0.9;
   utterance.pitch = 1;
+  utterance.onstart = () => onStart?.();
+  utterance.onend = () => onEnd?.();
+  utterance.onerror = () => onEnd?.();
   window.speechSynthesis.speak(utterance);
   return true;
 };
 
-const renderQuestion = () => {
+const playQuestionAudio = () => {
   const question = questions[currentIndex];
+  const run = ++speechRun;
+  stopAudio();
+  speechRun = run;
+  document.getElementById("audioStatus").textContent = "Playing question and options";
+
+  const queue = [
+    { text: `${question.text}. ${question.help}` },
+    ...question.options.map((option, index) => ({ text: `Option ${index + 1}. ${option.label}`, optionIndex: index }))
+  ];
+
+  const playNext = (index = 0) => {
+    if (run !== speechRun) return;
+    clearOptionSpeech();
+    const item = queue[index];
+    if (!item) {
+      document.getElementById("audioStatus").textContent = "Audio complete";
+      return;
+    }
+    const played = speakSegment(item.text, {
+      onStart: () => {
+        if (item.optionIndex !== undefined) {
+          document.querySelector(`[data-option-index="${item.optionIndex}"]`)?.classList.add("speaking");
+        }
+      },
+      onEnd: () => {
+        clearOptionSpeech();
+        speechTimer = window.setTimeout(() => playNext(index + 1), 220);
+      }
+    });
+    if (!played) {
+      document.getElementById("audioStatus").textContent = "Audio is not available in this browser";
+    }
+  };
+
+  playNext();
+};
+
+const setNextButtonLabel = () => {
+  const label = currentIndex === questions.length - 1 ? "Generate report" : "Next";
+  document.getElementById("nextButton").innerHTML = `${label}
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 12h13m-5-5 5 5-5 5" />
+    </svg>`;
+};
+
+const renderQuestion = ({ autoPlay = false } = {}) => {
+  stopAudio();
+  const question = questions[currentIndex];
+  document.getElementById("clientNumberLabel").textContent = `Client ${clientNumber}`;
   document.getElementById("questionCounter").textContent = `Question ${currentIndex + 1} of ${questions.length}`;
   document.getElementById("questionText").textContent = question.text;
   document.getElementById("questionHelp").textContent = question.help;
   document.getElementById("progressBar").style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
   document.getElementById("previousButton").disabled = currentIndex === 0;
-  document.getElementById("nextButton").textContent = currentIndex === questions.length - 1 ? "Generate report" : "Next";
+  setNextButtonLabel();
 
   const grid = document.getElementById("optionsGrid");
   grid.innerHTML = "";
@@ -128,6 +237,7 @@ const renderQuestion = () => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "option-button";
+    button.dataset.optionIndex = String(optionIndex);
     button.textContent = option.label;
     if (responses[question.id] === optionIndex) button.classList.add("selected");
     button.addEventListener("click", () => {
@@ -136,6 +246,9 @@ const renderQuestion = () => {
     });
     grid.appendChild(button);
   });
+
+  document.getElementById("audioStatus").textContent = "Audio will play automatically";
+  if (autoPlay) speechTimer = window.setTimeout(playQuestionAudio, 350);
 };
 
 const selectedOptions = () =>
@@ -147,19 +260,41 @@ const selectedOptions = () =>
     })
     .filter(Boolean);
 
+const derivedHighRiskGroups = (selected, score) => {
+  const groups = new Set(selected.map((item) => item.option.group).filter(Boolean));
+  const sex = profileValue("sex");
+  const age = profileValue("age");
+
+  if (/female/i.test(sex) && /15-19|20-24/.test(age)) {
+    groups.add("AGYW");
+  }
+
+  if (!groups.size && score >= 4) {
+    groups.add("People at higher risk for HIV");
+  }
+
+  return [...groups];
+};
+
 const buildReport = () => {
+  stopAudio();
   const selected = selectedOptions();
   const score = selected.reduce((sum, item) => sum + item.option.score, 0);
   const flags = [...new Set(selected.map((item) => item.option.flag).filter(Boolean))];
-  const high = score >= 9 || flags.includes("Needs post-violence care") || flags.includes("Urgent support requested");
+  const groups = derivedHighRiskGroups(selected, score);
+  const isHighRisk = groups.length > 0;
+  const high = score >= 8 || flags.includes("Needs post-violence care") || flags.includes("Urgent support requested");
   const moderate = !high && score >= 4;
-  const level = high ? "High" : moderate ? "Moderate" : "Lower";
-  const riskClass = high ? "high" : moderate ? "moderate" : "";
+  const level = high ? "High" : moderate ? "Moderate" : isHighRisk ? "Focused" : "No risk";
+  const riskClass = high ? "high" : moderate || isHighRisk ? "moderate" : "";
+  const groupLabel = isHighRisk ? groups.join(", ") : "No risk at all";
 
   const services = [
+    ...(isHighRisk ? ["Focused HIV prevention counselling"] : ["General HIV prevention information"]),
     "HIV testing and result counselling",
-    ...(flags.includes("Interested in PrEP") || flags.includes("PrEP counselling") ? ["PrEP eligibility counselling"] : []),
-    ...(flags.includes("Possible STI symptoms") ? ["STI screening and treatment"] : []),
+    ...(flags.includes("Needs HIV testing") || flags.includes("Needs result follow-up") ? ["Same-day HIV testing or result follow-up"] : []),
+    ...(groups.includes("PWID") ? ["Harm reduction counselling and safe injecting support"] : []),
+    ...(groups.includes("SW") || groups.includes("Client of sex worker") ? ["Sexual health counselling and STI screening"] : []),
     ...(flags.includes("Needs post-violence care") || flags.includes("Urgent support requested") ? ["Post-violence care and urgent psychosocial support"] : []),
     ...(flags.includes("No condom use") || flags.includes("Inconsistent condom use") ? ["Condoms, lubricants, and safer sex counselling"] : []),
     "Referral to a trained health worker for confidential support"
@@ -167,13 +302,14 @@ const buildReport = () => {
 
   const videos = [
     "Understanding HIV risk and testing options",
-    ...(flags.includes("Interested in PrEP") || flags.includes("PrEP counselling") ? ["How PrEP works and when to use it"] : []),
+    ...(isHighRisk ? ["Services for people at higher risk for HIV"] : []),
+    ...(groups.includes("PWID") ? ["Reducing HIV risk from injecting drug use"] : []),
+    ...(groups.includes("SW") || groups.includes("Client of sex worker") ? ["Safer sex, condoms, and STI prevention"] : []),
     ...(flags.includes("No condom use") || flags.includes("Inconsistent condom use") ? ["Correct condom and lubricant use"] : []),
-    ...(flags.includes("Alcohol or drug counselling") ? ["Alcohol, drug use, and safer decision making"] : []),
     ...(flags.includes("Needs post-violence care") || flags.includes("Urgent support requested") ? ["Getting help after sexual violence"] : [])
   ];
 
-  document.getElementById("riskTitle").textContent = `${level} risk signal`;
+  document.getElementById("riskTitle").textContent = isHighRisk ? "High Risk Group identified" : "No risk at all";
   document.getElementById("riskDetail").textContent =
     "This is not a diagnosis. It is a private screening summary to help you choose HIV prevention, testing, counselling, and referral services.";
   const meter = document.getElementById("riskMeter");
@@ -190,31 +326,43 @@ const buildReport = () => {
     });
   };
 
+  document.getElementById("reportClientNumber").textContent = `Client ${clientNumber}`;
+  fillList("profileList", [
+    `Client number: ${clientNumber}`,
+    `Sex: ${profileValue("sex")}`,
+    `Age group: ${profileValue("age")}`,
+    `Occupation/community: ${profileValue("occupation")}`
+  ]);
+  fillList("riskGroupList", [groupLabel]);
   fillList("serviceList", [...new Set(services)]);
   fillList("videoList", [...new Set(videos)]);
   fillList("flagList", flags.length ? flags : ["No major risk flags selected"]);
 };
 
+const resetInterview = () => {
+  stopAudio();
+  Object.keys(responses).forEach((key) => delete responses[key]);
+  clientNumber = generateClientNumber();
+  currentIndex = 0;
+};
+
 document.getElementById("startButton").addEventListener("click", () => {
   showScreen("interview");
-  renderQuestion();
+  renderQuestion({ autoPlay: true });
 });
 
-document.getElementById("audioButton").addEventListener("click", () => {
-  const question = questions[currentIndex];
-  const played = speak(`${question.text}. ${question.help}`);
-  document.getElementById("audioStatus").textContent = played ? "Playing question audio" : "Audio is not available in this browser";
-});
+document.getElementById("audioButton").addEventListener("click", playQuestionAudio);
 
 document.getElementById("previousButton").addEventListener("click", () => {
   currentIndex = Math.max(currentIndex - 1, 0);
-  renderQuestion();
+  renderQuestion({ autoPlay: true });
 });
 
 document.getElementById("nextButton").addEventListener("click", () => {
   const question = questions[currentIndex];
   if (responses[question.id] === undefined) {
-    speak("Please choose one answer before continuing.");
+    stopAudio();
+    speakSegment("Please choose one answer before continuing.");
     return;
   }
   if (currentIndex === questions.length - 1) {
@@ -223,24 +371,22 @@ document.getElementById("nextButton").addEventListener("click", () => {
     return;
   }
   currentIndex += 1;
-  renderQuestion();
+  renderQuestion({ autoPlay: true });
 });
 
 document.getElementById("restartButton").addEventListener("click", () => {
-  Object.keys(responses).forEach((key) => delete responses[key]);
-  currentIndex = 0;
-  renderQuestion();
+  resetInterview();
+  renderQuestion({ autoPlay: true });
 });
 
 document.getElementById("editButton").addEventListener("click", () => {
   showScreen("interview");
-  renderQuestion();
+  renderQuestion({ autoPlay: true });
 });
 
 document.getElementById("printButton").addEventListener("click", () => window.print());
 
 document.getElementById("newInterviewButton").addEventListener("click", () => {
-  Object.keys(responses).forEach((key) => delete responses[key]);
-  currentIndex = 0;
+  resetInterview();
   showScreen("start");
 });

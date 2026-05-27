@@ -31,7 +31,8 @@
         <header class="interview-header">
           <div>
             <strong>eHSS ACASI</strong>
-            <span id="questionCounter">Question 1 of 12</span>
+            <span id="questionCounter">Question 1 of 10</span>
+            <span id="clientNumberLabel">Client ACASI</span>
           </div>
           <button class="ghost-button" type="button" id="restartButton">Restart</button>
         </header>
@@ -79,7 +80,7 @@
         <header class="interview-header">
           <div>
             <strong>eHSS ACASI</strong>
-            <span>Personal report</span>
+            <span id="reportClientNumber">Personal report</span>
           </div>
           <button class="ghost-button" type="button" id="editButton">Edit responses</button>
         </header>
@@ -94,6 +95,14 @@
         </section>
 
         <div class="report-grid">
+          <article>
+            <h3>Client profile</h3>
+            <ul id="profileList"></ul>
+          </article>
+          <article>
+            <h3>High risk group</h3>
+            <ul id="riskGroupList"></ul>
+          </article>
           <article>
             <h3>Recommended services</h3>
             <ul id="serviceList"></ul>
