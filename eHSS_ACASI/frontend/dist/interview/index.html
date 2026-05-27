@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eHSS ACASI App</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="acasi-app" id="app">
+      <section class="start-screen" data-screen="start">
+        <div class="start-top">
+          <strong>eHSS ACASI</strong>
+          <select id="languageSelect" aria-label="Language">
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="start-center">
+          <h1>Want to set up apps later?</h1>
+          <button class="continue-button" type="button" id="startButton">
+            Continue on web
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13m-5-5 5 5-5 5" />
+            </svg>
+          </button>
+          <p>Private audio self-interview. Your responses stay on this device unless you choose to export the report.</p>
+        </div>
+      </section>
+
+      <section class="interview-screen hidden" data-screen="interview">
+        <header class="interview-header">
+          <div>
+            <strong>eHSS ACASI</strong>
+            <span id="questionCounter">Question 1 of 12</span>
+          </div>
+          <button class="ghost-button" type="button" id="restartButton">Restart</button>
+        </header>
+
+        <div class="progress-shell" aria-hidden="true">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <section class="question-panel" aria-live="polite">
+          <div class="audio-row">
+            <button class="audio-button" type="button" id="audioButton" aria-label="Play question audio">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+            <div>
+              <span>Audio question</span>
+              <strong id="audioStatus">Tap play to hear this question</strong>
+            </div>
+          </div>
+
+          <h2 id="questionText"></h2>
+          <p id="questionHelp"></p>
+
+          <div class="options-grid" id="optionsGrid"></div>
+        </section>
+
+        <footer class="interview-footer">
+          <button class="secondary-button" type="button" id="previousButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 12H6m5 5-5-5 5-5" />
+            </svg>
+            Previous
+          </button>
+          <button class="primary-button" type="button" id="nextButton">
+            Next
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13m-5-5 5 5-5 5" />
+            </svg>
+          </button>
+        </footer>
+      </section>
+
+      <section class="report-screen hidden" data-screen="report">
+        <header class="interview-header">
+          <div>
+            <strong>eHSS ACASI</strong>
+            <span>Personal report</span>
+          </div>
+          <button class="ghost-button" type="button" id="editButton">Edit responses</button>
+        </header>
+
+        <section class="report-hero">
+          <div>
+            <span>Your HIV risk summary</span>
+            <h2 id="riskTitle"></h2>
+            <p id="riskDetail"></p>
+          </div>
+          <div class="risk-meter" id="riskMeter"></div>
+        </section>
+
+        <div class="report-grid">
+          <article>
+            <h3>Recommended services</h3>
+            <ul id="serviceList"></ul>
+          </article>
+          <article>
+            <h3>Video counselling topics</h3>
+            <ul id="videoList"></ul>
+          </article>
+          <article>
+            <h3>Response flags</h3>
+            <ul id="flagList"></ul>
+          </article>
+        </div>
+
+        <footer class="report-actions">
+          <button class="secondary-button" type="button" id="printButton">Print report</button>
+          <button class="primary-button" type="button" id="newInterviewButton">Start new interview</button>
+        </footer>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

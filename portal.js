@@ -6,6 +6,7 @@ const ELEARNING_CSV =
 const CRANE_POWER_BI_URL =
   "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9";
 const ACASI_DASHBOARD_URL = window.EHSS_ACASI_DASHBOARD_URL || "/acasi-app";
+const ACASI_APP_URL = window.EHSS_ACASI_APP_URL || "/acasi-app/interview/";
 const HOME_HERO_IMAGES = [
   "/images/portal-hero.webp",
   "/images/home-hero-digital-1.webp",
@@ -1104,7 +1105,7 @@ function renderPortalRoute(path) {
         ],
         buttons: [
           ctaButton("Open eHSS ACASI Dashboard", "/innovations/acasi/dashboard", "theme-button"),
-          externalLinkButton("Open Dashboard App", ACASI_DASHBOARD_URL),
+          externalLinkButton("Start ACASI App", ACASI_APP_URL),
         ],
         extra: renderAcasiEmbed(),
       });
