@@ -1377,6 +1377,14 @@ body {
   background: #fff;
 }
 
+.acasi-live-view {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.acasi-live-view .crane-live-frame iframe {
+  height: 100svh;
+}
+
 .crane-lock-screen {
   min-height: 100svh;
   display: grid;

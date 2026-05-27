@@ -980,14 +980,7 @@ function renderAcasiEmbed() {
 
 function renderAcasiFullscreenPage() {
   return `
-    <section class="crane-live-view">
-      <div class="crane-live-toolbar">
-        <strong>eHSS ACASI Dashboard</strong>
-        <div>
-          ${ctaButton("Back to ACASI Overview", "/innovations/acasi", "secondary")}
-          ${externalLinkButton("Open Dashboard App", ACASI_DASHBOARD_URL)}
-        </div>
-      </div>
+    <section class="crane-live-view acasi-live-view">
       <div class="crane-live-frame" id="acasiLiveShell">
         <div class="embed-loading">Loading eHSS ACASI dashboard...</div>
         <iframe
