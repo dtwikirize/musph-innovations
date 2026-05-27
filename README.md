@@ -34,7 +34,7 @@ npm install --omit=dev
 npm start
 ```
 
-By default it runs at `http://localhost:3000`, which is what the portal embeds. For production, host `eHSS_ACASI` as its own Node service, set `FRAME_ANCESTORS` in the ACASI `.env` to include the portal domain, and set `window.EHSS_ACASI_DASHBOARD_URL` before `app.js` loads if the service URL is different.
+By default it runs at `http://localhost:3000`, which is what the portal embeds. For production, host `eHSS_ACASI` as its own Node service, set `FRAME_ANCESTORS` in the ACASI `.env` to include the portal domain, and set `window.EHSS_ACASI_DASHBOARD_URL` before `portal.js` loads if the service URL is different.
 
 ## Hostinger deployment
 
@@ -55,7 +55,7 @@ The Node server serves `dist/` for the public portal and serves ACASI API/assets
 
 ## Sensitive data access
 
-The training database and CRANE Power BI dashboard include sensitive data. Do not protect these with a frontend-only password in `app.js`; browser JavaScript can be inspected and the CSV/Power BI URL can still be reached directly.
+The training database and CRANE Power BI dashboard include sensitive data. Do not protect these with a frontend-only password in `portal.js`; browser JavaScript can be inspected and the CSV/Power BI URL can still be reached directly.
 
 Protect these paths at the hosting layer before sharing externally:
 
