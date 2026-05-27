@@ -129,6 +129,8 @@ let currentIndex = 0;
 let clientNumber = generateClientNumber();
 let speechRun = 0;
 let speechTimer = null;
+let preferredVoice = null;
+let landingImageIndex = 0;
 
 const screens = {
   start: document.querySelector('[data-screen="start"]'),
@@ -139,6 +141,36 @@ const screens = {
 const showScreen = (screen) => {
   Object.values(screens).forEach((element) => element.classList.add("hidden"));
   screens[screen].classList.remove("hidden");
+};
+
+const choosePreferredVoice = () => {
+  if (!("speechSynthesis" in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  const preferredPatterns = [
+    /natural/i,
+    /online/i,
+    /jenny/i,
+    /aria/i,
+    /zira/i,
+    /susan/i,
+    /samantha/i,
+    /google uk english female/i,
+    /google us english/i,
+    /microsoft/i
+  ];
+  preferredVoice =
+    voices.find((voice) => /^en/i.test(voice.lang) && preferredPatterns.some((pattern) => pattern.test(voice.name))) ||
+    voices.find((voice) => /^en/i.test(voice.lang)) ||
+    voices[0];
+  return preferredVoice;
+};
+
+const initializeVoices = () => {
+  choosePreferredVoice();
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.onvoiceschanged = choosePreferredVoice;
+  }
 };
 
 const selectedOptionFor = (questionId) => {
@@ -164,8 +196,14 @@ const stopAudio = () => {
 const speakSegment = (text, { onStart, onEnd } = {}) => {
   if (!("speechSynthesis" in window)) return false;
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.9;
-  utterance.pitch = 1;
+  const voice = preferredVoice || choosePreferredVoice();
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang || "en-US";
+  }
+  utterance.rate = 0.84;
+  utterance.pitch = 0.96;
+  utterance.volume = 1;
   utterance.onstart = () => onStart?.();
   utterance.onend = () => onEnd?.();
   utterance.onerror = () => onEnd?.();
@@ -233,6 +271,7 @@ const renderQuestion = ({ autoPlay = false } = {}) => {
 
   const grid = document.getElementById("optionsGrid");
   grid.innerHTML = "";
+  grid.classList.toggle("many-options", question.options.length > 4);
   question.options.forEach((option, optionIndex) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -346,7 +385,18 @@ const resetInterview = () => {
   currentIndex = 0;
 };
 
+const rotateLandingImages = () => {
+  const images = [...document.querySelectorAll(".start-media img")];
+  if (images.length < 2) return;
+  window.setInterval(() => {
+    images[landingImageIndex]?.classList.remove("is-active");
+    landingImageIndex = (landingImageIndex + 1) % images.length;
+    images[landingImageIndex]?.classList.add("is-active");
+  }, 5200);
+};
+
 document.getElementById("startButton").addEventListener("click", () => {
+  initializeVoices();
   showScreen("interview");
   renderQuestion({ autoPlay: true });
 });
@@ -390,3 +440,6 @@ document.getElementById("newInterviewButton").addEventListener("click", () => {
   resetInterview();
   showScreen("start");
 });
+
+initializeVoices();
+rotateLandingImages();

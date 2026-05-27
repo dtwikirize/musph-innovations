@@ -9,21 +9,29 @@
   <body>
     <main class="acasi-app" id="app">
       <section class="start-screen" data-screen="start">
+        <div class="start-media" aria-hidden="true">
+          <img src="../images/landing/acasi-hero-02.png" alt="" class="is-active" />
+          <img src="../images/landing/acasi-hero-01.png" alt="" />
+          <img src="../images/landing/acasi-hero-03.png" alt="" />
+        </div>
+        <div class="start-shade" aria-hidden="true"></div>
         <div class="start-top">
           <strong>eHSS ACASI</strong>
           <select id="languageSelect" aria-label="Language">
             <option value="en">English</option>
           </select>
         </div>
-        <div class="start-center">
-          <h1>Want to set up apps later?</h1>
+        <div class="start-center start-card">
+          <span>Private audio self-interview</span>
+          <h1>Answer privately with headphones.</h1>
+          <p>The ACASI app reads each question aloud, highlights the answer options, and prepares a private risk and service report at the end.</p>
           <button class="continue-button" type="button" id="startButton">
-            Continue on web
+            Start interview
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12h13m-5-5 5 5-5 5" />
             </svg>
           </button>
-          <p>Private audio self-interview. Your responses stay on this device unless you choose to export the report.</p>
+          <small>Your responses stay on this device unless you choose to print the report.</small>
         </div>
       </section>
 
