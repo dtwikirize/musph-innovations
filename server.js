@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import acasiApp from "./eHSS_ACASI/backend/src/app.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,7 +11,43 @@ const app = express();
 
 process.env.FRAME_ANCESTORS ||= "'self' https://musph.cc";
 
-app.use("/acasi-app", acasiApp);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+});
+
+let acasiMounted = false;
+let acasiMountError = "";
+
+try {
+  const { default: acasiApp } = await import("./eHSS_ACASI/backend/src/app.js");
+  app.use("/acasi-app", acasiApp);
+  acasiMounted = true;
+  console.log("ACASI dashboard mounted at /acasi-app");
+} catch (error) {
+  acasiMountError = error?.stack || error?.message || String(error);
+  console.error("ACASI dashboard failed to mount:", acasiMountError);
+  app.use("/acasi-app", (req, res) => {
+    res.status(503).send(`
+      <h1>ACASI dashboard unavailable</h1>
+      <p>The main musph.cc portal is running, but the ACASI backend could not start.</p>
+      <pre>${escapeHtml(acasiMountError)}</pre>
+    `);
+  });
+}
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    acasiMounted,
+    acasiMountError: acasiMounted ? "" : acasiMountError,
+    node: process.version,
+  });
+});
+
 app.use(express.static(distDir));
 
 app.get("*", (req, res) => {
@@ -22,3 +57,11 @@ app.get("*", (req, res) => {
 app.listen(port, () => {
   console.log(`musph.cc portal listening on port ${port}`);
 });
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
