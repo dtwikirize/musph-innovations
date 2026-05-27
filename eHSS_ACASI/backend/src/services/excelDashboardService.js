@@ -116,8 +116,47 @@ const groupAlias = (group = "") => {
   return label;
 };
 
+const riskPopulationCategoryCombos = {
+  I4ApaQOaMZb: "Overall|Female|15-24 years",
+  Py6L0SrM5Rq: "Overall|Female|25-34 years",
+  MlktoowmGoV: "Overall|Female|35+ years",
+  fUEaEibzbGN: "Overall|Male|15-24 years",
+  CYDT2IHCpoD: "Overall|Male|25-34 years",
+  TIKGuOsCbxn: "Overall|Male|35+ years",
+  gPh78YMivBV: "Key populations|Female|15-24 years",
+  jsE4ZI1772a: "Key populations|Female|25-34 years",
+  pWxTxiEqzU5: "Key populations|Female|35+ years",
+  ShoHsZYE9yy: "Key populations|Male|15-24 years",
+  NZ1ZEtgWdRh: "Key populations|Male|25-34 years",
+  jXgTQI3BjE3: "Key populations|Male|35+ years",
+  SgJzagl4E6r: "Priority Populations|Female|15-24 years",
+  sP5cl35IbeP: "Priority Populations|Female|25-34 years",
+  mUHrgZ4QxVf: "Priority Populations|Female|35+ years",
+  r51CM6sxBbt: "Priority Populations|Male|15-24 years",
+  iX9FScGNO9A: "Priority Populations|Male|25-34 years",
+  iF5q7Xgu5aw: "Priority Populations|Male|35+ years"
+};
+
+const populationCategoryCombos = {
+  Gsat5iLePQU: "SW",
+  TTzV5hdjMDm: "AGYW",
+  ugq0NwjAR0E: "Client of Sex workers",
+  Krxyurn4ECr: "Other PP",
+  Zwl5hPIxNzp: "ABYM",
+  Yih0JAjjx88: "MP",
+  CwBkDUUCMZQ: "DC",
+  nBdRNXG39sr: "Boda Boda",
+  tztVjke6W8D: "PBFW",
+  ZtbY5x4eDcG: "NIDU",
+  aow4ghKuk4V: "Fisher Folks",
+  eoO0OksF7Fc: "UF",
+  bLplzzja8LS: "MAR",
+  ER3u5UFhrkT: "PWID",
+  LGg0YEzaQlm: "TG"
+};
+
 const comboOptions = (comboId = "") =>
-  String(highRiskCategoryCombos[comboId] || "")
+  String(highRiskCategoryCombos[comboId] || riskPopulationCategoryCombos[comboId] || populationCategoryCombos[comboId] || "")
     .split("|")
     .map(cleanValue)
     .filter(Boolean);
@@ -126,8 +165,9 @@ const comboParts = (comboId = "") => {
   const options = comboOptions(comboId);
   const sex = options.find((option) => /^(female|male)$/i.test(option)) || "";
   const age = options.find((option) => /\d/.test(option) && /years?/i.test(option)) || "";
+  const population = options.find((option) => /^(overall|key populations|priority populations)$/i.test(option)) || "";
   const group = groupAlias(options.find((option) => option !== sex && option !== age) || "");
-  return { options, sex, age, group };
+  return { options, sex, age, group, population };
 };
 
 const longRowsToDashboardRows = (rows = []) => {
@@ -179,6 +219,7 @@ const longRowsToDashboardRows = (rows = []) => {
       categoryOptionCombo,
       value: Number.isFinite(value) ? value : 0,
       group: combo.group,
+      population: combo.population,
       sex: combo.sex,
       age: combo.age
     });
@@ -391,6 +432,54 @@ const highRiskGroupRows = (rows = []) => {
   };
 };
 
+const directRiskPopulationRows = (metrics = [], filters = {}) => {
+  const { details = [], all = [] } = ensure();
+  const scopedDetails = applySlicers(details, filters);
+  const scopedRows = applySlicers(all, filters);
+  const buckets = [
+    { group: "High Risk Groups", values: emptyMetricValues(metrics) },
+    { group: "No Risk Population", values: emptyMetricValues(metrics) }
+  ];
+  const highRiskBucket = buckets[0];
+  const noRiskBucket = buckets[1];
+
+  for (const metric of metrics) {
+    if (!metric.dataElement) continue;
+    const detailRows = scopedDetails.filter((row) => row.dataElement === metric.dataElement);
+    const hasPopulationRows = detailRows.some((row) => row.population);
+    const hasGroupRows = detailRows.some((row) => row.group);
+
+    if (hasPopulationRows) {
+      const highRiskValue = detailRows
+        .filter((row) => /^(key populations|priority populations)$/i.test(row.population))
+        .reduce((sum, row) => sum + num(row.value), 0);
+      const overallValue = detailRows
+        .filter((row) => /^overall$/i.test(row.population))
+        .reduce((sum, row) => sum + num(row.value), 0);
+      highRiskBucket.values[metric.label] = highRiskValue;
+      noRiskBucket.values[metric.label] = Math.max(overallValue - highRiskValue, 0);
+      continue;
+    }
+
+    if (hasGroupRows) {
+      highRiskBucket.values[metric.label] = detailRows
+        .filter((row) => row.group && row.group !== "Other PP")
+        .reduce((sum, row) => sum + num(row.value), 0);
+      noRiskBucket.values[metric.label] = detailRows
+        .filter((row) => row.group === "Other PP")
+        .reduce((sum, row) => sum + num(row.value), 0);
+      continue;
+    }
+
+    highRiskBucket.values[metric.label] = scopedRows.reduce((sum, row) => sum + num(row[metric.dataElement]), 0);
+  }
+
+  return buckets.map((bucket) => ({
+    ...bucket,
+    values: Object.fromEntries(metrics.map((metric) => [metric.label, metricValue(bucket, metric, metrics)]))
+  }));
+};
+
 export const excelOrgUnits = ({ mode = "all", period = "", region = "", district = "", facility = "", implementingPartner = "" }) => {
   const { master, all } = ensure();
   const filteredMaster = master.filter((m) => {
@@ -440,9 +529,7 @@ export const excelDataElements = ({ period, orgUnit, query = "", ...filters }) =
   const { all } = ensure();
   const p = normalizePeriod(period);
   const picked = applySlicers(all, { ...filters, period: p, orgUnit });
-  const row = picked[0] || {};
-  const fixed = new Set(["agency", "mechanism", "region", "district", "site", "site_id", "periodid", "period", "unique_id"]);
-  const cols = Object.keys(row).filter((k) => !fixed.has(k));
+  const cols = [...new Set(picked.flatMap((row) => Object.keys(row).filter((key) => !fixedFields.has(key))))].sort();
   const rows = cols
     .map((k) => ({ dataElement: k, code: "", name: k, value: picked.reduce((a, r) => a + num(r[k]), 0), categoryOptionCombo: "", lastUpdated: "" }))
     .filter((r) => !query || r.name.toLowerCase().includes(query.toLowerCase()));
@@ -483,9 +570,10 @@ export const excelDataQuality = ({ period, orgUnit, ...filters }) => {
 
 export const excelDataElementOptions = () => {
   const { allExcel, all } = ensure();
-  const row = allExcel[0] || all[0] || {};
-  const fixed = new Set(["agency", "mechanism", "region", "district", "site", "site_id", "periodid", "period", "unique_id"]);
-  return Object.keys(row).filter((k) => !fixed.has(k)).map((k) => ({ id: k, name: k }));
+  const rows = allExcel.length ? allExcel : all;
+  return [...new Set(rows.flatMap((row) => Object.keys(row).filter((key) => !fixedFields.has(key))))]
+    .sort()
+    .map((k) => ({ id: k, name: k }));
 };
 
 export const excelYears = () => {
@@ -1033,6 +1121,14 @@ export const excelDashboardDetailRows = ({ orgUnit, metrics = [], ...filters }) 
 export const excelHighRiskGroupPerformance = ({ orgUnit, metrics = [], ...filters }) => {
   const normalizedMetrics = normalizeMetrics(metrics);
   if (!normalizedMetrics.length) return { metrics: normalizedMetrics, rows: [] };
+  const scopedFilters = { ...filters, orgUnit };
+  const hasHighRiskFormula = normalizedMetrics.some((metric) => metric?.formula?.type === "highRisk");
+  if (!hasHighRiskFormula) {
+    return {
+      metrics: normalizedMetrics,
+      rows: directRiskPopulationRows(normalizedMetrics, scopedFilters)
+    };
+  }
   const rows = detailRowsForScope({ ...filters, orgUnit });
   const groupResult = highRiskGroupRows(rows);
   const groupByElement = new Map(groupResult.groups.map((group) => [group.dataElement, group]));
