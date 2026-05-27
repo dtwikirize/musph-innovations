@@ -1112,7 +1112,6 @@ function renderPortalRoute(path) {
         buttons: [
           ctaButton("Open eHSS ACASI Dashboard", "/innovations/acasi/dashboard", "theme-button"),
           externalLinkButton("Open Dashboard App", ACASI_DASHBOARD_URL),
-          externalLinkButton("Request Access Information", "mailto:info@musph.cc"),
         ],
         extra: renderAcasiEmbed(),
       });

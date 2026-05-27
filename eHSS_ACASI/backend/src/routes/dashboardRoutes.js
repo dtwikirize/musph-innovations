@@ -1,9 +1,17 @@
 import { Router } from "express";
 import {
+  excelCoverage,
+  excelDashboardDemographics,
+  excelDashboardDetailRows,
   excelDataElementOptions,
   excelDataElements,
   excelDataQuality,
+  excelDimensionPerformance,
   excelFilterOptions,
+  excelHighRiskDashboard,
+  excelHighRiskDisaggregation,
+  excelHighRiskGroupPerformance,
+  excelHighRiskTrends,
   excelIMPerformance,
   excelMonthlyOverview,
   excelOrgUnitComparison,
@@ -16,16 +24,6 @@ import { dashboardCacheMiddleware } from "../services/dashboardCache.js";
 
 const router = Router();
 router.use(dashboardCacheMiddleware);
-
-const emptyHighRisk = () => ({
-  summary: {},
-  groups: [],
-  imRows: [],
-  imGroups: [],
-  ageSex: [],
-  ageGroups: [],
-  trends: []
-});
 
 router.get("/dataset", (req, res) => {
   res.json({
@@ -170,23 +168,70 @@ router.get("/im-performance", (req, res) => {
 });
 
 router.get("/coverage", (req, res) => {
-  res.json({ sites: [], summary: {}, rows: [] });
+  res.json(excelCoverage({
+    orgUnit: req.query.orgUnit || "__ALL__",
+    year: req.query.year,
+    month: req.query.month,
+    period: req.query.period,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 router.get("/high-risk-groups", (req, res) => {
-  res.json({ groups: [] });
+  res.json(excelHighRiskDisaggregation({
+    period: req.query.period,
+    orgUnit: req.query.orgUnit || "__ALL__",
+    year: req.query.year,
+    month: req.query.month,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 router.get("/high-risk-dashboard", (req, res) => {
-  res.json(emptyHighRisk());
+  res.json(excelHighRiskDashboard({
+    period: req.query.period,
+    orgUnit: req.query.orgUnit || "__ALL__",
+    year: req.query.year,
+    month: req.query.month,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 router.get("/dashboard-demographics", (req, res) => {
-  res.json({ rows: [], summary: {} });
+  res.json(excelDashboardDemographics({
+    dashboard: req.query.dashboard,
+    period: req.query.period,
+    orgUnit: req.query.orgUnit || "__ALL__",
+    year: req.query.year,
+    month: req.query.month,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 router.get("/high-risk-trends", (req, res) => {
-  res.json([]);
+  res.json(excelHighRiskTrends({
+    orgUnit: req.query.orgUnit || "__ALL__",
+    startPeriod: req.query.startPeriod,
+    endPeriod: req.query.endPeriod,
+    year: req.query.year,
+    month: req.query.month,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 router.get("/dimension-performance", (req, res) => {
@@ -196,7 +241,18 @@ router.get("/dimension-performance", (req, res) => {
   } catch {
     metrics = [];
   }
-  res.json({ dimension: req.query.dimension || "district", metrics, rows: [] });
+  res.json(excelDimensionPerformance({
+    orgUnit: req.query.orgUnit || "__ALL__",
+    dimension: req.query.dimension || "district",
+    metrics,
+    year: req.query.year,
+    month: req.query.month,
+    period: req.query.period,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 router.get("/detail-rows", (req, res) => {
@@ -206,7 +262,17 @@ router.get("/detail-rows", (req, res) => {
   } catch {
     metrics = [];
   }
-  res.json({ metrics, rows: [] });
+  res.json(excelDashboardDetailRows({
+    orgUnit: req.query.orgUnit || "__ALL__",
+    metrics,
+    year: req.query.year,
+    month: req.query.month,
+    period: req.query.period,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 router.get("/high-risk-group-performance", (req, res) => {
@@ -216,7 +282,17 @@ router.get("/high-risk-group-performance", (req, res) => {
   } catch {
     metrics = [];
   }
-  res.json({ metrics, rows: [] });
+  res.json(excelHighRiskGroupPerformance({
+    orgUnit: req.query.orgUnit || "__ALL__",
+    metrics,
+    year: req.query.year,
+    month: req.query.month,
+    period: req.query.period,
+    region: req.query.region,
+    district: req.query.district,
+    facility: req.query.facility,
+    implementingPartner: req.query.implementingPartner
+  }));
 });
 
 export default router;

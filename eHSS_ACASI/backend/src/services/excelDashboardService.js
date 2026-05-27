@@ -215,6 +215,22 @@ const keyCols = {
   aborted: "eHES_AC02: Number of interviews aborted"
 };
 
+const highRiskElements = [
+  { group: "Key populations", dataElement: "eHES_RC01: Key populations classified through ACASI by Category" },
+  { group: "Priority populations", dataElement: "eHES_RC02: Priority populations classified through ACASI" }
+];
+
+const riskBehaviourElements = [
+  { group: "Depression", dataElement: "eHES_RB01: Experienced depression" },
+  { group: "Alcohol Abuse", dataElement: "eHES_RB02: Alcohol abuse problem" },
+  { group: "No Condom Use", dataElement: "eHES_RB03: No condom use" },
+  { group: "Drug Use", dataElement: "eHES_RB04: Drug use" },
+  { group: "Sexual Violence", dataElement: "eHES_RB05: Clients that experienced rape/Sexual violence" },
+  { group: "Multiple Partners", dataElement: "eHES_RB06: Clients with multiple sexual partners" }
+];
+
+const fixedFields = new Set(["agency", "mechanism", "region", "district", "site", "site_id", "periodid", "period", "unique_id"]);
+
 const applySlicers = (rows, filters = {}) => {
   const { year, month, region, district, facility, implementingPartner, period, orgUnit } = filters;
   return rows.filter((r) => {
@@ -229,6 +245,73 @@ const applySlicers = (rows, filters = {}) => {
     const okOrg = isAll(orgUnit) || !orgUnit || r.site_id === orgUnit;
     return okYear && okMonth && okPeriod && okRegion && okDistrict && okFacility && okIM && okOrg;
   });
+};
+
+const rowsForScope = ({ orgUnit = "__ALL__", ...filters } = {}) => {
+  const { all } = ensure();
+  let rows = applySlicers(all, { ...filters, orgUnit });
+  if (!rows.length && (filters.period || filters.month)) {
+    rows = applySlicers(all, { ...filters, period: "", month: filters.month || "", orgUnit });
+  }
+  if (!rows.length && filters.year) {
+    rows = applySlicers(all, { ...filters, period: "", month: "", orgUnit });
+  }
+  return rows;
+};
+
+const normalizeMetrics = (metrics = []) =>
+  metrics.filter((metric) => metric?.label && (metric?.dataElement || metric?.formula));
+
+const emptyMetricValues = (metrics = []) => Object.fromEntries(metrics.map((metric) => [metric.label, 0]));
+
+const highRiskValue = (row = {}) => {
+  const classified = highRiskElements.reduce((sum, item) => sum + num(row[item.dataElement]), 0);
+  if (classified > 0) return classified;
+  return riskBehaviourElements.reduce((sum, item) => sum + num(row[item.dataElement]), 0);
+};
+
+const addDirectMetricValues = (bucket, row, metrics = []) => {
+  for (const metric of metrics) {
+    if (metric?.formula?.type === "highRisk") {
+      bucket.values[metric.label] += highRiskValue(row);
+    } else if (metric.dataElement) {
+      bucket.values[metric.label] += num(row[metric.dataElement]);
+    }
+  }
+};
+
+const metricValue = (bucket, metric, metrics = []) => {
+  if (metric?.formula?.type === "highRisk") return num(bucket.values?.[metric.label]);
+  if (metric?.formula?.type === "sum") {
+    return (metric.formula.labels || []).reduce((sum, label) => {
+      const source = metrics.find((item) => item.label === label);
+      return sum + (source ? metricValue(bucket, source, metrics) : 0);
+    }, 0);
+  }
+  const raw = num(bucket.values?.[metric.label]);
+  const highRiskMetric = metrics.find((item) => item?.formula?.type === "highRisk");
+  const denominator = highRiskMetric ? num(bucket.values?.[highRiskMetric.label]) : 0;
+  return metric?.capToHighRisk && denominator > 0 ? Math.min(raw, denominator) : raw;
+};
+
+const highRiskGroupRows = (rows = []) => {
+  const classify = (items) =>
+    items
+      .map((item) => ({
+        group: item.group,
+        dataElement: item.dataElement,
+        value: rows.reduce((sum, row) => sum + num(row[item.dataElement]), 0)
+      }))
+      .filter((item) => item.value > 0);
+  const primary = classify(highRiskElements);
+  const groups = primary.length ? primary : classify(riskBehaviourElements);
+  const total = groups.reduce((sum, row) => sum + row.value, 0);
+  return {
+    total,
+    groups: groups
+      .map((row) => ({ ...row, share: total ? Number(((row.value / total) * 100).toFixed(1)) : 0 }))
+      .sort((a, b) => b.value - a.value || a.group.localeCompare(b.group))
+  };
 };
 
 export const excelOrgUnits = ({ mode = "all", period = "", region = "", district = "", facility = "", implementingPartner = "" }) => {
@@ -515,6 +598,344 @@ export const excelIMPerformance = ({ orgUnit, metrics = [], ...filters }) => {
       ...grandTotal,
       completionPercent: grandTotal.enrolledClients ? Number(((grandTotal.completedInterviews / grandTotal.enrolledClients) * 100).toFixed(1)) : 0
     }
+  };
+};
+
+export const excelCoverage = ({ orgUnit, ...filters } = {}) => {
+  const { master } = ensure();
+  const scopedMaster = master.filter((row) => {
+    if (filters.region && row.region !== filters.region) return false;
+    if (filters.district && row.district !== filters.district) return false;
+    if (filters.facility && row.site !== filters.facility) return false;
+    if (filters.implementingPartner && row.mechanism !== filters.implementingPartner) return false;
+    if (!isAll(orgUnit) && orgUnit && row.site_id !== orgUnit) return false;
+    return true;
+  });
+  const rows = rowsForScope({ ...filters, orgUnit });
+  const reportingBySite = new Map();
+  for (const row of rows) {
+    const siteId = row.site_id || row.site;
+    if (!reportingBySite.has(siteId)) {
+      reportingBySite.set(siteId, {
+        enrolled: 0,
+        completed: 0,
+        aborted: 0,
+        lastReportedPeriod: ""
+      });
+    }
+    const target = reportingBySite.get(siteId);
+    target.enrolled += num(row[keyCols.enrolled]);
+    target.completed += num(row[keyCols.completed]);
+    target.aborted += num(row[keyCols.aborted]);
+    const period = normalizePeriod(row.periodid || row.period);
+    if (period > target.lastReportedPeriod) target.lastReportedPeriod = period;
+  }
+
+  const siteRows = scopedMaster.map((site) => {
+    const reporting = reportingBySite.get(site.site_id || site.site);
+    const enrolled = num(reporting?.enrolled);
+    const completed = num(reporting?.completed);
+    return {
+      siteId: site.site_id || site.site,
+      region: site.region || "Unknown Region",
+      district: site.district || "Unknown District",
+      site: site.site || site.site_id || "Unknown Site",
+      implementingPartner: site.mechanism || "Unknown IM",
+      status: reporting ? "Reporting" : "Silent",
+      lastReportedPeriod: reporting?.lastReportedPeriod || "",
+      enrolled,
+      completed,
+      aborted: num(reporting?.aborted),
+      completionRate: enrolled ? Number(((completed / enrolled) * 100).toFixed(1)) : 0
+    };
+  });
+
+  const byDistrict = new Map();
+  for (const site of siteRows) {
+    const key = `${site.region}||${site.district}`;
+    if (!byDistrict.has(key)) {
+      byDistrict.set(key, {
+        region: site.region,
+        district: site.district,
+        activeSites: 0,
+        reportingSites: 0,
+        silentSites: 0,
+        enrolled: 0,
+        completed: 0,
+        aborted: 0,
+        lastReportedPeriod: ""
+      });
+    }
+    const target = byDistrict.get(key);
+    target.activeSites += 1;
+    target.reportingSites += site.status === "Reporting" ? 1 : 0;
+    target.silentSites += site.status === "Silent" ? 1 : 0;
+    target.enrolled += site.enrolled;
+    target.completed += site.completed;
+    target.aborted += site.aborted;
+    if (site.lastReportedPeriod > target.lastReportedPeriod) target.lastReportedPeriod = site.lastReportedPeriod;
+  }
+
+  const districts = [...byDistrict.values()]
+    .map((row) => ({
+      ...row,
+      reportingRate: row.activeSites ? Number(((row.reportingSites / row.activeSites) * 100).toFixed(1)) : 0,
+      completionRate: row.enrolled ? Number(((row.completed / row.enrolled) * 100).toFixed(1)) : 0
+    }))
+    .sort((a, b) => b.reportingSites - a.reportingSites || b.completed - a.completed || a.district.localeCompare(b.district));
+
+  const summary = districts.reduce(
+    (acc, row) => {
+      acc.activeDistricts += row.activeSites > 0 ? 1 : 0;
+      acc.reportingDistricts += row.reportingSites > 0 ? 1 : 0;
+      acc.activeSites += row.activeSites;
+      acc.reportingSites += row.reportingSites;
+      acc.silentSites += row.silentSites;
+      acc.enrolled += row.enrolled;
+      acc.completed += row.completed;
+      return acc;
+    },
+    { activeDistricts: 0, reportingDistricts: 0, activeSites: 0, reportingSites: 0, silentSites: 0, enrolled: 0, completed: 0 }
+  );
+
+  return {
+    summary: {
+      ...summary,
+      reportingRate: summary.activeSites ? Number(((summary.reportingSites / summary.activeSites) * 100).toFixed(1)) : 0,
+      completionRate: summary.enrolled ? Number(((summary.completed / summary.enrolled) * 100).toFixed(1)) : 0
+    },
+    districts,
+    sites: siteRows
+  };
+};
+
+export const excelHighRiskDisaggregation = ({ orgUnit, ...filters }) => {
+  const rows = rowsForScope({ ...filters, orgUnit });
+  const result = highRiskGroupRows(rows);
+  return { period: normalizePeriod(filters.period || ""), total: result.total, groups: result.groups };
+};
+
+export const excelHighRiskTrends = ({ orgUnit, startPeriod, endPeriod, ...filters }) => {
+  const start = Number(startPeriod || 0);
+  const end = Number(endPeriod || 999999);
+  const grouped = new Map();
+  for (const row of rowsForScope({ ...filters, month: "", period: "", orgUnit })) {
+    const period = normalizePeriod(row.periodid || row.period);
+    if (!period || Number(period) < start || Number(period) > end) continue;
+    grouped.set(period, num(grouped.get(period)) + highRiskValue(row));
+  }
+  return [...grouped.entries()]
+    .map(([period, value]) => ({ period, value }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => Number(a.period) - Number(b.period));
+};
+
+export const excelHighRiskDashboard = ({ orgUnit, ...filters } = {}) => {
+  const rows = rowsForScope({ ...filters, orgUnit });
+  const groupResult = highRiskGroupRows(rows);
+  const byIm = new Map();
+  const byPeriod = new Map();
+  const enrolledByPeriod = new Map();
+  const imGroups = [];
+
+  for (const row of rows) {
+    const identified = highRiskValue(row);
+    const enrolled = num(row[keyCols.enrolled]);
+    const im = row.mechanism || "Unknown IM";
+    if (!byIm.has(im)) byIm.set(im, { implementingPartner: im, enrolled: 0, identified: 0, sites: new Set() });
+    const imBucket = byIm.get(im);
+    imBucket.enrolled += enrolled;
+    imBucket.identified += identified;
+    if (row.site_id) imBucket.sites.add(row.site_id);
+
+    const period = normalizePeriod(row.periodid || row.period);
+    if (period) {
+      byPeriod.set(period, num(byPeriod.get(period)) + identified);
+      enrolledByPeriod.set(period, num(enrolledByPeriod.get(period)) + enrolled);
+    }
+  }
+
+  for (const im of byIm.keys()) {
+    for (const group of groupResult.groups) {
+      const value = rows
+        .filter((row) => (row.mechanism || "Unknown IM") === im)
+        .reduce((sum, row) => sum + num(row[group.dataElement]), 0);
+      if (value > 0) imGroups.push({ implementingPartner: im, group: group.group, value });
+    }
+  }
+
+  const enrolled = rows.reduce((sum, row) => sum + num(row[keyCols.enrolled]), 0);
+  const imRows = [...byIm.values()]
+    .map((row) => ({
+      implementingPartner: row.implementingPartner,
+      enrolled: row.enrolled,
+      identified: row.identified,
+      identifiedPercent: row.enrolled ? Number(((row.identified / row.enrolled) * 100).toFixed(1)) : 0,
+      reportingSites: row.sites.size
+    }))
+    .sort((a, b) => b.identified - a.identified);
+
+  const trends = [...byPeriod.entries()]
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([period, identified]) => {
+      const trendEnrolled = num(enrolledByPeriod.get(period));
+      return {
+        period,
+        enrolled: trendEnrolled,
+        identified,
+        identifiedPercent: trendEnrolled ? Number(((identified / trendEnrolled) * 100).toFixed(1)) : 0
+      };
+    });
+
+  return {
+    period: normalizePeriod(filters.period || ""),
+    orgUnit,
+    summary: {
+      enrolled,
+      identified: groupResult.total,
+      identifiedPercent: enrolled ? Number(((groupResult.total / enrolled) * 100).toFixed(1)) : 0,
+      groupCount: groupResult.groups.length,
+      leadingGroup: groupResult.groups[0]?.group || "N/A",
+      leadingGroupValue: groupResult.groups[0]?.value || 0,
+      leadingIm: imRows[0]?.implementingPartner || "N/A",
+      leadingImValue: imRows[0]?.identified || 0
+    },
+    groups: groupResult.groups,
+    imRows,
+    imGroups: imGroups.sort((a, b) => b.value - a.value),
+    ageSex: [],
+    ageGroups: [],
+    trends
+  };
+};
+
+export const excelDashboardDemographics = ({ dashboard = "", orgUnit, ...filters } = {}) => {
+  const rows = rowsForScope({ ...filters, orgUnit });
+  const candidateElements = {
+    Enrollment: [keyCols.newClients, keyCols.returning],
+    "HIV Testing": [
+      "eHES_SE01: Newly Tested HIV Negative (HTS_NEG)",
+      "eHES_SE01: Newly Tested HIV Positive (TST_POS)",
+      "eHES_SE01: Newly tested and / or referred for HTS (TST)"
+    ],
+    "Condom Use": [
+      "eHES_RB03: No condom use",
+      "eHES_SE02: Received Condoms",
+      "eHES_SE02: Received Lubricants"
+    ],
+    "Other Risk Behaviours": riskBehaviourElements.map((item) => item.dataElement)
+  }[dashboard] || [];
+  const charts = candidateElements
+    .map((dataElement) => ({
+      service: dataElement.replace(/^\s*eHES_[^:]*:\s*/i, ""),
+      value: rows.reduce((sum, row) => sum + num(row[dataElement]), 0)
+    }))
+    .filter((row) => row.value > 0);
+  const total = charts.reduce((sum, row) => sum + row.value, 0);
+  return { charts: charts.map((row) => ({ ...row, share: total ? Number(((row.value / total) * 100).toFixed(1)) : 0 })), summary: { total } };
+};
+
+export const excelDimensionPerformance = ({ orgUnit, metrics = [], dimension = "district", ...filters }) => {
+  const normalizedMetrics = normalizeMetrics(metrics);
+  if (!normalizedMetrics.length) return { dimension, metrics: normalizedMetrics, rows: [] };
+  const dimensionKey = {
+    district: "district",
+    partner: "mechanism",
+    agency: "agency",
+    region: "region"
+  }[dimension] || "district";
+  const rows = rowsForScope({ ...filters, orgUnit });
+  const byDimension = new Map();
+
+  for (const row of rows) {
+    const name = row[dimensionKey] || `Unknown ${dimension}`;
+    if (!byDimension.has(name)) byDimension.set(name, { sites: new Set(), values: emptyMetricValues(normalizedMetrics) });
+    const bucket = byDimension.get(name);
+    if (row.site_id) bucket.sites.add(row.site_id);
+    addDirectMetricValues(bucket, row, normalizedMetrics);
+  }
+
+  const sortMetric = normalizedMetrics.find((metric) => !metric.hidden)?.label || normalizedMetrics[0]?.label;
+  return {
+    dimension,
+    metrics: normalizedMetrics,
+    rows: [...byDimension.entries()]
+      .map(([name, bucket]) => ({
+        name,
+        reportingSites: bucket.sites.size,
+        values: Object.fromEntries(normalizedMetrics.map((metric) => [metric.label, metricValue(bucket, metric, normalizedMetrics)]))
+      }))
+      .filter((row) => Object.values(row.values).some((value) => num(value) > 0))
+      .sort((a, b) => (b.values[sortMetric] || 0) - (a.values[sortMetric] || 0) || a.name.localeCompare(b.name))
+  };
+};
+
+export const excelDashboardDetailRows = ({ orgUnit, metrics = [], ...filters }) => {
+  const normalizedMetrics = normalizeMetrics(metrics);
+  if (!normalizedMetrics.length) return { metrics: normalizedMetrics, rows: [] };
+  const rows = rowsForScope({ ...filters, orgUnit });
+  const bySite = new Map();
+
+  for (const row of rows) {
+    const key = `${row.mechanism || "Unknown IM"}||${row.district || "Unknown District"}||${row.site || "Unknown Site"}||${row.site_id || row.site}`;
+    if (!bySite.has(key)) {
+      bySite.set(key, {
+        mechanism: row.mechanism || "Unknown IM",
+        district: row.district || "Unknown District",
+        facility: row.site || "Unknown Site",
+        siteId: row.site_id || row.site,
+        values: emptyMetricValues(normalizedMetrics)
+      });
+    }
+    addDirectMetricValues(bySite.get(key), row, normalizedMetrics);
+  }
+
+  const sortMetric = normalizedMetrics.find((metric) => !metric.hidden)?.label || normalizedMetrics[0]?.label;
+  return {
+    metrics: normalizedMetrics,
+    rows: [...bySite.values()]
+      .map((bucket) => ({
+        ...bucket,
+        values: Object.fromEntries(normalizedMetrics.map((metric) => [metric.label, metricValue(bucket, metric, normalizedMetrics)]))
+      }))
+      .filter((row) => Object.values(row.values).some((value) => num(value) > 0))
+      .sort((a, b) => (b.values[sortMetric] || 0) - (a.values[sortMetric] || 0))
+  };
+};
+
+export const excelHighRiskGroupPerformance = ({ orgUnit, metrics = [], ...filters }) => {
+  const normalizedMetrics = normalizeMetrics(metrics);
+  if (!normalizedMetrics.length) return { metrics: normalizedMetrics, rows: [] };
+  const rows = rowsForScope({ ...filters, orgUnit });
+  const groupResult = highRiskGroupRows(rows);
+  const groupByElement = new Map(groupResult.groups.map((group) => [group.dataElement, group]));
+  const buckets = new Map(groupResult.groups.map((group) => [group.group, { group: group.group, values: emptyMetricValues(normalizedMetrics) }]));
+
+  for (const metric of normalizedMetrics) {
+    if (metric?.formula?.type === "highRisk") {
+      for (const group of groupResult.groups) {
+        buckets.get(group.group).values[metric.label] = group.value;
+      }
+      continue;
+    }
+    if (!metric.dataElement) continue;
+    const group = groupByElement.get(metric.dataElement);
+    if (!group) continue;
+    buckets.get(group.group).values[metric.label] = rows.reduce((sum, row) => sum + num(row[metric.dataElement]), 0);
+  }
+
+  return {
+    metrics: normalizedMetrics,
+    rows: [...buckets.values()]
+      .map((bucket) => ({
+        ...bucket,
+        values: Object.fromEntries(normalizedMetrics.map((metric) => [metric.label, metricValue(bucket, metric, normalizedMetrics)]))
+      }))
+      .filter((row) => Object.values(row.values).some((value) => num(value) > 0))
+      .sort((a, b) => {
+        const firstMetric = normalizedMetrics[0]?.label;
+        return num(b.values[firstMetric]) - num(a.values[firstMetric]) || a.group.localeCompare(b.group);
+      })
   };
 };
 
