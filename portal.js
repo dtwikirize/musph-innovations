@@ -2089,23 +2089,22 @@ function craneFreshDonut(title, items) {
 function craneFreshBars(title, items, options = {}) {
   const sorted = [...items]
     .filter((item) => Number.isFinite(item.estimate))
-    .sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
-    .slice(0, options.limit || 9);
+    .slice(0, options.limit || items.length);
   const max = Math.max(100, ...sorted.map((item) => item.estimate || 0));
   return `
-    <article class="crane-viz-card ${options.wide ? "wide" : ""}" data-crane-chart="${escapeHtml(title)}">
+    <article class="crane-viz-card crane-ranked-card ${options.wide ? "wide" : ""}" data-crane-chart="${escapeHtml(title)}">
       <header>
         <h2>${escapeHtml(title)}</h2>
-        <span>Estimate</span>
+        <span>Indicators</span>
       </header>
       <div class="crane-fresh-bars">
         ${sorted
-          .map((item, index) => {
+          .map((item) => {
             const width = Math.max(1, Math.min(100, ((item.estimate || 0) / max) * 100));
             return `
               <div class="crane-fresh-bar">
-                <span title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.displayLabel, options.labelLength || 42))}</span>
-                <div><i style="width:${width}%; background:${craneFreshColor(index)}"></i></div>
+                <span title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.displayLabel, options.labelLength || 48))}</span>
+                <div><i style="width:${width}%"></i></div>
                 <strong>${craneFreshFormat(item.estimate)}</strong>
               </div>
             `;
@@ -2176,14 +2175,10 @@ function craneFreshRadials(title, items) {
 function craneFreshGroupChart(group, index) {
   const items = (group.items || []).filter((item) => Number.isFinite(item.estimate));
   if (!items.length) return "";
-  const allPercent = items.every((item) => item.estimate <= 100);
-  if (items.length <= 4 && allPercent) {
-    return craneFreshRadials(group.name, items);
-  }
   return craneFreshBars(group.name, items, {
-    limit: Math.min(items.length, 9),
-    labelLength: items.length > 6 ? 34 : 42,
-    wide: items.length >= 6 || index % 3 === 0,
+    limit: items.length,
+    labelLength: items.length > 8 ? 44 : 52,
+    wide: items.length >= 6 || index % 2 === 0,
   });
 }
 
@@ -2706,11 +2701,8 @@ function craneBoardThemeView(data, theme) {
         </div>
         <strong>${formatNumber(ctx.sample)}<small>${escapeHtml(ctx.district === "All" ? "FSW participants" : `${ctx.district} participants`)}</small></strong>
       </section>
-      ${craneFreshTopCards(theme)}
       <section class="crane-board-theme-grid">
         ${craneFreshGroupedCharts(groups)}
-        ${craneFreshLollipop("Thematic group peaks", groups)}
-        ${craneFreshDistrictCard(data)}
       </section>
     </main>
   `;

@@ -2284,9 +2284,13 @@ body {
 }
 
 .crane-viz-card {
-  min-height: 340px;
+  min-height: 300px;
   grid-column: span 4;
   padding: 16px;
+}
+
+.crane-ranked-card {
+  min-height: auto;
 }
 
 .crane-viz-card.wide {
@@ -2369,9 +2373,13 @@ body {
   gap: 11px;
 }
 
+.crane-ranked-card .crane-fresh-bars {
+  gap: 10px;
+}
+
 .crane-fresh-bar {
   display: grid;
-  grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.4fr) 52px;
+  grid-template-columns: minmax(150px, 0.72fr) minmax(0, 1.55fr) 44px;
   align-items: center;
   gap: 10px;
 }
@@ -2386,24 +2394,36 @@ body {
   text-align: right;
 }
 
+.crane-ranked-card .crane-fresh-bar > span {
+  color: #1f2733;
+  font-size: 12px;
+  font-weight: 520;
+}
+
 .crane-fresh-bar div {
   height: 16px;
   overflow: hidden;
-  border-radius: 999px;
-  background: #f2e7ec;
+  border-radius: 0;
+  background: #efe0e6;
 }
 
 .crane-fresh-bar i {
   display: block;
   height: 100%;
-  border-radius: inherit;
+  border-radius: 0;
+  background: var(--crane-theme);
 }
 
 .crane-fresh-bar strong,
 .crane-lollipop-list strong {
   color: #1d2028;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
+}
+
+.crane-ranked-card .crane-fresh-bar strong {
+  color: #1f2733;
+  font-weight: 620;
 }
 
 .crane-fresh-donut-wrap {
