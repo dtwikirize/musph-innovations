@@ -2627,7 +2627,6 @@ function craneBoardOverview(data) {
           <span class="crane-info">i</span>
         </header>
         <div>
-          ${craneBoardMetricTile("HIV Prevalence", cranePct(hiv), "95% CI: 31 - 36", "ribbon")}
           ${craneBoardMetricTile("Syphilis Prevalence", cranePct(ctx.prevalence.syphilis), "95% CI: 11 - 15", "test")}
           ${craneBoardMetricTile("HPV Prevalence", cranePct(ctx.prevalence.hpv), "95% CI: 41 - 48", "heart")}
           ${craneBoardMetricTile("Median Age (Years)", String(craneFindValue(data, "A", /Age\*/i, 28)), "IQR: 24 - 34", "demographics")}

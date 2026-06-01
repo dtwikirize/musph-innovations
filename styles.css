@@ -2993,7 +2993,7 @@ body {
 }
 
 .key-indicators {
-  grid-column: span 1.55;
+  grid-column: span 1;
 }
 
 .key-indicators div {
@@ -3055,7 +3055,7 @@ body {
 }
 
 .crane-locations-card {
-  grid-column: 1 / -1;
+  grid-column: span 2;
   min-height: auto;
   overflow: hidden;
 }
@@ -4550,10 +4550,14 @@ body {
   }
 
   .top-bars,
-  .key-indicators,
   .crane-insight-strip,
   .crane-board-theme-title {
     grid-column: 1 / -1;
+  }
+
+  .key-indicators,
+  .crane-locations-card {
+    grid-column: auto;
   }
 
   .crane-board-donut-layout,
