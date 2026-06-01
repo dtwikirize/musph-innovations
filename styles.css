@@ -3091,16 +3091,28 @@ body {
   display: block;
 }
 
-.crane-map-shape {
-  fill: #f2d8e2;
-  stroke: rgba(166, 68, 104, 0.62);
-  stroke-width: 3;
+.crane-map-regions path {
+  fill: #f4e5eb;
+  stroke: rgba(166, 68, 104, 0.22);
+  stroke-width: 0.75;
+  transition:
+    fill 160ms ease,
+    stroke 160ms ease;
 }
 
-.crane-map-lake {
-  fill: #dbe8f0;
-  stroke: rgba(49, 95, 114, 0.26);
-  stroke-width: 2;
+.crane-map-regions path.sampled {
+  fill: #c67793;
+  stroke: #7b2f4f;
+  stroke-width: 1.45;
+}
+
+.crane-map-regions path:hover {
+  fill: #e7c1cf;
+  stroke: rgba(166, 68, 104, 0.65);
+}
+
+.crane-map-regions path.sampled:hover {
+  fill: var(--crane-theme);
 }
 
 .crane-map-point {

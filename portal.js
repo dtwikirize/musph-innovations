@@ -4,6 +4,7 @@ const LIVE_CSV =
 const ELEARNING_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=1859402851&single=true&output=csv";
 const CRANE_FSW_DASHBOARD_URL = "/data/crane-fsw-dashboard.json?v=site-themes-20260601";
+const CRANE_GEOJSON_URL = "/gis/districts-with-cities.geojson?v=acasi-geojson-20260601";
 const ACASI_DASHBOARD_URL = window.EHSS_ACASI_DASHBOARD_URL || "/acasi-app";
 const ACASI_APP_URL = window.EHSS_ACASI_APP_URL || "/acasi-app/interview/";
 const HOME_HERO_IMAGES = [
@@ -179,6 +180,7 @@ const state = {
 
 const craneState = {
   data: null,
+  geojson: null,
   activeTheme: "overview",
   district: "All",
 };
@@ -2414,61 +2416,153 @@ function craneBoardLollipop(title, items) {
   `;
 }
 
-function craneSurveyLocationsMap(sites) {
-  const districtPositions = {
-    Arua: { lat: 3.03, lon: 30.91, dx: -14, dy: -10, anchor: "end" },
-    Busia: { lat: 0.46, lon: 34.09, dx: 18, dy: 30, anchor: "start" },
-    Buvuma: { lat: 0.14, lon: 33.26, dx: 14, dy: 20, anchor: "start" },
-    "Fort Portal": { lat: 0.67, lon: 30.27, dx: -14, dy: 4, anchor: "end" },
-    Gulu: { lat: 2.77, lon: 32.3, dx: 14, dy: -6, anchor: "start" },
-    Jinja: { lat: 0.42, lon: 33.2, dx: 14, dy: -8, anchor: "start" },
-    Kampala: { lat: 0.35, lon: 32.58, dx: -12, dy: -12, anchor: "end" },
-    Lira: { lat: 2.25, lon: 32.9, dx: 14, dy: 4, anchor: "start" },
-    Masaka: { lat: -0.34, lon: 31.73, dx: -14, dy: 14, anchor: "end" },
-    Mbale: { lat: 1.08, lon: 34.17, dx: 18, dy: -10, anchor: "start" },
-    Mbarara: { lat: -0.61, lon: 30.65, dx: -14, dy: 6, anchor: "end" },
-    Tororo: { lat: 0.69, lon: 34.18, dx: 20, dy: 14, anchor: "start" },
+function craneGeoFeatureName(feature) {
+  return feature?.properties?.name || feature?.name || "";
+}
+
+function craneNormalizeLocationName(name) {
+  return String(name || "")
+    .replace(/\s+(District|City)$/i, "")
+    .trim()
+    .toLowerCase();
+}
+
+function craneGeoCoordinateList(geometry) {
+  const coordinates = [];
+  const walk = (value) => {
+    if (Array.isArray(value?.[0]) && typeof value[0][0] === "number") {
+      value.forEach((point) => coordinates.push(point));
+    } else if (Array.isArray(value)) {
+      value.forEach(walk);
+    }
   };
-  const minLon = 29.5;
-  const maxLon = 35.1;
-  const minLat = -1.4;
-  const maxLat = 4.2;
-  const toX = (lon) => 78 + ((lon - minLon) / (maxLon - minLon)) * 462;
-  const toY = (lat) => 318 - ((lat - minLat) / (maxLat - minLat)) * 282;
-  const points = sites
-    .map((site) => ({ site, ...districtPositions[site] }))
-    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon));
+  walk(geometry?.coordinates);
+  return coordinates;
+}
+
+function craneGeoBounds(features) {
+  const bounds = features.reduce(
+    (acc, feature) => {
+      craneGeoCoordinateList(feature.geometry).forEach(([lon, lat]) => {
+        acc.minLon = Math.min(acc.minLon, lon);
+        acc.maxLon = Math.max(acc.maxLon, lon);
+        acc.minLat = Math.min(acc.minLat, lat);
+        acc.maxLat = Math.max(acc.maxLat, lat);
+      });
+      return acc;
+    },
+    { minLon: Infinity, maxLon: -Infinity, minLat: Infinity, maxLat: -Infinity },
+  );
+  return Number.isFinite(bounds.minLon)
+    ? bounds
+    : { minLon: 29.5, maxLon: 35.1, minLat: -1.4, maxLat: 4.2 };
+}
+
+function craneGeoProjector(bounds, width = 620, height = 360, pad = 24) {
+  const lonSpan = Math.max(0.1, bounds.maxLon - bounds.minLon);
+  const latSpan = Math.max(0.1, bounds.maxLat - bounds.minLat);
+  const scale = Math.min((width - pad * 2) / lonSpan, (height - pad * 2) / latSpan);
+  const mapWidth = lonSpan * scale;
+  const mapHeight = latSpan * scale;
+  const offsetX = (width - mapWidth) / 2;
+  const offsetY = (height - mapHeight) / 2;
+  return ([lon, lat]) => [
+    offsetX + (lon - bounds.minLon) * scale,
+    offsetY + mapHeight - (lat - bounds.minLat) * scale,
+  ];
+}
+
+function craneGeoRingPath(ring, project) {
+  if (!Array.isArray(ring) || ring.length < 3) return "";
+  const step = Math.max(1, Math.ceil(ring.length / 80));
+  const sampled = ring.filter((_, index) => index % step === 0);
+  if (sampled.at(-1) !== ring.at(-1)) sampled.push(ring.at(-1));
+  return sampled
+    .map((point, index) => {
+      const [x, y] = project(point);
+      return `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ") + " Z";
+}
+
+function craneGeoPath(feature, project) {
+  const geometry = feature.geometry;
+  if (!geometry) return "";
+  const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates || [];
+  return polygons
+    .map((polygon) => craneGeoRingPath(polygon?.[0], project))
+    .filter(Boolean)
+    .join(" ");
+}
+
+function craneGeoCentroid(feature) {
+  const coordinates = craneGeoCoordinateList(feature.geometry);
+  if (!coordinates.length) return null;
+  const sum = coordinates.reduce((acc, [lon, lat]) => {
+    acc.lon += lon;
+    acc.lat += lat;
+    return acc;
+  }, { lon: 0, lat: 0 });
+  return [sum.lon / coordinates.length, sum.lat / coordinates.length];
+}
+
+function craneSurveyLocationsMap(sites) {
+  const geojson = craneState.geojson;
+  const features = Array.isArray(geojson?.features) ? geojson.features : [];
+  const featureForSite = (site) => {
+    const normalized = craneNormalizeLocationName(site);
+    const candidates = features.filter((feature) => craneNormalizeLocationName(craneGeoFeatureName(feature)) === normalized);
+    return candidates.find((feature) => new RegExp(`^${site}\\s+District$`, "i").test(craneGeoFeatureName(feature))) ||
+      candidates.find((feature) => new RegExp(`^${site}\\s+City$`, "i").test(craneGeoFeatureName(feature))) ||
+      candidates[0];
+  };
+  const sampledFeatures = sites.map(featureForSite).filter(Boolean);
+  const sampledFeatureSet = new Set(sampledFeatures);
+  const bounds = craneGeoBounds(features.length ? features : sampledFeatures);
+  const project = craneGeoProjector(bounds);
+  const labelOffsets = {
+    busia: [18, 25, "start"],
+    buvuma: [14, 18, "start"],
+    jinja: [12, -10, "start"],
+    kampala: [-12, -12, "end"],
+    mbale: [18, -8, "start"],
+    tororo: [18, 13, "start"],
+  };
+  const labelFeatures = sampledFeatures.map((feature) => {
+    const name = craneGeoFeatureName(feature).replace(/\s+(District|City)$/i, "");
+    const center = craneGeoCentroid(feature);
+    const [x, y] = center ? project(center) : [0, 0];
+    const [dx, dy, anchor] = labelOffsets[craneNormalizeLocationName(name)] || (x < 310 ? [-12, 4, "end"] : [12, 4, "start"]);
+    return { feature, name, x, y, labelX: x + dx, labelY: y + dy, anchor };
+  });
 
   return `
-    <div class="crane-survey-map" aria-label="${escapeHtml(`${points.length} sampled districts mapped across Uganda`)}">
+    <div class="crane-survey-map" aria-label="${escapeHtml(`${sampledFeatures.length} sampled districts mapped across Uganda`)}">
       <svg viewBox="0 0 620 360" role="img" aria-labelledby="craneMapTitle craneMapDesc">
         <title id="craneMapTitle">Crane 3 FSW sampled districts</title>
-        <desc id="craneMapDesc">Map-style overview of the 12 Uganda districts sampled in the Crane 3 FSW survey.</desc>
+        <desc id="craneMapDesc">GeoJSON map overview of the Uganda districts sampled in the Crane 3 FSW survey.</desc>
         <defs>
           <filter id="craneMapShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#4b1d32" flood-opacity="0.14"></feDropShadow>
           </filter>
         </defs>
-        <path
-          class="crane-map-shape"
-          filter="url(#craneMapShadow)"
-          d="M255 34 337 42 385 74 430 103 469 159 450 222 410 248 398 300 344 323 283 309 229 336 190 303 132 300 117 247 80 216 104 166 92 118 139 80 199 88Z"
-        ></path>
-        <path class="crane-map-lake" d="M309 235c38-9 80 4 106 33-34 42-99 47-134 8 7-17 15-30 28-41Z"></path>
-        ${points
-          .map((point, index) => {
-            const x = toX(point.lon);
-            const y = toY(point.lat);
-            const labelX = x + point.dx;
-            const labelY = y + point.dy;
-            return `
-              <g class="crane-map-point" style="--pin-delay:${index * 35}ms">
-                <line x1="${x}" y1="${y}" x2="${labelX}" y2="${labelY}"></line>
-                <circle cx="${x}" cy="${y}" r="7"></circle>
-                <text x="${labelX}" y="${labelY}" text-anchor="${point.anchor}">${escapeHtml(point.site)}</text>
-              </g>
-            `;
-          })
+        <g class="crane-map-regions" filter="url(#craneMapShadow)">
+          ${features
+            .map((feature) => {
+              const name = craneGeoFeatureName(feature);
+              const sampled = sampledFeatureSet.has(feature);
+              return `<path class="${sampled ? "sampled" : ""}" d="${craneGeoPath(feature, project)}"><title>${escapeHtml(name)}</title></path>`;
+            })
+            .join("")}
+        </g>
+        ${labelFeatures
+          .map((point, index) => `
+            <g class="crane-map-point" style="--pin-delay:${index * 35}ms">
+              <line x1="${point.x.toFixed(1)}" y1="${point.y.toFixed(1)}" x2="${point.labelX.toFixed(1)}" y2="${point.labelY.toFixed(1)}"></line>
+              <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="5.8"></circle>
+              <text x="${point.labelX.toFixed(1)}" y="${point.labelY.toFixed(1)}" text-anchor="${point.anchor}">${escapeHtml(point.name)}</text>
+            </g>
+          `)
           .join("")}
       </svg>
     </div>
@@ -2856,10 +2950,15 @@ async function initCraneDashboard() {
   if (!root) return;
 
   try {
-    if (!craneState.data) {
-      const response = await fetch(CRANE_FSW_DASHBOARD_URL);
-      if (!response.ok) throw new Error(`Failed to load dashboard data (${response.status})`);
-      craneState.data = await response.json();
+    if (!craneState.data || !craneState.geojson) {
+      const [dashboardResponse, geojsonResponse] = await Promise.all([
+        craneState.data ? Promise.resolve(null) : fetch(CRANE_FSW_DASHBOARD_URL),
+        craneState.geojson ? Promise.resolve(null) : fetch(CRANE_GEOJSON_URL),
+      ]);
+      if (dashboardResponse && !dashboardResponse.ok) throw new Error(`Failed to load dashboard data (${dashboardResponse.status})`);
+      if (geojsonResponse && !geojsonResponse.ok) throw new Error(`Failed to load GeoJSON data (${geojsonResponse.status})`);
+      if (dashboardResponse) craneState.data = await dashboardResponse.json();
+      if (geojsonResponse) craneState.geojson = await geojsonResponse.json();
     }
 
     root.innerHTML = renderCraneDashboard(craneState.data);
