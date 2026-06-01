@@ -2173,6 +2173,36 @@ function craneFreshRadials(title, items) {
   `;
 }
 
+function craneFreshGroupChart(group, index) {
+  const items = (group.items || []).filter((item) => Number.isFinite(item.estimate));
+  if (!items.length) return "";
+  const allPercent = items.every((item) => item.estimate <= 100);
+  if (items.length <= 4 && allPercent) {
+    return craneFreshRadials(group.name, items);
+  }
+  return craneFreshBars(group.name, items, {
+    limit: Math.min(items.length, 9),
+    labelLength: items.length > 6 ? 34 : 42,
+    wide: items.length >= 6 || index % 3 === 0,
+  });
+}
+
+function craneFreshGroupedCharts(groups) {
+  const chartGroups = [];
+  const singletons = [];
+  groups.forEach((group) => {
+    if ((group.items || []).length <= 1) {
+      singletons.push(...(group.items || []));
+    } else {
+      chartGroups.push(group);
+    }
+  });
+  if (singletons.length) {
+    chartGroups.push({ name: "Additional indicators", items: singletons });
+  }
+  return chartGroups.map((group, index) => craneFreshGroupChart(group, index)).join("");
+}
+
 function craneFreshDistrictCard(data) {
   const ctx = craneSiteContext(data);
   const district = ctx.district;
@@ -2627,6 +2657,7 @@ function craneBoardOverview(data) {
           <span class="crane-info">i</span>
         </header>
         <div>
+          ${craneBoardMetricTile("HIV Prevalence", cranePct(hiv), "95% CI: 31 - 36", "ribbon")}
           ${craneBoardMetricTile("Syphilis Prevalence", cranePct(ctx.prevalence.syphilis), "95% CI: 11 - 15", "test")}
           ${craneBoardMetricTile("HPV Prevalence", cranePct(ctx.prevalence.hpv), "95% CI: 41 - 48", "heart")}
           ${craneBoardMetricTile("Median Age (Years)", String(craneFindValue(data, "A", /Age\*/i, 28)), "IQR: 24 - 34", "demographics")}
@@ -2665,8 +2696,6 @@ function craneBoardThemeView(data, theme) {
   const ctx = craneSiteContext(data);
   const groups = craneFreshGroups(theme);
   const indicators = craneFreshIndicators(theme);
-  const primary = groups.find((group) => group.items.length > 1) || groups[0] || { name: theme.name, items: indicators };
-  const secondary = groups.find((group) => group !== primary && group.items.length > 1) || primary;
   return `
     <main class="crane-board-main theme">
       <section class="crane-board-theme-title">
@@ -2679,10 +2708,8 @@ function craneBoardThemeView(data, theme) {
       </section>
       ${craneFreshTopCards(theme)}
       <section class="crane-board-theme-grid">
-        ${craneBoardHorizontalBars("Ranked Indicators", indicators.map((item) => ({ label: item.displayLabel, value: item.estimate })), { className: "wide" })}
-        ${craneBoardDonut(primary.name, Math.max(...primary.items.map((item) => item.estimate || 0)), primary.items.slice(0, 6).map((item) => ({ label: item.displayLabel, value: craneFreshFormat(item.estimate) })), { centerLabel: "top value" })}
+        ${craneFreshGroupedCharts(groups)}
         ${craneFreshLollipop("Thematic group peaks", groups)}
-        ${craneFreshRadials(secondary.name, secondary.items)}
         ${craneFreshDistrictCard(data)}
       </section>
     </main>
