@@ -738,6 +738,7 @@ function featureGrid(items) {
 }
 
 function innovationCard(item) {
+  const actionLabel = item.slug === "crane-dashboard" ? "Crane 3 FSW" : "Learn More";
   return `
     <article class="innovation-card theme-${item.theme} reveal">
       <figure class="innovation-card-media">
@@ -751,7 +752,7 @@ function innovationCard(item) {
         </div>
       </header>
       <span>${item.purpose}</span>
-      ${ctaButton("Learn More", item.path, "theme-button")}
+      ${ctaButton(actionLabel, item.path, "theme-button")}
     </article>
   `;
 }
@@ -843,7 +844,7 @@ function renderInnovationsPage() {
                   <p>${item.summary}</p>
                 </div>
                 <p>${item.purpose}</p>
-                ${ctaButton("Learn More", item.path, "theme-button")}
+                ${ctaButton(item.slug === "crane-dashboard" ? "Crane 3 FSW" : "Learn More", item.path, "theme-button")}
               </article>
             `,
           )
@@ -998,7 +999,7 @@ function craneGroupedPrevalence(rows) {
                       <span
                         class="crane-dot ${key} ${craneChartHue(index)}"
                         style="left:${Math.min(98, Math.max(2, (value / max) * 100))}%"
-                        title="${escapeHtml(`${row.site} ${label}: ${craneFormatPercent(value, value % 1 ? 1 : 0)} weighted`)}"
+                        title="${escapeHtml(`${row.site} ${label}: ${craneFormatPercent(value, value % 1 ? 1 : 0)} estimate`)}"
                       >
                         <b>${escapeHtml(label)} ${craneFormatPercent(value, value % 1 ? 1 : 0)}</b>
                       </span>
@@ -1026,7 +1027,7 @@ function craneMiniDonuts(items) {
                 <span>${craneFormatPercent(value, value % 1 ? 1 : 0)}</span>
               </div>
               <strong>${escapeHtml(item.label)}</strong>
-              <small>${escapeHtml(item.note || "Weighted estimate")}</small>
+              <small>${escapeHtml(item.note || "Survey estimate")}</small>
             </div>
           `;
         })
@@ -1333,7 +1334,7 @@ function craneThemeStatCards(groups) {
 
   return `
     <section class="crane-tab-stat-strip">
-      <p>Additional weighted characteristics:</p>
+      <p>Additional characteristics:</p>
       <div>
         ${picked
           .map(
@@ -1373,8 +1374,8 @@ function craneThemeNarrative(theme, donutGroups, barGroups) {
     <p class="crane-tab-narrative">
       ${escapeHtml(
         leads.length
-          ? `${theme.name} weighted estimates highlight ${leads.join(", ")}.`
-          : `${theme.name} weighted estimates are summarized below.`,
+          ? `${theme.name} estimates highlight ${leads.join(", ")}.`
+          : `${theme.name} estimates are summarized below.`,
       )}
     </p>
   `;
@@ -1419,7 +1420,7 @@ function craneSummarySheet(data) {
         Crane 3 Survey Summary - Female Sex Workers and Sexually Exploited Children, 12 Locations, Uganda, 2021-2023
       </header>
       <p class="crane-summary-methods">
-        <strong>Survey methods:</strong> Respondent-driven sampling surveys took place across 12 locations. Estimates are weighted unless otherwise stated.
+        <strong>Survey methods:</strong> Respondent-driven sampling surveys took place across 12 locations. Estimates use survey-adjusted analysis.
       </p>
       <div class="crane-summary-layout">
         <section>
@@ -2025,7 +2026,7 @@ function craneFreshTopCards(theme) {
     .sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
     .slice(0, 4);
   return `
-    <section class="crane-fresh-kpis" aria-label="Weighted highlight indicators">
+    <section class="crane-fresh-kpis" aria-label="Highlight indicators">
       ${indicators
         .map(
           (item, index) => `
@@ -2058,7 +2059,7 @@ function craneFreshDonut(title, items) {
     <article class="crane-viz-card crane-viz-donut" data-crane-chart="${escapeHtml(title)}">
       <header>
         <h2>${escapeHtml(title)}</h2>
-        <span>Weighted share</span>
+        <span>Share</span>
       </header>
       <div class="crane-fresh-donut-wrap">
         <div class="crane-fresh-donut" style="background: conic-gradient(${segments});">
@@ -2093,7 +2094,7 @@ function craneFreshBars(title, items, options = {}) {
     <article class="crane-viz-card ${options.wide ? "wide" : ""}" data-crane-chart="${escapeHtml(title)}">
       <header>
         <h2>${escapeHtml(title)}</h2>
-        <span>Weighted estimate</span>
+        <span>Estimate</span>
       </header>
       <div class="crane-fresh-bars">
         ${sorted
@@ -2154,7 +2155,7 @@ function craneFreshRadials(title, items) {
     <article class="crane-viz-card" data-crane-chart="${escapeHtml(title)}">
       <header>
         <h2>${escapeHtml(title)}</h2>
-        <span>Top weighted values</span>
+        <span>Top values</span>
       </header>
       <div class="crane-radial-grid">
         ${picked
@@ -2286,7 +2287,7 @@ function craneBoardDonut(title, value, legendItems, options = {}) {
       <div class="crane-board-donut-layout">
         <div class="crane-board-donut" style="--value:${bounded}">
           <strong>${cranePct(value)}</strong>
-          <span>${escapeHtml(options.centerLabel || "weighted")}</span>
+          <span>${escapeHtml(options.centerLabel || "estimate")}</span>
         </div>
         <div class="crane-board-donut-legend">
           ${legendItems
@@ -2392,7 +2393,7 @@ function craneBoardLollipop(title, items) {
   return `
     <article class="crane-board-card crane-board-lollipop-card" data-crane-chart="${escapeHtml(title)}">
       <header>
-        <h2>${escapeHtml(title)} <small>(Weighted)</small></h2>
+        <h2>${escapeHtml(title)}</h2>
         <span class="crane-info">i</span>
       </header>
       <div class="crane-board-lollipops">
@@ -2444,7 +2445,7 @@ function craneBoardOverview(data) {
       <section class="crane-pse-card" data-crane-chart="Estimated FSW Population PSE">
         <span>Estimated FSW Population (PSE) <b>i</b></span>
         <strong>${formatNumber(pse)}</strong>
-        <p>Weighted population size</p>
+        <p>Estimated population size</p>
         <div class="crane-pse-people" aria-hidden="true">${craneBoardIcon("demographics")}</div>
       </section>
 
@@ -2452,9 +2453,9 @@ function craneBoardOverview(data) {
         { label: "HIV Positive", value: `${formatNumber(hivPositive)} (${cranePct(hiv)})` },
         { label: "HIV Negative", value: `${formatNumber(hivNegative)} (${cranePct(100 - hiv)})` },
         { label: "Total sample size", value: formatNumber(ctx.sample) },
-      ], { meta: "(Weighted)", centerLabel: "HIV prevalence" })}
+      ], { centerLabel: "HIV prevalence" })}
 
-      ${craneBoardHorizontalBars("Top 8 Thematic Indicators", topIndicators, { meta: "(by %)", axis: "Weighted Percentage", className: "top-bars" })}
+      ${craneBoardHorizontalBars("Top 8 Thematic Indicators", topIndicators, { meta: "(by %)", axis: "Percentage", className: "top-bars" })}
 
       <article class="crane-board-card key-indicators">
         <header>
@@ -2466,19 +2467,19 @@ function craneBoardOverview(data) {
           ${craneBoardMetricTile("Syphilis Prevalence", cranePct(ctx.prevalence.syphilis), "95% CI: 11 - 15", "test")}
           ${craneBoardMetricTile("HPV Prevalence", cranePct(ctx.prevalence.hpv), "95% CI: 41 - 48", "heart")}
           ${craneBoardMetricTile("Median Age (Years)", String(craneFindValue(data, "A", /Age\*/i, 28)), "IQR: 24 - 34", "demographics")}
-          ${craneBoardMetricTile("Ever Tested for HIV", cranePct(craneFindValue(data, "D", /Ever tested/i)), "Weighted", "shield")}
-          ${craneBoardMetricTile("On ART (PLHIV)", cranePct(craneFindValue(data, "L", /Unconditional: On ART/i)), "Weighted", "pill")}
-          ${craneBoardMetricTile("Virally Suppressed (PLHIV)", cranePct(craneFindValue(data, "L", /Unconditional: Virally suppressed/i)), "Weighted", "cascade")}
-          ${craneBoardMetricTile("Ever Experienced Stigma", cranePct(topIndicators[3].value), "Weighted", "heart")}
+          ${craneBoardMetricTile("Ever Tested for HIV", cranePct(craneFindValue(data, "D", /Ever tested/i)), "Estimate", "shield")}
+          ${craneBoardMetricTile("On ART (PLHIV)", cranePct(craneFindValue(data, "L", /Unconditional: On ART/i)), "Estimate", "pill")}
+          ${craneBoardMetricTile("Virally Suppressed (PLHIV)", cranePct(craneFindValue(data, "L", /Unconditional: Virally suppressed/i)), "Estimate", "cascade")}
+          ${craneBoardMetricTile("Ever Experienced Stigma", cranePct(topIndicators[3].value), "Estimate", "heart")}
         </div>
-        <p>All estimates are weighted. 95% CI: 95% Confidence Interval.</p>
+        <p>95% CI: 95% Confidence Interval.</p>
       </article>
 
       ${craneBoardSegmentDonut("Age Distribution", ageItems.map((item) => ({
         label: item.label,
         value: item.value,
         detail: `${formatNumber(item.count)} (${cranePct(item.value)})`,
-      })), { meta: "(Weighted)", center: " ", centerLabel: "" })}
+      })), { center: " ", centerLabel: "" })}
 
       ${craneBoardLollipop("Median Time Since Sex Work Initiation", [
         { label: "Overall", value: durationOverall, display: String(durationOverall) },
@@ -2509,13 +2510,13 @@ function craneBoardThemeView(data, theme) {
         <div>
           <span>Thematic area ${escapeHtml(theme.key)}</span>
           <h2>${escapeHtml(theme.name)}</h2>
-          <p>${formatNumber(indicators.length)} weighted indicators across ${formatNumber(groups.length)} chart-ready domains.</p>
+          <p>${formatNumber(indicators.length)} indicators across ${formatNumber(groups.length)} chart-ready domains.</p>
         </div>
         <strong>${formatNumber(ctx.sample)}<small>${escapeHtml(ctx.district === "All" ? "FSW participants" : `${ctx.district} participants`)}</small></strong>
       </section>
       ${craneFreshTopCards(theme)}
       <section class="crane-board-theme-grid">
-        ${craneBoardHorizontalBars("Ranked Weighted Indicators", indicators.map((item) => ({ label: item.displayLabel, value: item.estimate })), { className: "wide" })}
+        ${craneBoardHorizontalBars("Ranked Indicators", indicators.map((item) => ({ label: item.displayLabel, value: item.estimate })), { className: "wide" })}
         ${craneBoardDonut(primary.name, Math.max(...primary.items.map((item) => item.estimate || 0)), primary.items.slice(0, 6).map((item) => ({ label: item.displayLabel, value: craneFreshFormat(item.estimate) })), { centerLabel: "top value" })}
         ${craneFreshLollipop("Thematic group peaks", groups)}
         ${craneFreshRadials(secondary.name, secondary.items)}
@@ -2539,7 +2540,7 @@ function renderCraneFreshDashboard(data) {
         </div>
         <div class="crane-board-heading">
           <h1>CRANE FSW Dashboard</h1>
-          <p><strong>Weighted indicators only</strong><i></i>FSW Bio-behavioral Survey, Uganda 2023</p>
+          <p><strong>Survey indicators</strong><i></i>FSW Bio-behavioral Survey, Uganda 2023</p>
         </div>
         <div class="crane-board-tools">
           <label>
@@ -2600,7 +2601,7 @@ function craneCascadePanel(cascade) {
                   <i class="conditional" style="width:${Math.max(3, item.conditional)}%"></i>
                   <i class="unconditional" style="width:${Math.max(3, item.unconditional)}%"></i>
                 </div>
-                <small>Weighted conditional ${craneFormatPercent(item.conditional, 1)} | weighted unconditional ${craneFormatPercent(item.unconditional, 1)}</small>
+                <small>Conditional ${craneFormatPercent(item.conditional, 1)} | unconditional ${craneFormatPercent(item.unconditional, 1)}</small>
               </div>
             `,
           )
@@ -2668,7 +2669,7 @@ function craneThemePanel(data) {
             .map((group, index) => (index === 0 ? craneThemeColumns(group) : craneThemeBarGroup(group, "Top values for")))
             .join("")}
           <p class="crane-tab-narrative compact">
-            Weighted estimates are shown as percentages. Source: ${escapeHtml(theme.tableTitle)}.
+            Estimates are shown as percentages. Source: ${escapeHtml(theme.tableTitle)}.
           </p>
         </aside>
       </div>
@@ -2699,7 +2700,7 @@ function renderCraneOverview(data) {
       <article class="crane-panel span-8">
         <div class="crane-panel-header">
           <div>
-            <span>Weighted burden by survey site</span>
+            <span>Burden by survey site</span>
             <h2>HIV, HPV and active syphilis prevalence</h2>
           </div>
           <div class="crane-legend">
