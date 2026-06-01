@@ -2651,7 +2651,7 @@ function craneBoardOverview(data) {
         ${craneSurveyLocationsMap(sampledDistricts)}
       </article>
 
-      <article class="crane-board-card key-indicators">
+      <article class="crane-board-card key-indicators" data-crane-chart="Key Indicators">
         <header>
           <h2>Key Indicators <small>at a Glance</small></h2>
           <span class="crane-info">i</span>
@@ -3000,6 +3000,8 @@ async function initCraneDashboard() {
 }
 
 function initCraneDashboardInteractions(root) {
+  enhanceCraneChartsForFocus(root);
+
   root.querySelectorAll("a[data-route]").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
@@ -4297,7 +4299,30 @@ function escapeSvg(value) {
 }
 
 function panelTitle(panel) {
-  return panel.querySelector(".panel-header h2")?.textContent?.trim() || "visual";
+  return (
+    panel.querySelector(".panel-header h2")?.textContent?.trim() ||
+    panel.querySelector(":scope > header h2")?.textContent?.trim() ||
+    panel.dataset.craneChart ||
+    "visual"
+  );
+}
+
+function createFocusButton(title, panel) {
+  const button = document.createElement("button");
+  button.className = "icon-button crane-focus-button export-ignore";
+  button.type = "button";
+  button.dataset.openFocus = "true";
+  button.setAttribute("aria-label", `Focus ${title} chart`);
+  button.innerHTML = `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path>
+    </svg>
+  `;
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openFocusMode(panel);
+  });
+  return button;
 }
 
 function enhancePanelsForFocus() {
@@ -4339,21 +4364,38 @@ function enhancePanelsForFocus() {
     }
 
     if (!header.querySelector("[data-open-focus]")) {
-      const button = document.createElement("button");
-      button.className = "icon-button export-ignore";
-      button.type = "button";
-      button.dataset.openFocus = "true";
-      button.setAttribute("aria-label", `Focus ${panelTitle(panel)} visual`);
-      button.innerHTML = `
-        <svg viewBox="0 0 24 24">
-          <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path>
-        </svg>
-      `;
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
-        openFocusMode(panel);
-      });
-      meta.append(button);
+      meta.append(createFocusButton(panelTitle(panel), panel));
+    }
+
+    panel.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") openFocusMode(panel);
+    });
+  });
+}
+
+function enhanceCraneChartsForFocus(root = document) {
+  root.querySelectorAll(".crane-board-shell [data-crane-chart]").forEach((panel) => {
+    if (panel.querySelector("[data-open-focus]")) return;
+
+    const title = panelTitle(panel);
+    panel.tabIndex = 0;
+    panel.setAttribute("aria-label", `${title} chart`);
+
+    const button = createFocusButton(title, panel);
+    const header = panel.querySelector(":scope > header");
+    if (header) {
+      let actions = header.querySelector(":scope > .crane-card-actions");
+      if (!actions) {
+        actions = document.createElement("div");
+        actions.className = "crane-card-actions";
+        [...header.children].forEach((child) => {
+          if (child.tagName !== "H2") actions.append(child);
+        });
+        header.append(actions);
+      }
+      actions.append(button);
+    } else {
+      panel.append(button);
     }
 
     panel.addEventListener("keydown", (event) => {

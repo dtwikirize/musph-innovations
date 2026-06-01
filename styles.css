@@ -2316,6 +2316,53 @@ body {
   text-transform: uppercase;
 }
 
+.crane-card-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.crane-card-actions > span:not(.crane-info) {
+  color: var(--crane-theme);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.crane-focus-button {
+  width: 26px;
+  height: 26px;
+  border-color: rgba(166, 68, 104, 0.22);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--crane-theme);
+}
+
+.crane-focus-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.crane-focus-button:hover {
+  border-color: rgba(166, 68, 104, 0.55);
+  background: #fff7fa;
+  color: var(--crane-theme);
+}
+
+.crane-pse-card > .crane-focus-button,
+.crane-insight-strip > .crane-focus-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
 .crane-fresh-bars,
 .crane-lollipop-list {
   display: grid;
@@ -2542,21 +2589,21 @@ body {
 }
 
 .crane-board-header {
-  min-height: 76px;
+  min-height: 70px;
   display: grid;
-  grid-template-columns: 188px minmax(0, 1fr) 380px;
+  grid-template-columns: 178px minmax(0, 1fr) 340px;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   border-bottom: 1px solid #d9dce4;
   background: #fff;
   padding: 8px 20px;
 }
 
 .crane-board-logo {
-  min-height: 56px;
+  min-height: 50px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border-right: 1px solid #d5d8df;
   padding-right: 14px;
 }
@@ -2567,19 +2614,19 @@ body {
 }
 
 .crane-board-logo img:first-child {
-  width: 106px;
-  height: 46px;
+  width: 94px;
+  height: 42px;
 }
 
 .crane-board-logo img:last-child {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
 }
 
 .crane-board-heading h1 {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   color: #202936;
-  font-size: clamp(24px, 2.8vw, 34px);
+  font-size: clamp(23px, 2.55vw, 32px);
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0;
@@ -2589,15 +2636,16 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   margin: 0;
   color: #586172;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 760;
 }
 
 .crane-board-heading p strong {
   color: var(--crane-theme);
+  font-weight: 840;
 }
 
 .crane-board-heading p i {
@@ -2666,20 +2714,20 @@ body {
   overflow-x: auto;
   border-bottom: 1px solid #e1e3e8;
   background: #fff;
-  padding: 6px 12px 0;
+  padding: 4px 12px 0;
   scrollbar-width: thin;
 }
 
 .crane-board-tabs button {
   min-width: 66px;
-  height: 62px;
+  height: 58px;
   display: grid;
   grid-template-rows: 20px minmax(0, 1fr);
   place-items: center;
   gap: 4px;
   border: 1px solid #e0e2e8;
   border-left: 0;
-  border-radius: 7px 7px 0 0;
+  border-radius: 6px 6px 0 0;
   background: #fff;
   color: #202936;
   padding: 5px 5px 4px;
@@ -2718,9 +2766,9 @@ body {
 .crane-board-tabs button:hover {
   z-index: 1;
   border-color: rgba(166, 68, 104, 0.36);
-  background: #fff6fa;
-  box-shadow: 0 8px 20px rgba(166, 68, 104, 0.12);
-  transform: translateY(-2px);
+  background: #fff8fb;
+  box-shadow: 0 6px 16px rgba(166, 68, 104, 0.1);
+  transform: translateY(-1px);
 }
 
 .crane-board-tabs button:hover svg,
@@ -2731,33 +2779,30 @@ body {
 
 .crane-board-tabs button.active {
   z-index: 2;
-  border-color: var(--crane-theme);
-  background:
-    radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.22), transparent 42%),
-    linear-gradient(180deg, #bd3b72, var(--crane-theme));
-  color: #fff;
-  box-shadow:
-    inset 0 -4px 0 rgba(255, 255, 255, 0.26),
-    0 10px 24px rgba(166, 68, 104, 0.28);
-  transform: translateY(-3px);
+  border-color: #e0e2e8;
+  border-bottom-color: transparent;
+  background: #fff;
+  color: var(--crane-theme);
+  box-shadow: none;
+  transform: none;
 }
 
 .crane-board-tabs button.active::after {
   content: "";
   position: absolute;
-  left: 50%;
-  bottom: -7px;
-  width: 34px;
-  height: 4px;
-  border-radius: 999px;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
   background: var(--crane-theme);
-  transform: translateX(-50%);
 }
 
 .crane-board-tabs button.active svg,
 .crane-board-tabs button.active span {
-  color: #fff;
-  stroke: #fff;
+  color: var(--crane-theme);
+  stroke: var(--crane-theme);
+  font-weight: 820;
 }
 
 .crane-board-main {
@@ -2866,9 +2911,9 @@ body {
 
 .crane-board-donut-layout {
   display: grid;
-  grid-template-columns: minmax(150px, 0.86fr) minmax(0, 1fr);
+  grid-template-columns: minmax(190px, 0.9fr) minmax(150px, 1fr);
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 
 .crane-board-donut {
@@ -2908,19 +2953,32 @@ body {
 }
 
 .crane-board-donut span {
-  max-width: 96px;
+  max-width: 110px;
   color: #1f2733;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.18;
-  font-weight: 520;
+  font-weight: 620;
 }
 
 .crane-board-main.overview .crane-board-donut {
-  width: min(178px, 100%);
+  justify-self: center;
+  width: min(190px, 100%);
+  gap: 8px;
 }
 
 .crane-board-main.overview .crane-board-donut::before {
-  inset: 38px;
+  inset: 44px;
+}
+
+.crane-board-main.overview .crane-board-donut strong {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.crane-board-main.overview .crane-board-donut span {
+  max-width: 104px;
+  font-size: 12px;
+  line-height: 1.1;
 }
 
 .crane-board-donut-legend {
@@ -7037,6 +7095,20 @@ td {
 .focus-body .panel:hover {
   transform: none;
   box-shadow: none;
+}
+
+.focus-body .crane-board-card,
+.focus-body .crane-viz-card,
+.focus-body .crane-pse-card,
+.focus-body .crane-insight-strip {
+  max-width: 100%;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.focus-body .crane-board-donut-layout,
+.focus-body .crane-fresh-donut-wrap {
+  min-height: 320px;
 }
 
 .access-layer[hidden] {
