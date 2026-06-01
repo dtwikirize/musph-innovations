@@ -2411,6 +2411,126 @@ function craneFreshTopCards(theme) {
   `;
 }
 
+function craneThemeKpiIcon(item, theme) {
+  const text = `${theme?.name || ""} ${item?.group || ""} ${item?.label || ""}`.toLowerCase();
+  if (/demographic|age|education|marital|national|depend/.test(text)) return "demographics";
+  if (/hiv|prevalence|sti|syphilis|hpv|hcv|hbv|test/.test(text)) return "test";
+  if (/art|prep|drug|dose|refill|pill|substance|alcohol|injection/.test(text)) return "pill";
+  if (/stigma|violence|rape|hurt|theft|disclos|respect|denied/.test(text)) return "shield";
+  if (/tb|tuberculosis|lung|ncd/.test(text)) return "lungs";
+  if (/mental|depression|suicide/.test(text)) return "brain";
+  if (/outreach|service|prevention|condom|client|sex work/.test(text)) return "megaphone";
+  if (/maternal|pregnan|family planning|anc|postnatal/.test(text)) return "maternal";
+  return "cascade";
+}
+
+function craneThemeKpiItems(theme) {
+  const indicators = craneFreshIndicators(theme).filter((item) => Number.isFinite(item.estimate));
+  const picked = [];
+  const usedLabels = new Set();
+  const addItem = (item) => {
+    if (!item || picked.length >= 5) return;
+    const key = `${item.group || ""}:${item.displayLabel || item.label}`.toLowerCase();
+    if (usedLabels.has(key)) return;
+    usedLabels.add(key);
+    picked.push(item);
+  };
+
+  craneFreshGroups(theme).forEach((group) => {
+    const preferred =
+      group.items.find((item) => !/^(No|Never|Other|Unknown|Not applicable)/i.test(item.displayLabel || item.shortLabel || "")) ||
+      group.items[0];
+    addItem(preferred);
+  });
+
+  indicators
+    .slice()
+    .sort((a, b) => {
+      const aScore = /^(No|Never|Other|Unknown)/i.test(a.displayLabel || "") ? -1 : 0;
+      const bScore = /^(No|Never|Other|Unknown)/i.test(b.displayLabel || "") ? -1 : 0;
+      return bScore - aScore || (b.estimate || 0) - (a.estimate || 0);
+    })
+    .forEach(addItem);
+
+  return picked.slice(0, 5);
+}
+
+function craneThemeKpiStrip(data, theme, groups, indicators) {
+  const ctx = craneSiteContext(data);
+  const items = craneThemeKpiItems(theme).map((item) => ({
+    type: "indicator",
+    value: craneFreshFormat(item.estimate),
+    label: item.displayLabel || item.label,
+    context: item.group || theme.name,
+    icon: craneThemeKpiIcon(item, theme),
+    original: item,
+  }));
+  const fillers = [
+    { value: formatNumber(ctx.sample), label: ctx.district === "All" ? "Participants in view" : `${ctx.district} participants`, context: "Current filter", icon: "demographics" },
+    { value: formatNumber(groups.length), label: "Chart domains", context: "This tab", icon: "cascade" },
+    { value: formatNumber(indicators.length), label: "Indicators", context: "Prepared from tables", icon: "test" },
+    { value: data.source?.group || "FSW", label: "Population group", context: data.source?.dashboardTitle || "CRANE dashboard", icon: "support" },
+    { value: theme.key, label: "Thematic area", context: theme.name, icon: "overview" },
+  ];
+  fillers.forEach((item) => {
+    if (items.length < 5) items.push({ type: "meta", ...item });
+  });
+  if (!items.length) return "";
+  return `
+    <section class="crane-theme-kpi-strip" aria-label="${escapeHtml(theme.name)} key indicators">
+      ${items
+        .slice(0, 5)
+        .map(
+          (item, index) => `
+            <article>
+              <span class="crane-theme-kpi-icon" style="--kpi-accent:${craneFreshColor(index)}">${craneBoardIcon(item.icon)}</span>
+              <div>
+                <strong>${escapeHtml(item.value)}</strong>
+                <p title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.label, 34))}</p>
+                <small>${escapeHtml(shorten(item.context, 28))}</small>
+              </div>
+            </article>
+          `,
+        )
+        .join("")}
+    </section>
+  `;
+}
+
+function craneThemeObservations(data, theme, groups, indicators) {
+  const ctx = craneSiteContext(data);
+  const top = indicators
+    .filter((item) => Number.isFinite(item.estimate))
+    .slice()
+    .sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
+    .slice(0, 3);
+  const notes = [
+    top[0]
+      ? `${craneFreshFormat(top[0].estimate)} is the highest visible estimate in this tab (${shorten(top[0].displayLabel || top[0].label, 42)}).`
+      : `${theme.name} has survey indicators ready for review.`,
+    `${formatNumber(indicators.length)} indicators are organized across ${formatNumber(groups.length)} domains for this thematic area.`,
+    ctx.district === "All"
+      ? "District filter is set to all sampled districts."
+      : `View is filtered to ${ctx.district}, with ${formatNumber(ctx.sample)} participants in scope.`,
+  ];
+  if (top[1]) notes.push(`${shorten(top[1].displayLabel || top[1].label, 38)} is also prominent at ${craneFreshFormat(top[1].estimate)}.`);
+
+  return `
+    <section class="crane-theme-observations" data-crane-chart="${escapeHtml(`${theme.name} Key Observations`)}">
+      <header>
+        ${craneBoardIcon("brain")}
+        <h2>Key Observations</h2>
+      </header>
+      <div>
+        ${notes
+          .slice(0, 4)
+          .map((note) => `<p>${escapeHtml(note)}</p>`)
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
 function craneFreshDonut(title, items) {
   const slices = items.filter((item) => item.estimate >= 0).slice(0, 6);
   const total = slices.reduce((sum, item) => sum + Math.max(0, item.estimate || 0), 0) || 1;
@@ -3098,9 +3218,11 @@ function craneBoardThemeView(data, theme) {
         </div>
         <strong>${formatNumber(ctx.sample)}<small>${escapeHtml(ctx.district === "All" ? participantLabel : `${ctx.district} participants`)}</small></strong>
       </section>
+      ${craneThemeKpiStrip(data, theme, groups, indicators)}
       <section class="crane-board-theme-grid">
         ${craneFreshGroupedCharts(groups)}
       </section>
+      ${craneThemeObservations(data, theme, groups, indicators)}
     </main>
   `;
 }

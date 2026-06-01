@@ -3673,11 +3673,11 @@ body {
 
 .crane-survey-map {
   min-height: 250px;
-  border: 1px solid rgba(166, 68, 104, 0.12);
+  border: 1px solid color-mix(in srgb, var(--crane-theme) 20%, transparent);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 72% 22%, rgba(166, 68, 104, 0.12), transparent 24%),
-    linear-gradient(135deg, #fff8fb, #ffffff 54%, #f7f9fc);
+    radial-gradient(circle at 72% 22%, color-mix(in srgb, var(--crane-theme) 14%, transparent), transparent 24%),
+    linear-gradient(135deg, color-mix(in srgb, var(--crane-theme) 7%, #fff), #ffffff 54%, #f7f9fc);
   padding: 8px;
 }
 
@@ -3689,8 +3689,8 @@ body {
 }
 
 .crane-map-regions path {
-  fill: #f4e5eb;
-  stroke: rgba(166, 68, 104, 0.22);
+  fill: color-mix(in srgb, var(--crane-theme) 11%, #fff);
+  stroke: color-mix(in srgb, var(--crane-theme) 28%, #fff);
   stroke-width: 0.75;
   transition:
     fill 160ms ease,
@@ -3698,14 +3698,14 @@ body {
 }
 
 .crane-map-regions path.sampled {
-  fill: #c67793;
-  stroke: #7b2f4f;
+  fill: color-mix(in srgb, var(--crane-theme) 74%, #fff);
+  stroke: var(--crane-theme-dark);
   stroke-width: 1.45;
 }
 
 .crane-map-regions path:hover {
-  fill: #e7c1cf;
-  stroke: rgba(166, 68, 104, 0.65);
+  fill: color-mix(in srgb, var(--crane-theme) 24%, #fff);
+  stroke: color-mix(in srgb, var(--crane-theme) 70%, #111);
 }
 
 .crane-map-regions path.sampled:hover {
@@ -3718,7 +3718,7 @@ body {
 }
 
 .crane-map-point line {
-  stroke: rgba(76, 31, 48, 0.34);
+  stroke: color-mix(in srgb, var(--crane-theme-dark) 42%, transparent);
   stroke-width: 1.2;
 }
 
@@ -3726,7 +3726,7 @@ body {
   fill: var(--crane-theme);
   stroke: #fff;
   stroke-width: 3;
-  filter: drop-shadow(0 4px 7px rgba(76, 31, 48, 0.25));
+  filter: drop-shadow(0 4px 7px color-mix(in srgb, var(--crane-theme-dark) 30%, transparent));
 }
 
 .crane-map-point text {
@@ -3906,6 +3906,144 @@ body {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 14px;
+}
+
+.crane-theme-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.crane-theme-kpi-strip article {
+  min-width: 0;
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--crane-theme) 20%, #dde3ed);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--crane-theme) 7%, #fff), #fff 62%),
+    #fff;
+  padding: 11px 12px;
+  box-shadow: 0 10px 22px rgba(37, 34, 38, 0.045);
+}
+
+.crane-theme-kpi-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--kpi-accent, var(--crane-theme)) 13%, #fff);
+  color: var(--kpi-accent, var(--crane-theme));
+}
+
+.crane-theme-kpi-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.crane-theme-kpi-strip div {
+  min-width: 0;
+}
+
+.crane-theme-kpi-strip strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--crane-theme);
+  font-size: clamp(20px, 2.2vw, 27px);
+  line-height: 1;
+  font-weight: 920;
+  letter-spacing: 0;
+}
+
+.crane-theme-kpi-strip p {
+  min-height: 31px;
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #1f2733;
+  font-size: 11.5px;
+  line-height: 1.25;
+  font-weight: 820;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.crane-theme-kpi-strip small {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: #667085;
+  font-size: 9.5px;
+  font-weight: 820;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.crane-theme-observations {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  border: 1px solid color-mix(in srgb, var(--crane-theme) 22%, #d3d6de);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--crane-theme) 8%, #fff), #fff 58%),
+    #fff;
+  padding: 14px;
+  box-shadow: 0 10px 26px rgba(37, 34, 38, 0.04);
+}
+
+.crane-theme-observations header {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border-right: 1px solid color-mix(in srgb, var(--crane-theme) 18%, #d3d6de);
+  padding-right: 12px;
+}
+
+.crane-theme-observations svg {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: var(--crane-theme);
+  stroke-width: 1.8;
+}
+
+.crane-theme-observations h2 {
+  margin: 0;
+  color: #1f2733;
+  font-size: 17px;
+  line-height: 1.15;
+  font-weight: 900;
+}
+
+.crane-theme-observations div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.crane-theme-observations p {
+  margin: 0;
+  border-left: 3px solid color-mix(in srgb, var(--crane-theme) 52%, #fff);
+  background: rgba(255, 255, 255, 0.68);
+  padding: 6px 9px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 720;
 }
 
 .crane-board-theme-grid > .crane-board-card,
@@ -5175,6 +5313,31 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .crane-theme-kpi-strip {
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+  }
+
+  .crane-theme-kpi-strip article {
+    grid-template-columns: 30px minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .crane-theme-kpi-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .crane-theme-observations {
+    grid-template-columns: 1fr;
+  }
+
+  .crane-theme-observations header {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--crane-theme) 18%, #d3d6de);
+    padding-right: 0;
+    padding-bottom: 10px;
+  }
+
   .crane-viz-card,
   .crane-viz-card.wide {
     grid-column: span 6;
@@ -5279,6 +5442,17 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .crane-theme-kpi-strip {
+    grid-template-columns: repeat(5, minmax(138px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scroll-snap-type: x proximity;
+  }
+
+  .crane-theme-kpi-strip article {
+    scroll-snap-align: start;
+  }
+
   .crane-board-main {
     padding: 10px;
   }
@@ -5345,6 +5519,10 @@ body {
   .crane-fresh-kpis,
   .crane-fresh-grid,
   .crane-district-card div {
+    grid-template-columns: 1fr;
+  }
+
+  .crane-theme-observations div {
     grid-template-columns: 1fr;
   }
 
