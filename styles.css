@@ -1428,7 +1428,7 @@ body {
   padding: 8px 8px 8px 0;
 }
 
-.crane-dashboard-choice span {
+.crane-dashboard-choice > div > span {
   color: var(--crane-hub-accent);
   font-size: 12px;
   font-weight: 850;
