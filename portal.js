@@ -2429,6 +2429,7 @@ function craneBoardOverview(data) {
     value: item.value,
     count: craneCountFromPct(ctx.sample, item.value),
   }));
+  const sampledDistricts = [...new Set((data.enrollmentBySite || []).map((row) => row.site).filter(Boolean))];
   const topIndicators = [
     { label: "Consistent condom use (last 3 sex acts)", value: craneFindValue(data, "B", /All three times/i) },
     { label: "Ever tested for HIV", value: craneFindValue(data, "D", /History of HIV testing: Ever tested/i) },
@@ -2456,6 +2457,16 @@ function craneBoardOverview(data) {
       ], { centerLabel: "HIV prevalence" })}
 
       ${craneBoardHorizontalBars("Top 8 Thematic Indicators", topIndicators, { meta: "(by %)", axis: "Percentage", className: "top-bars" })}
+
+      <article class="crane-board-card crane-locations-card" data-crane-chart="Survey Locations">
+        <header>
+          <h2>Survey Locations <small>districts sampled</small></h2>
+          <strong>${formatNumber(sampledDistricts.length)}</strong>
+        </header>
+        <div>
+          ${sampledDistricts.map((site) => `<span>${escapeHtml(site)}</span>`).join("")}
+        </div>
+      </article>
 
       <article class="crane-board-card key-indicators">
         <header>
