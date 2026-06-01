@@ -4,6 +4,7 @@ const LIVE_CSV =
 const ELEARNING_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=1859402851&single=true&output=csv";
 const CRANE_FSW_DASHBOARD_URL = "/data/crane-fsw-dashboard.json?v=site-themes-20260601";
+const CRANE4_FSW_DASHBOARD_URL = "/data/crane4-fsw-dashboard.json?v=crane4-20260601";
 const CRANE_GEOJSON_URL = "/gis/districts-with-cities.geojson?v=acasi-geojson-20260601";
 const ACASI_DASHBOARD_URL = window.EHSS_ACASI_DASHBOARD_URL || "/acasi-app";
 const ACASI_APP_URL = window.EHSS_ACASI_APP_URL || "/acasi-app/interview/";
@@ -95,6 +96,17 @@ const innovations = [
     image: "/images/crane-dashboard-hero.webp",
   },
   {
+    slug: "crane4-fsw-dashboard",
+    title: "CRANE 4 FSW Dashboard",
+    path: "/innovations/crane4-fsw-dashboard",
+    summary:
+      "Interactive view of the CRANE 4 FSW sentinel surveillance indicators extracted from the 2024-2025 Word report.",
+    purpose: "Provides updated CRANE 4 FSW surveillance intelligence.",
+    icon: "map",
+    theme: "teal",
+    image: "/images/crane-dashboard-hero.webp",
+  },
+  {
     slug: "acasi",
     title: "ACASI System",
     path: "/innovations/acasi",
@@ -136,6 +148,11 @@ const routeMeta = {
     title: `CRANE BBS Sampling & Stewardship Dashboard | ${SITE_NAME}`,
     description:
       "An interactive dashboard providing real-time oversight of bio-behavioral survey sampling progress and surveillance outputs.",
+  },
+  "/innovations/crane4-fsw-dashboard": {
+    title: `CRANE 4 FSW Dashboard | ${SITE_NAME}`,
+    description:
+      "An interactive dashboard for CRANE 4 FSW sentinel surveillance indicators extracted from the 2024-2025 Word report.",
   },
   "/innovations/crane-dashboard/live": {
     title: `Live CRANE BBS Dashboard | ${SITE_NAME}`,
@@ -180,6 +197,8 @@ const state = {
 
 const craneState = {
   data: null,
+  datasets: {},
+  activeDataset: "crane3",
   geojson: null,
   activeTheme: "overview",
   district: "All",
@@ -740,7 +759,8 @@ function featureGrid(items) {
 }
 
 function innovationCard(item) {
-  const actionLabel = item.slug === "crane-dashboard" ? "Crane 3 FSW" : "Learn More";
+  const actionLabel =
+    item.slug === "crane-dashboard" ? "Crane 3 FSW" : item.slug === "crane4-fsw-dashboard" ? "Crane 4 FSW" : "Learn More";
   return `
     <article class="innovation-card theme-${item.theme} reveal">
       <figure class="innovation-card-media">
@@ -846,7 +866,11 @@ function renderInnovationsPage() {
                   <p>${item.summary}</p>
                 </div>
                 <p>${item.purpose}</p>
-                ${ctaButton(item.slug === "crane-dashboard" ? "Crane 3 FSW" : "Learn More", item.path, "theme-button")}
+                ${ctaButton(
+                  item.slug === "crane-dashboard" ? "Crane 3 FSW" : item.slug === "crane4-fsw-dashboard" ? "Crane 4 FSW" : "Learn More",
+                  item.path,
+                  "theme-button",
+                )}
               </article>
             `,
           )
@@ -931,6 +955,14 @@ function renderCraneDashboardPage({ fullscreen = false } = {}) {
       </div>
     </section>
   `;
+}
+
+function craneDashboardConfig() {
+  const key = window.location.pathname.includes("crane4-fsw-dashboard") ? "crane4" : "crane3";
+  return {
+    key,
+    url: key === "crane4" ? CRANE4_FSW_DASHBOARD_URL : CRANE_FSW_DASHBOARD_URL,
+  };
 }
 
 function craneFormatPercent(value, digits = 0) {
@@ -1484,6 +1516,18 @@ function craneFindValue(data, key, pattern, fallback = 0) {
   const theme = craneThemeByKey(data, key);
   const item = (theme?.allIndicators || []).find((indicator) => pattern.test(indicator.label));
   return Number.isFinite(item?.estimate) ? item.estimate : fallback;
+}
+
+function craneFindIndicatorItem(data, key, pattern) {
+  const theme = craneThemeByKey(data, key);
+  return (theme?.allIndicators || []).find((indicator) => pattern.test(indicator.label));
+}
+
+function craneCiLabel(item, fallback = "Estimate") {
+  if (Number.isFinite(item?.lower) && Number.isFinite(item?.upper)) {
+    return `95% CI: ${item.lower} - ${item.upper}`;
+  }
+  return fallback;
 }
 
 function craneSiteContext(data) {
@@ -2533,6 +2577,7 @@ function craneGeoCentroid(feature) {
 
 function craneSurveyLocationsMap(sites) {
   const geojson = craneState.geojson;
+  const dashboardTitle = craneState.data?.source?.dashboardTitle || "Crane 3 FSW";
   const features = Array.isArray(geojson?.features) ? geojson.features : [];
   const featureForSite = (site) => {
     const normalized = craneNormalizeLocationName(site);
@@ -2564,8 +2609,8 @@ function craneSurveyLocationsMap(sites) {
   return `
     <div class="crane-survey-map" aria-label="${escapeHtml(`${sampledFeatures.length} sampled districts mapped across Uganda`)}">
       <svg viewBox="0 0 620 360" role="img" aria-labelledby="craneMapTitle craneMapDesc">
-        <title id="craneMapTitle">Crane 3 FSW sampled districts</title>
-        <desc id="craneMapDesc">GeoJSON map overview of the Uganda districts sampled in the Crane 3 FSW survey.</desc>
+        <title id="craneMapTitle">${escapeHtml(dashboardTitle)} sampled districts</title>
+        <desc id="craneMapDesc">GeoJSON map overview of the Uganda districts sampled in the ${escapeHtml(dashboardTitle)} survey.</desc>
         <defs>
           <filter id="craneMapShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#4b1d32" flood-opacity="0.14"></feDropShadow>
@@ -2600,6 +2645,10 @@ function craneBoardOverview(data) {
     ? data.metrics.populationEstimate3scrc
     : data.populationEstimateSummary.find((row) => row.site === ctx.district)?.estimate || data.metrics.populationEstimate3scrc;
   const hiv = ctx.prevalence.hiv || data.metrics.hivPrevalenceWeighted;
+  const hivIndicator = craneFindIndicatorItem(data, "E", /Overall HIV prevalence.*HIV positive/i);
+  const syphilisIndicator = craneFindIndicatorItem(data, "E", /Active Syphilis.*Syphilis Positive/i);
+  const hpvIndicator = craneFindIndicatorItem(data, "E", /Overall HPV prevalence|HPV.*Positive/i);
+  const isCrane4 = /CRANE\s*4/i.test(data.source?.dashboardTitle || "");
   const hivPositive = craneCountFromPct(pse, hiv);
   const hivNegative = Math.max(0, pse - hivPositive);
   const durationOverall = craneFindValue(data, "B", /Duration of sex work\*/i, 2);
@@ -2612,7 +2661,7 @@ function craneBoardOverview(data) {
   const sampledDistricts = [...new Set((data.enrollmentBySite || []).map((row) => row.site).filter(Boolean))];
   const topIndicators = [
     { label: "Consistent condom use (last 3 sex acts)", value: craneFindValue(data, "B", /All three times/i) },
-    { label: "Ever tested for HIV", value: craneFindValue(data, "D", /History of HIV testing: Ever tested/i) },
+    { label: "Ever tested for HIV", value: craneFindValue(data, "D", /Ever tested/i) },
     { label: "Comfortable disclosing SW to HCW", value: craneFindValue(data, "C", /Comfortable disclosing.*Yes/i) },
     { label: "Ever experienced stigma", value: craneFindValue(data, "C", /Avoids health care.*Yes, often/i) + craneFindValue(data, "C", /Avoids health care.*Yes, sometimes/i) },
     { label: "Received HIV prevention service (last 6m)", value: craneFindValue(data, "G", /Exposed to outreach: Last 6 months/i) },
@@ -2652,9 +2701,9 @@ function craneBoardOverview(data) {
           <span class="crane-info">i</span>
         </header>
         <div>
-          ${craneBoardMetricTile("HIV Prevalence", cranePct(hiv), "95% CI: 31 - 36", "ribbon")}
-          ${craneBoardMetricTile("Syphilis Prevalence", cranePct(ctx.prevalence.syphilis), "95% CI: 11 - 15", "test")}
-          ${craneBoardMetricTile("HPV Prevalence", cranePct(ctx.prevalence.hpv), "95% CI: 41 - 48", "heart")}
+          ${craneBoardMetricTile("HIV Prevalence", cranePct(hiv), isCrane4 ? craneCiLabel(hivIndicator) : "95% CI: 31 - 36", "ribbon")}
+          ${craneBoardMetricTile("Syphilis Prevalence", cranePct(ctx.prevalence.syphilis), isCrane4 ? craneCiLabel(syphilisIndicator) : "95% CI: 11 - 15", "test")}
+          ${craneBoardMetricTile("HPV Prevalence", cranePct(ctx.prevalence.hpv), isCrane4 ? craneCiLabel(hpvIndicator) : "95% CI: 41 - 48", "heart")}
           ${craneBoardMetricTile("Median Age (Years)", String(craneFindValue(data, "A", /Age\*/i, 28)), "IQR: 24 - 34", "demographics")}
           ${craneBoardMetricTile("Ever Tested for HIV", cranePct(craneFindValue(data, "D", /Ever tested/i)), "Estimate", "shield")}
           ${craneBoardMetricTile("On ART (PLHIV)", cranePct(craneFindValue(data, "L", /Unconditional: On ART/i)), "Estimate", "pill")}
@@ -2712,6 +2761,8 @@ function renderCraneFreshDashboard(data) {
   const tabs = craneBoardTabs(data);
   const activeTab = tabs.find((tab) => tab.id === craneState.activeTheme) || tabs[0];
   const activeTheme = craneBoardResolveTheme(data, activeTab.id);
+  const dashboardTitle = data.source?.dashboardTitle || "CRANE FSW Dashboard";
+  const surveyLabel = data.source?.surveyLabel || "FSW Bio-behavioral Survey, Uganda 2023";
 
   return `
     <div class="crane-shell crane-board-shell">
@@ -2721,8 +2772,8 @@ function renderCraneFreshDashboard(data) {
           <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health" />
         </div>
         <div class="crane-board-heading">
-          <h1>CRANE FSW Dashboard</h1>
-          <p><strong>Survey indicators</strong><i></i>FSW Bio-behavioral Survey, Uganda 2023</p>
+          <h1>${escapeHtml(dashboardTitle)}</h1>
+          <p><strong>Survey indicators</strong><i></i>${escapeHtml(surveyLabel)}</p>
         </div>
         <div class="crane-board-tools">
           <label>
@@ -2967,18 +3018,26 @@ async function initCraneDashboard() {
   const root = document.querySelector("[data-crane-dashboard]");
   if (!root) return;
 
+  const config = craneDashboardConfig();
+  if (craneState.activeDataset !== config.key) {
+    craneState.activeDataset = config.key;
+    craneState.activeTheme = "overview";
+    craneState.district = "All";
+  }
+
   try {
-    if (!craneState.data || !craneState.geojson) {
+    if (!craneState.datasets[config.key] || !craneState.geojson) {
       const [dashboardResponse, geojsonResponse] = await Promise.all([
-        craneState.data ? Promise.resolve(null) : fetch(CRANE_FSW_DASHBOARD_URL),
+        craneState.datasets[config.key] ? Promise.resolve(null) : fetch(config.url),
         craneState.geojson ? Promise.resolve(null) : fetch(CRANE_GEOJSON_URL),
       ]);
       if (dashboardResponse && !dashboardResponse.ok) throw new Error(`Failed to load dashboard data (${dashboardResponse.status})`);
       if (geojsonResponse && !geojsonResponse.ok) throw new Error(`Failed to load GeoJSON data (${geojsonResponse.status})`);
-      if (dashboardResponse) craneState.data = await dashboardResponse.json();
+      if (dashboardResponse) craneState.datasets[config.key] = await dashboardResponse.json();
       if (geojsonResponse) craneState.geojson = await geojsonResponse.json();
     }
 
+    craneState.data = craneState.datasets[config.key];
     root.innerHTML = renderCraneDashboard(craneState.data);
     initCraneDashboardInteractions(root);
   } catch (error) {
@@ -3112,6 +3171,8 @@ function renderPortalRoute(path) {
         extra: renderVirtualAcademySteps(),
       });
     case "/innovations/crane-dashboard":
+      return renderCraneDashboardPage();
+    case "/innovations/crane4-fsw-dashboard":
       return renderCraneDashboardPage();
     case "/innovations/crane-dashboard/live":
       return renderCraneDashboardPage({ fullscreen: true });
@@ -3252,7 +3313,7 @@ function renderRoute() {
   const path = normalizePath(window.location.pathname);
   const dashboardOpen = path === "/innovations/training-database" && window.location.hash === "#dashboard";
   const trainingLandingOpen = path === "/innovations/training-database" && !dashboardOpen;
-  const craneDashboardOpen = path === "/innovations/crane-dashboard";
+  const craneDashboardOpen = path === "/innovations/crane-dashboard" || path === "/innovations/crane4-fsw-dashboard";
   const craneLiveOpen = path === "/innovations/crane-dashboard/live";
   const acasiLiveOpen = path === "/innovations/acasi/dashboard";
 
