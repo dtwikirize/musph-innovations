@@ -86,25 +86,14 @@ const innovations = [
   },
   {
     slug: "crane-dashboard",
-    title: "CRANE Dashboard",
+    title: "CRANE FSW Dashboards",
     path: "/innovations/crane-dashboard",
     summary:
-      "Interactive oversight of bio-behavioral survey sampling progress and surveillance outputs.",
-    purpose: "Improves access to timely surveillance intelligence.",
+      "A gateway to the CRANE 3 and CRANE 4 FSW dashboards built from survey report indicators.",
+    purpose: "Compares survey intelligence across CRANE waves.",
     icon: "map",
     theme: "teal",
-    image: "/images/crane-dashboard-hero.webp",
-  },
-  {
-    slug: "crane4-fsw-dashboard",
-    title: "CRANE 4 FSW Dashboard",
-    path: "/innovations/crane4-fsw-dashboard",
-    summary:
-      "Interactive view of the CRANE 4 FSW sentinel surveillance indicators extracted from the 2024-2025 Word report.",
-    purpose: "Provides updated CRANE 4 FSW surveillance intelligence.",
-    icon: "map",
-    theme: "teal",
-    image: "/images/crane-dashboard-hero.webp",
+    image: "/images/crane3-fsw-landing.png",
   },
   {
     slug: "acasi",
@@ -145,9 +134,14 @@ const routeMeta = {
       "A centralized system for tracking trained health workers, training coverage, and workforce capacity-building outputs.",
   },
   "/innovations/crane-dashboard": {
-    title: `CRANE BBS Sampling & Stewardship Dashboard | ${SITE_NAME}`,
+    title: `CRANE FSW Dashboards | ${SITE_NAME}`,
     description:
-      "An interactive dashboard providing real-time oversight of bio-behavioral survey sampling progress and surveillance outputs.",
+      "Open the CRANE 3 and CRANE 4 FSW dashboards and review the survey waves behind the indicators.",
+  },
+  "/innovations/crane3-fsw-dashboard": {
+    title: `CRANE 3 FSW Dashboard | ${SITE_NAME}`,
+    description:
+      "An interactive dashboard for CRANE 3 FSW bio-behavioral survey indicators extracted from the final report.",
   },
   "/innovations/crane4-fsw-dashboard": {
     title: `CRANE 4 FSW Dashboard | ${SITE_NAME}`,
@@ -759,8 +753,7 @@ function featureGrid(items) {
 }
 
 function innovationCard(item) {
-  const actionLabel =
-    item.slug === "crane-dashboard" ? "Crane 3 FSW" : item.slug === "crane4-fsw-dashboard" ? "Crane 4 FSW" : "Learn More";
+  const actionLabel = item.slug === "crane-dashboard" ? "Open CRANE Dashboards" : "Learn More";
   return `
     <article class="innovation-card theme-${item.theme} reveal">
       <figure class="innovation-card-media">
@@ -867,7 +860,7 @@ function renderInnovationsPage() {
                 </div>
                 <p>${item.purpose}</p>
                 ${ctaButton(
-                  item.slug === "crane-dashboard" ? "Crane 3 FSW" : item.slug === "crane4-fsw-dashboard" ? "Crane 4 FSW" : "Learn More",
+                  item.slug === "crane-dashboard" ? "Open CRANE Dashboards" : "Learn More",
                   item.path,
                   "theme-button",
                 )}
@@ -941,6 +934,107 @@ function renderVirtualAcademySteps() {
             .join("")}
         </div>
       </div>
+    </section>
+  `;
+}
+
+function renderCraneLandingPage() {
+  const surveyCards = [
+    {
+      title: "CRANE 3 FSW Dashboard",
+      href: "/innovations/crane3-fsw-dashboard",
+      image: "/images/crane3-fsw-landing.png",
+      meta: "FSW bio-behavioral survey, Uganda 2023",
+      copy:
+        "Explore the CRANE 3 FSW dashboard with survey locations, key indicators, thematic tabs, district filtering, and chart-ready indicators extracted from the final report tables.",
+      facts: ["12 sampled districts", "17 thematic areas", "Survey indicators"],
+      button: "Open CRANE 3 FSW",
+    },
+    {
+      title: "CRANE 4 FSW Dashboard",
+      href: "/innovations/crane4-fsw-dashboard",
+      image: "/images/crane4-fsw-landing.png",
+      meta: "FSW sentinel surveillance survey, 2024-2025",
+      copy:
+        "Review the CRANE 4 FSW sentinel surveillance dashboard created from the Word report tables, including updated district coverage and harmonized thematic indicators.",
+      facts: ["15 sampled districts", "Extracted Word tables", "Survey-wave comparison ready"],
+      button: "Open CRANE 4 FSW",
+    },
+  ];
+
+  return `
+    <section class="crane-hub">
+      <section class="crane-hub-hero">
+        <img src="/images/crane4-fsw-landing.png" alt="" aria-hidden="true" />
+        <div class="crane-hub-hero-inner">
+          <div class="crane-hub-copy">
+            <h1>CRANE FSW Dashboards</h1>
+            <p>
+              Open the CRANE 3 and CRANE 4 FSW dashboards for survey indicators, district-level filtering,
+              thematic tabs, maps, and charts prepared from the CRANE survey reports.
+            </p>
+            <div class="button-row">
+              ${ctaButton("Crane 3 FSW Dashboard", "/innovations/crane3-fsw-dashboard", "theme-button")}
+              ${ctaButton("Crane 4 FSW Dashboard", "/innovations/crane4-fsw-dashboard", "secondary")}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-section soft crane-hub-section">
+        <div class="section-shell">
+          <div class="crane-dashboard-choice-grid">
+            ${surveyCards
+              .map(
+                (card) => `
+                  <article class="crane-dashboard-choice reveal">
+                    <figure>
+                      <img src="${card.image}" alt="${card.title} visual preview" loading="lazy" />
+                    </figure>
+                    <div>
+                      <span>${card.meta}</span>
+                      <h2>${card.title}</h2>
+                      <p>${card.copy}</p>
+                      <ul>
+                        ${card.facts.map((fact) => `<li>${fact}</li>`).join("")}
+                      </ul>
+                      ${ctaButton(card.button, card.href, "theme-button")}
+                    </div>
+                  </article>
+                `,
+              )
+              .join("")}
+          </div>
+        </div>
+      </section>
+
+      <section class="content-section crane-survey-story">
+        <div class="section-shell crane-survey-story-grid">
+          <div>
+            <h2>About the CRANE FSW Surveys</h2>
+            <p>
+              The CRANE FSW dashboards translate report tables into interactive views for faster review of
+              HIV, STI, service uptake, stigma, violence, ART, mental health, and social support indicators.
+              Each dashboard keeps the survey wave separate while using a shared visual language so teams can
+              move from overview to thematic detail without returning to static report tables.
+            </p>
+          </div>
+          <div class="crane-survey-notes">
+            <article>
+              <strong>CRANE 3</strong>
+              <span>Baseline FSW dashboard prepared from the final survey report with 12 sampled districts.</span>
+            </article>
+            <article>
+              <strong>CRANE 4</strong>
+              <span>Updated FSW sentinel surveillance dashboard prepared from the new Word report tables.</span>
+            </article>
+            <article>
+              <strong>Dashboard Use</strong>
+              <span>Designed for program review, district filtering, thematic comparison, and presentation-ready charts.</span>
+            </article>
+          </div>
+        </div>
+      </section>
     </section>
   `;
 }
@@ -3171,6 +3265,8 @@ function renderPortalRoute(path) {
         extra: renderVirtualAcademySteps(),
       });
     case "/innovations/crane-dashboard":
+      return renderCraneLandingPage();
+    case "/innovations/crane3-fsw-dashboard":
       return renderCraneDashboardPage();
     case "/innovations/crane4-fsw-dashboard":
       return renderCraneDashboardPage();
@@ -3313,7 +3409,7 @@ function renderRoute() {
   const path = normalizePath(window.location.pathname);
   const dashboardOpen = path === "/innovations/training-database" && window.location.hash === "#dashboard";
   const trainingLandingOpen = path === "/innovations/training-database" && !dashboardOpen;
-  const craneDashboardOpen = path === "/innovations/crane-dashboard" || path === "/innovations/crane4-fsw-dashboard";
+  const craneDashboardOpen = path === "/innovations/crane3-fsw-dashboard" || path === "/innovations/crane4-fsw-dashboard";
   const craneLiveOpen = path === "/innovations/crane-dashboard/live";
   const acasiLiveOpen = path === "/innovations/acasi/dashboard";
 
