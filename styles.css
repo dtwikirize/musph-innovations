@@ -2813,7 +2813,7 @@ body {
 }
 
 .crane-board-main.overview {
-  grid-template-columns: 0.92fr 1.22fr 1.5fr;
+  grid-template-columns: 1.1fr 1.25fr 1.25fr;
   align-items: stretch;
 }
 
@@ -3014,6 +3014,36 @@ body {
   color: #5c6574;
   font-weight: 500;
   line-height: 1.25;
+}
+
+.age-distribution-card {
+  overflow: hidden;
+}
+
+.age-distribution-card .crane-board-donut-layout {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 14px;
+}
+
+.age-distribution-card .crane-board-donut {
+  width: min(204px, 82%);
+}
+
+.age-distribution-card .crane-board-donut-legend {
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.age-distribution-card .crane-board-donut-legend p {
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 5px 8px;
+  font-size: 12px;
+}
+
+.age-distribution-card .crane-board-donut-legend strong {
+  font-size: 12px;
 }
 
 .top-bars {
@@ -3230,6 +3260,10 @@ body {
   display: grid;
   gap: 21px;
   padding: 8px 12px;
+}
+
+.crane-board-lollipop-card {
+  grid-column: span 2;
 }
 
 .crane-board-lollipops div {

@@ -2352,7 +2352,7 @@ function craneBoardSegmentDonut(title, items, options = {}) {
     })
     .join(", ");
   return `
-    <article class="crane-board-card crane-board-donut-card" data-crane-chart="${escapeHtml(title)}">
+    <article class="crane-board-card crane-board-donut-card ${options.className || ""}" data-crane-chart="${escapeHtml(title)}">
       <header>
         <h2>${escapeHtml(title)} ${options.meta ? `<small>${escapeHtml(options.meta)}</small>` : ""}</h2>
         <span class="crane-info">i</span>
@@ -2673,7 +2673,7 @@ function craneBoardOverview(data) {
         label: item.label,
         value: item.value,
         detail: `${formatNumber(item.count)} (${cranePct(item.value)})`,
-      })), { center: " ", centerLabel: "" })}
+      })), { center: " ", centerLabel: "", className: "age-distribution-card" })}
 
       ${craneBoardLollipop("Median Time Since Sex Work Initiation", [
         { label: "Overall", value: durationOverall, display: String(durationOverall) },
