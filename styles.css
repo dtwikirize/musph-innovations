@@ -3305,7 +3305,7 @@ body {
 }
 
 .crane-board-main.overview {
-  grid-template-columns: 1.1fr 1.25fr 1.25fr;
+  grid-template-columns: 0.9fr 1.32fr 1.32fr;
   align-items: stretch;
 }
 
@@ -3321,21 +3321,24 @@ body {
 
 .crane-pse-card {
   position: relative;
-  min-height: 238px;
+  align-self: start;
+  min-height: 188px;
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 12px;
+  gap: 8px;
   background:
     radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.15), transparent 38%),
     linear-gradient(135deg, var(--crane-theme), var(--crane-theme-dark) 68%, color-mix(in srgb, var(--crane-theme-dark) 82%, #111));
   color: #fff;
-  padding: 22px;
+  padding: 18px 16px;
   text-align: center;
 }
 
 .crane-pse-card > span {
-  font-size: 17px;
+  max-width: 92%;
+  font-size: 14px;
+  line-height: 1.25;
   font-weight: 900;
 }
 
@@ -3352,7 +3355,7 @@ body {
 }
 
 .crane-pse-card strong {
-  font-size: clamp(48px, 5vw, 70px);
+  font-size: clamp(38px, 4.2vw, 56px);
   line-height: 1;
   font-weight: 850;
   letter-spacing: 0;
@@ -3360,13 +3363,13 @@ body {
 
 .crane-pse-card p {
   margin: 0;
-  font-size: 19px;
-  font-weight: 550;
+  font-size: 15px;
+  font-weight: 650;
 }
 
 .crane-pse-people svg {
-  width: 96px;
-  height: 58px;
+  width: 72px;
+  height: 42px;
   fill: none;
   stroke: rgba(255, 255, 255, 0.68);
   stroke-width: 2;
@@ -5139,6 +5142,10 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .crane-pse-card {
+    min-height: 174px;
+  }
+
   .crane-pse-card,
   .crane-board-card,
   .crane-board-theme-grid > .crane-board-card,
@@ -5274,6 +5281,15 @@ body {
 
   .crane-board-main {
     padding: 10px;
+  }
+
+  .crane-pse-card {
+    min-height: 158px;
+    padding: 15px 14px;
+  }
+
+  .crane-pse-card strong {
+    font-size: clamp(34px, 12vw, 48px);
   }
 
   .crane-board-theme-title {
@@ -6923,7 +6939,7 @@ h1 {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px 16px;
-  margin: -2px 8px 4px;
+  margin: 4px 14px 0;
   color: #53657d;
   font-size: 11px;
   font-weight: 760;
@@ -6984,6 +7000,11 @@ h1 {
     filter 160ms ease;
 }
 
+.elearning-trend-chart .rate-area {
+  fill: url(#elearningRateArea);
+  pointer-events: none;
+}
+
 .elearning-trend-chart .timeline-total-bar {
   filter: drop-shadow(0 7px 12px rgba(41, 87, 184, 0.08));
 }
@@ -7006,8 +7027,8 @@ h1 {
 }
 
 .elearning-trend-chart .rate-line-shadow {
-  stroke: rgba(221, 163, 36, 0.18);
-  stroke-width: 9;
+  stroke: rgba(221, 163, 36, 0.16);
+  stroke-width: 8;
 }
 
 .elearning-trend-chart .rate-line {
@@ -7020,6 +7041,12 @@ h1 {
   stroke: #dda324;
   stroke-width: 3;
   filter: drop-shadow(0 4px 9px rgba(221, 163, 36, 0.28));
+}
+
+.elearning-trend-chart .rate-value-label {
+  fill: #8b6b13;
+  font-size: 9.5px;
+  font-weight: 850;
 }
 
 .tooltip-label {
@@ -7403,6 +7430,198 @@ h1 {
 
 .dashboard-stage[data-active-view="elearning"] .learning-status-bars .bar-row:nth-child(2) .bar-fill {
   background: linear-gradient(90deg, #7248c7, #2957b8) !important;
+}
+
+.dashboard-stage[data-active-view="elearning"] .elearning-status-panel {
+  min-height: 318px;
+}
+
+.dashboard-stage[data-active-view="elearning"] .elearning-status-panel .learning-status-bars {
+  padding: 4px 16px 18px;
+}
+
+.elearning-status-card {
+  min-height: 218px;
+  display: grid;
+  grid-template-columns: minmax(136px, 0.86fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.elearning-status-donut {
+  width: min(168px, 100%);
+  aspect-ratio: 1;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  position: relative;
+  border-radius: 50%;
+  background:
+    conic-gradient(#2f9f6b 0 var(--complete), rgba(116, 69, 198, 0.2) var(--complete) 100%);
+  box-shadow:
+    0 14px 28px rgba(47, 159, 107, 0.12),
+    inset 0 0 0 1px rgba(16, 35, 63, 0.06);
+}
+
+.elearning-status-donut::before {
+  content: "";
+  position: absolute;
+  inset: 17%;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 35%, #fff 0 35%, #fbfefe 72%, #f2fbf8 100%);
+  box-shadow: inset 0 0 0 1px rgba(16, 35, 63, 0.06);
+}
+
+.elearning-status-donut span,
+.elearning-status-donut small {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.elearning-status-donut span {
+  align-self: end;
+  color: #0d2438;
+  font-size: clamp(32px, 4vw, 46px);
+  line-height: 0.9;
+  font-weight: 900;
+}
+
+.elearning-status-donut small {
+  align-self: start;
+  margin-top: 8px;
+  color: #607087;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.elearning-status-list {
+  display: grid;
+  gap: 10px;
+}
+
+.elearning-status-item {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(16, 35, 63, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 11px 12px 11px 15px;
+  overflow: hidden;
+}
+
+.elearning-status-item::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #2f9f6b;
+}
+
+.elearning-status-item.is-progress::before {
+  background: #7445c6;
+}
+
+.elearning-status-item span {
+  color: #607087;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.elearning-status-item strong {
+  color: #0d2438;
+  font-size: 27px;
+  line-height: 0.95;
+}
+
+.elearning-status-item small {
+  color: #66758a;
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.dashboard-stage[data-active-view="elearning"] .elearning-trend-panel {
+  min-height: 388px;
+}
+
+.dashboard-stage[data-active-view="elearning"] .elearning-trend-panel .chart-frame {
+  min-height: 308px;
+  padding-top: 0;
+  overflow: hidden;
+}
+
+.dashboard-stage[data-active-view="elearning"] .elearning-trend-panel .chart-frame svg {
+  overflow: hidden;
+}
+
+.elearning-trend-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin: 2px 14px 2px;
+}
+
+.elearning-trend-summary div {
+  min-width: 0;
+  border: 1px solid rgba(13, 155, 116, 0.12);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(245, 252, 250, 0.86));
+  padding: 9px 10px;
+}
+
+.elearning-trend-summary span {
+  display: block;
+  margin-bottom: 4px;
+  color: #607087;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.elearning-trend-summary strong {
+  display: block;
+  overflow: hidden;
+  color: #0d2438;
+  font-size: 15px;
+  line-height: 1.15;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .elearning-status-card {
+    grid-template-columns: 118px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 184px;
+  }
+
+  .elearning-status-donut {
+    width: 118px;
+  }
+
+  .elearning-status-donut span {
+    font-size: 31px;
+  }
+
+  .elearning-status-item {
+    padding: 9px 10px 9px 13px;
+  }
+
+  .elearning-status-item strong {
+    font-size: 22px;
+  }
+
+  .elearning-trend-summary {
+    grid-template-columns: 1fr;
+  }
 }
 
 .database-panel {
@@ -8354,6 +8573,11 @@ td {
 
   .chart-frame:not(.donut-frame) svg {
     min-width: 620px;
+  }
+
+  .dashboard-stage[data-active-view="elearning"] .elearning-trend-panel .chart-frame svg {
+    min-width: 0;
+    width: 100%;
   }
 
   .chart-frame,

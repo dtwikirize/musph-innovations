@@ -1210,11 +1210,12 @@ function renderCraneDashboardPage({ fullscreen = false } = {}) {
       : path.includes("crane3-pwid-dashboard")
         ? "is-pwid"
         : "is-crane3";
+  const config = craneDashboardConfig();
   return `
     <section class="crane-dashboard ${datasetClass} ${fullscreen ? "is-fullscreen" : ""}" data-crane-dashboard>
       <div class="crane-loading-card">
         <span class="crane-loader" aria-hidden="true"></span>
-        <strong>Loading FSW dashboard</strong>
+        <strong>Loading ${escapeHtml(config.loadingLabel)} dashboard</strong>
         <small>Extracted Word report tables are being prepared for analysis.</small>
       </div>
     </section>
@@ -1236,8 +1237,15 @@ function craneDashboardConfig() {
     "crane3-msm": CRANE3_MSM_DASHBOARD_URL,
     "crane3-pwid": CRANE3_PWID_DASHBOARD_URL,
   };
+  const labels = {
+    crane3: "CRANE 3 FSW",
+    crane4: "CRANE 4 FSW",
+    "crane3-msm": "CRANE 3 MSM",
+    "crane3-pwid": "CRANE 3 PWID",
+  };
   return {
     key,
+    loadingLabel: labels[key],
     url: urls[key],
   };
 }
@@ -3383,7 +3391,7 @@ async function initCraneDashboard() {
   } catch (error) {
     root.innerHTML = `
       <div class="crane-loading-card error">
-        <strong>Unable to load FSW dashboard data</strong>
+        <strong>Unable to load ${escapeHtml(config.loadingLabel)} dashboard data</strong>
         <small>${escapeHtml(error.message)}</small>
       </div>
     `;
@@ -4444,26 +4452,30 @@ function elearningDateRange(rows) {
 }
 
 function renderElearningStatus(rows) {
-  const data = [
-    { name: "Completed", count: rows.filter((row) => row.completed).length, color: palette.green },
-    { name: "In progress", count: rows.filter((row) => !row.completed).length, color: palette.violet },
-  ];
-  const max = Math.max(...data.map((item) => item.count), 1);
+  const completed = rows.filter((row) => row.completed).length;
+  const inProgress = Math.max(rows.length - completed, 0);
+  const completedRate = rows.length ? Math.round((completed / rows.length) * 100) : 0;
+  const inProgressRate = Math.max(0, 100 - completedRate);
 
-  els.elearningStatusBars.innerHTML = data
-    .map(
-      (item) => `<div class="bar-row">
-        <div class="bar-top">
-          <span>${item.name}</span>
-          <strong>${formatNumber(item.count)}</strong>
+  els.elearningStatusBars.innerHTML = `
+    <div class="elearning-status-card">
+      <div class="elearning-status-donut" style="--complete:${completedRate}%;" role="img" aria-label="${completedRate}% of learners have completed">
+        <span>${completedRate}%</span>
+        <small>completed</small>
+      </div>
+      <div class="elearning-status-list">
+        <div class="elearning-status-item is-complete">
+          <span>Completed</span>
+          <strong>${formatNumber(completed)}</strong>
+          <small>${completedRate}% of learners</small>
         </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(
-          3,
-          (item.count / max) * 100,
-        )}%; background:${item.color};"></div></div>
-      </div>`,
-    )
-    .join("");
+        <div class="elearning-status-item is-progress">
+          <span>In progress</span>
+          <strong>${formatNumber(inProgress)}</strong>
+          <small>${inProgressRate}% of learners</small>
+        </div>
+      </div>
+    </div>`;
 }
 
 function renderElearningDistrictCompletion(rows) {
@@ -4511,17 +4523,7 @@ function renderElearningTimeline(rows) {
     return;
   }
 
-  const [startYear, startMonth] = observedMonths[0].split("-").map(Number);
-  const [endYear, endMonth] = observedMonths[observedMonths.length - 1].split("-").map(Number);
-  const monthSpan = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
-  const months =
-    monthSpan <= 24
-      ? Array.from({ length: monthSpan }, (_, index) => {
-          const date = new Date(startYear, startMonth - 1 + index, 1);
-          return monthKey(date);
-        })
-      : observedMonths;
-  const grouped = months.map((name) => {
+  const grouped = observedMonths.map((name) => {
     const items = groupedMap.get(name) || [];
     const completed = items.filter((row) => row.completed).length;
     return {
@@ -4532,18 +4534,17 @@ function renderElearningTimeline(rows) {
     };
   });
 
-  const width = 760;
-  const height = 282;
-  const pad = { top: 42, right: 58, bottom: 48, left: 50 };
+  const width = 860;
+  const height = 320;
+  const pad = { top: 44, right: 54, bottom: 58, left: 54 };
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
   const max = Math.max(...grouped.map((item) => item.count), 1);
   const groupW = plotW / grouped.length;
-  const barW = Math.min(40, Math.max(10, groupW * 0.48));
-  const showValueLabels = groupW >= 34;
+  const barW = Math.min(46, Math.max(16, groupW * 0.44));
+  const showValueLabels = groupW >= 32;
   const xLabels = grouped.filter((_, index) => index % Math.ceil(grouped.length / 8) === 0);
   const ticks = [0, max * 0.5, max].map((value) => Math.round(value));
-  const rateTicks = [0, 50, 100];
   const ratePoints = grouped.map((item, index) => {
     const x = pad.left + index * groupW + groupW / 2;
     const y = pad.top + plotH - (item.rate / 100) * plotH;
@@ -4552,10 +4553,33 @@ function renderElearningTimeline(rows) {
   const ratePath = ratePoints
     .map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(1)},${point.y.toFixed(1)}`)
     .join(" ");
+  const areaPath = `${ratePath} L${ratePoints[ratePoints.length - 1].x.toFixed(1)},${pad.top + plotH} L${ratePoints[0].x.toFixed(
+    1,
+  )},${pad.top + plotH} Z`;
+  const totalCompleted = grouped.reduce((sum, item) => sum + item.completed, 0);
+  const totalEnrolled = grouped.reduce((sum, item) => sum + item.count, 0);
+  const bestMonth = grouped
+    .filter((item) => item.count)
+    .slice()
+    .sort((a, b) => b.count - a.count || b.completed - a.completed)[0];
 
   els.elearningTimeline.innerHTML = `
+    <div class="elearning-trend-summary">
+      <div>
+        <span>Active months</span>
+        <strong>${formatNumber(grouped.length)}</strong>
+      </div>
+      <div>
+        <span>Completed in period</span>
+        <strong>${formatNumber(totalCompleted)}</strong>
+      </div>
+      <div>
+        <span>Peak enrollment</span>
+        <strong>${bestMonth ? `${formatNumber(bestMonth.count)} · ${monthLabel(bestMonth.name)}` : "N/A"}</strong>
+      </div>
+    </div>
     <div class="timeline-legend" aria-hidden="true">
-      <span><i class="legend-total"></i>Total enrolled</span>
+      <span><i class="legend-total"></i>Enrolled</span>
       <span><i class="legend-completed"></i>Completed</span>
       <span><i class="legend-rate"></i>Completion rate</span>
     </div>
@@ -4569,6 +4593,10 @@ function renderElearningTimeline(rows) {
           <stop offset="0%" stop-color="#4dad77"></stop>
           <stop offset="100%" stop-color="#0d9b74"></stop>
         </linearGradient>
+        <linearGradient id="elearningRateArea" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#e4a900" stop-opacity="0.2"></stop>
+          <stop offset="100%" stop-color="#e4a900" stop-opacity="0"></stop>
+        </linearGradient>
       </defs>
       ${ticks
         .map((tick) => {
@@ -4578,14 +4606,9 @@ function renderElearningTimeline(rows) {
           }" y2="${y}"></line><text class="axis-label" x="8" y="${y + 4}">${tick}</text>`;
         })
         .join("")}
-      ${rateTicks
-        .map((tick) => {
-          const y = pad.top + plotH - (tick / 100) * plotH;
-          return `<text class="axis-label rate-axis-label" x="${width - 8}" y="${y + 4}" text-anchor="end">${tick}%</text>`;
-        })
-        .join("")}
       <text class="axis-title" x="${pad.left}" y="18">Learners enrolled</text>
-      <text class="axis-title" x="${width - pad.right}" y="18" text-anchor="end">Completion rate</text>
+      <text class="axis-title" x="${width - pad.right}" y="18" text-anchor="end">${formatNumber(totalEnrolled)} total</text>
+      <path class="rate-area" d="${areaPath}"></path>
       ${grouped
         .map((item, index) => {
           const x = pad.left + index * groupW + (groupW - barW) / 2;
@@ -4619,6 +4642,11 @@ function renderElearningTimeline(rows) {
             <circle class="rate-dot" cx="${point.x}" cy="${point.y}" r="${point.count ? 4.5 : 3.2}">
               <title>${monthLabel(point.name)}: ${point.rate}% completion rate</title>
             </circle>
+            ${
+              showValueLabels && point.count
+                ? `<text class="rate-value-label" x="${point.x}" y="${Math.max(15, point.y - 10)}" text-anchor="middle">${point.rate}%</text>`
+                : ""
+            }
           </g>`,
         )
         .join("")}
