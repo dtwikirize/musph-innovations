@@ -3,8 +3,7 @@ const LIVE_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=328536026&single=true&output=csv";
 const ELEARNING_CSV =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AW3386YCAvkvU-DYobpaoWWfnNLTbIWthl9Oyc057QdlkinMxlert2sjTcJ8Zr2qewd8Ufio7lqh/pub?gid=1859402851&single=true&output=csv";
-const CRANE_POWER_BI_URL =
-  "https://app.powerbi.com/view?r=eyJrIjoiNDgyZWM2YTEtOTcwMC00ZjMyLTk4NDAtZWY3YTU5ZGVmYjZmIiwidCI6ImE3ZmQyYTY4LTAxYzgtNDMzMy1hOTgzLTlmMzdkZTJjZWJkYyJ9";
+const CRANE_FSW_DASHBOARD_URL = "/data/crane-fsw-dashboard.json?v=site-themes-20260601";
 const ACASI_DASHBOARD_URL = window.EHSS_ACASI_DASHBOARD_URL || "/acasi-app";
 const ACASI_APP_URL = window.EHSS_ACASI_APP_URL || "/acasi-app/interview/";
 const HOME_HERO_IMAGES = [
@@ -176,6 +175,12 @@ const state = {
     mechanism: "All",
     completion: "All",
   },
+};
+
+const craneState = {
+  data: null,
+  activeTheme: "overview",
+  district: "All",
 };
 
 const els = {
@@ -913,49 +918,1914 @@ function renderVirtualAcademySteps() {
   `;
 }
 
-function renderCraneEmbed() {
+function renderCraneDashboardPage({ fullscreen = false } = {}) {
   return `
-    <section class="content-section soft">
-      <div class="section-shell">
-        ${sectionHeader(
-          "Live Dashboard",
-          "The dashboard below provides embedded access to the CRANE BBS Sampling and Stewardship view.",
-        )}
-        <div class="embed-shell" id="craneEmbedShell">
-          <div class="embed-loading">Loading CRANE dashboard...</div>
-          <iframe
-            title="CRANE BBS Sampling and Stewardship Dashboard"
-            src="${CRANE_POWER_BI_URL}"
-            loading="lazy"
-          ></iframe>
+    <section class="crane-dashboard ${fullscreen ? "is-fullscreen" : ""}" data-crane-dashboard>
+      <div class="crane-loading-card">
+        <span class="crane-loader" aria-hidden="true"></span>
+        <strong>Loading FSW dashboard</strong>
+        <small>Extracted Word report tables are being prepared for analysis.</small>
+      </div>
+    </section>
+  `;
+}
+
+function craneFormatPercent(value, digits = 0) {
+  if (!Number.isFinite(value)) return "N/A";
+  return `${value.toFixed(digits).replace(/\.0$/, "")}%`;
+}
+
+function craneMetricCard(label, value, context, tone = "teal") {
+  return `
+    <article class="crane-kpi ${tone}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+      <small>${escapeHtml(context)}</small>
+    </article>
+  `;
+}
+
+function craneChartHue(index) {
+  return ["primary", "secondary", "tertiary", "quaternary"][index % 4];
+}
+
+function craneBars(items, options = {}) {
+  const max = options.max || Math.max(...items.map((item) => item.value || 0), 1);
+  const suffix = options.suffix || "";
+  const limit = options.limit || items.length;
+  return `
+    <div class="crane-bars ${options.compact ? "compact" : ""}">
+      ${items
+        .slice(0, limit)
+        .map((item, index) => {
+          const width = Math.max(4, Math.min(100, ((item.value || 0) / max) * 100));
+          return `
+            <div class="crane-bar-row" style="--bar-index:${index}">
+              <div class="crane-bar-top">
+                <span title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.label, options.labelLength || 32))}</span>
+                <strong>${escapeHtml(item.display || `${formatNumber(item.value)}${suffix}`)}</strong>
+              </div>
+              <div class="crane-bar-track">
+                <i style="width:${width}%"></i>
+              </div>
+              ${item.note ? `<small>${escapeHtml(item.note)}</small>` : ""}
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function craneGroupedPrevalence(rows) {
+  const max = Math.max(...rows.flatMap((row) => [row.hiv, row.hpv, row.syphilis]).filter(Number.isFinite), 1);
+  return `
+    <div class="crane-dotplot">
+      ${rows
+        .map(
+          (row) => `
+            <div class="crane-dotplot-row">
+              <strong>${escapeHtml(row.site)}</strong>
+              <div class="crane-dotplot-track">
+                ${[
+                  ["hiv", row.hiv, "HIV"],
+                  ["hpv", row.hpv, "HPV"],
+                  ["syphilis", row.syphilis, "Syphilis"],
+                ]
+                  .filter(([, value]) => Number.isFinite(value))
+                  .map(
+                    ([key, value, label], index) => `
+                      <span
+                        class="crane-dot ${key} ${craneChartHue(index)}"
+                        style="left:${Math.min(98, Math.max(2, (value / max) * 100))}%"
+                        title="${escapeHtml(`${row.site} ${label}: ${craneFormatPercent(value, value % 1 ? 1 : 0)} weighted`)}"
+                      >
+                        <b>${escapeHtml(label)} ${craneFormatPercent(value, value % 1 ? 1 : 0)}</b>
+                      </span>
+                    `,
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function craneMiniDonuts(items) {
+  return `
+    <div class="crane-donut-grid">
+      ${items
+        .map((item, index) => {
+          const value = Math.max(0, Math.min(100, item.value || 0));
+          return `
+            <div class="crane-donut-card">
+              <div class="crane-donut ${craneChartHue(index)}" style="--value:${value}">
+                <span>${craneFormatPercent(value, value % 1 ? 1 : 0)}</span>
+              </div>
+              <strong>${escapeHtml(item.label)}</strong>
+              <small>${escapeHtml(item.note || "Weighted estimate")}</small>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function craneColumnChart(items) {
+  const max = Math.max(...items.map((item) => item.value || 0), 1);
+  return `
+    <div class="crane-column-chart">
+      ${items
+        .map((item, index) => `
+          <div class="crane-column-item">
+            <div class="crane-column-track">
+              <i class="${craneChartHue(index)}" style="height:${Math.max(4, ((item.value || 0) / max) * 100)}%"></i>
+            </div>
+            <strong>${escapeHtml(formatNumber(item.value))}</strong>
+            <span title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.label, 9))}</span>
+          </div>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
+function craneThemeDonut(items) {
+  const total = items.reduce((sum, item) => sum + (item.value || 0), 0) || 1;
+  let start = 0;
+  const segments = items
+    .slice(0, 8)
+    .map((item, index) => {
+      const pct = ((item.value || 0) / total) * 100;
+      const end = start + pct;
+      const color = `var(--crane-chart-${index + 1})`;
+      const segment = `${color} ${start}% ${end}%`;
+      start = end;
+      return segment;
+    })
+    .join(", ");
+
+  return `
+    <div class="crane-theme-donut-wrap">
+      <div class="crane-theme-donut" style="background: conic-gradient(${segments});">
+        <span>${formatNumber(total)}</span>
+        <small>available indicators</small>
+      </div>
+      <div class="crane-donut-list">
+        ${items
+          .slice(0, 8)
+          .map(
+            (item, index) => `
+              <div>
+                <i style="background:var(--crane-chart-${index + 1})"></i>
+                <span>${escapeHtml(shorten(item.label, 28))}</span>
+                <strong>${formatNumber(item.value)}</strong>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
+function craneFindTheme(data, key) {
+  return data.themes.find((theme) => theme.key === key);
+}
+
+function craneFindIndicator(theme, pattern) {
+  return (theme?.allIndicators || []).find((item) => pattern.test(item.label));
+}
+
+function craneReportBars(title, items, options = {}) {
+  return `
+    <div class="crane-report-chart ${options.divided ? "divided" : ""}">
+      <h3>${escapeHtml(title)}</h3>
+      ${items
+        .filter((item) => Number.isFinite(item.value))
+        .map(
+          (item) => `
+            <div class="crane-report-bar">
+              <span>${escapeHtml(item.label)}</span>
+              <div><i style="width:${Math.max(3, Math.min(100, item.value))}%"></i></div>
+              <strong>${craneFormatPercent(item.value, item.value % 1 ? 1 : 0)}</strong>
+            </div>
+          `,
+        )
+        .join("")}
+      ${options.note ? `<p>${escapeHtml(options.note)}</p>` : ""}
+    </div>
+  `;
+}
+
+function cranePseReportTable(rows) {
+  return `
+    <div class="crane-report-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Sample</th>
+            <th>PSE</th>
+            <th>PSE 95% CI</th>
+            <th>PSE %</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows
+            .map(
+              (row) => `
+                <tr>
+                  <td>${escapeHtml(row.site)}</td>
+                  <td>${formatNumber(row.sample || 0)}</td>
+                  <td>${formatNumber(row.estimate)}</td>
+                  <td>${formatNumber(row.lower)} - ${formatNumber(row.upper)}</td>
+                  <td>${craneFormatPercent(row.relativePct, row.relativePct % 1 ? 1 : 0)}</td>
+                </tr>
+              `,
+            )
+            .join("")}
+          <tr>
+            <td><strong>Total</strong></td>
+            <td><strong>${formatNumber(rows.reduce((sum, row) => sum + (row.sample || 0), 0))}</strong></td>
+            <td><strong>${formatNumber(rows.reduce((sum, row) => sum + (row.estimate || 0), 0))}</strong></td>
+            <td>---</td>
+            <td>---</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function craneReportCascade(cascade) {
+  const avg = (key) => average(cascade, key) || 0;
+  const conditional = [
+    { label: "Among all HIV-pos, aware of status", step: "1st", value: avg("conditionalAware") },
+    { label: "Among status-aware, on ART", step: "2nd", value: avg("conditionalArt") },
+    { label: "Among treated, virally suppressed", step: "3rd", value: avg("conditionalVls") },
+  ];
+  const unconditional = [
+    { label: "Among all HIV-pos, status aware", step: "1st", value: avg("unconditionalAware") },
+    { label: "Among all HIV-pos, on ART", step: "2nd", value: avg("unconditionalArt") },
+    { label: "Among all HIV-pos, virally suppressed", step: "3rd", value: avg("unconditionalVls") },
+  ];
+
+  const group = (title, items) => `
+    <div class="crane-report-cascade-group">
+      <span>${escapeHtml(title)}</span>
+      ${items
+        .map(
+          (item, index) => `
+            <div class="crane-report-cascade-row">
+              <em>${escapeHtml(item.label)}</em>
+              <div>
+                <b>${escapeHtml(item.step)}</b>
+                <i style="width:${Math.max(4, item.value)}%"></i>
+                ${index < items.length - 1 ? `<u></u>` : ""}
+              </div>
+              <strong>${craneFormatPercent(item.value, item.value % 1 ? 1 : 0)}</strong>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+
+  return `
+    <div class="crane-report-cascade">
+      <h3>95-95-95 Targets</h3>
+      ${group("Conditional", conditional)}
+      ${group("Unconditional", unconditional)}
+    </div>
+  `;
+}
+
+function craneThemeGroups(theme) {
+  const groups = [];
+  const byName = new Map();
+  (theme?.allIndicators || [])
+    .filter((item) => Number.isFinite(item.estimate))
+    .filter((item) => !/unweighted|no response/i.test(`${item.label} ${item.shortLabel}`))
+    .forEach((item) => {
+      const name = item.group || "Other";
+      if (!byName.has(name)) {
+        const group = { name, items: [] };
+        byName.set(name, group);
+        groups.push(group);
+      }
+      byName.get(name).items.push(item);
+    });
+  return groups;
+}
+
+function craneThemeSectionTitle(text, prefix = "") {
+  const title = prefix ? `${prefix} ${text}` : text;
+  return `<h3 class="crane-tab-section-title">${escapeHtml(title.toUpperCase())}</h3>`;
+}
+
+function craneConicSegments(items) {
+  const total = items.reduce((sum, item) => sum + Math.max(0, item.estimate || 0), 0) || 1;
+  let start = 0;
+  return items
+    .map((item, index) => {
+      const pct = (Math.max(0, item.estimate || 0) / total) * 100;
+      const end = start + pct;
+      const segment = `var(--crane-tab-${(index % 6) + 1}) ${start}% ${end}%`;
+      start = end;
+      return segment;
+    })
+    .join(", ");
+}
+
+function craneThemeDonutGroup(group) {
+  const items = group.items.slice(0, 6);
+  return `
+    <section class="crane-tab-donut-block">
+      ${craneThemeSectionTitle(group.name, "WCS by")}
+      <div class="crane-tab-donut-row">
+        <div class="crane-tab-donut" style="background: conic-gradient(${craneConicSegments(items)});">
+          <span></span>
+        </div>
+        <div class="crane-tab-legend">
+          ${items
+            .map(
+              (item, index) => `
+                <div>
+                  <i style="background:var(--crane-tab-${(index % 6) + 1})"></i>
+                  <span>${escapeHtml(shorten(item.shortLabel || item.label, 36))}</span>
+                  <strong>${craneFormatPercent(item.estimate, item.estimate % 1 ? 1 : 0)}</strong>
+                </div>
+              `,
+            )
+            .join("")}
         </div>
       </div>
     </section>
   `;
 }
 
-function renderCraneFullscreenPage() {
+function craneThemeBarGroup(group, titlePrefix = "") {
+  const items = [...group.items].sort((a, b) => (b.estimate || 0) - (a.estimate || 0)).slice(0, 6);
   return `
-    <section class="crane-live-view">
-      <div class="crane-live-toolbar">
-        <strong>CRANE BBS Sampling & Stewardship Dashboard</strong>
-        <div>
-          ${ctaButton("Back to Overview", "/innovations/crane-dashboard", "secondary")}
-          ${externalLinkButton(
-            "Open in Power BI",
-            CRANE_POWER_BI_URL,
-          )}
-        </div>
-      </div>
-      <div class="crane-live-frame" id="craneLiveShell">
-        <div class="embed-loading">Loading CRANE dashboard...</div>
-        <iframe
-          title="Live CRANE BBS Sampling and Stewardship Dashboard"
-          src="${CRANE_POWER_BI_URL}"
-        ></iframe>
+    <section class="crane-tab-bar-block">
+      ${craneThemeSectionTitle(group.name, titlePrefix)}
+      <div class="crane-tab-bars">
+        ${items
+          .map(
+            (item) => `
+              <div class="crane-tab-bar">
+                <span title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.shortLabel || item.label, 34))}</span>
+                <div><i style="width:${Math.max(3, Math.min(100, item.estimate))}%"></i></div>
+                <strong>${craneFormatPercent(item.estimate, item.estimate % 1 ? 1 : 0)}</strong>
+              </div>
+            `,
+          )
+          .join("")}
       </div>
     </section>
   `;
+}
+
+function craneThemeColumns(group, titlePrefix = "") {
+  const items = [...group.items].sort((a, b) => (a.shortLabel || "").localeCompare(b.shortLabel || "")).slice(0, 5);
+  const max = Math.max(...items.map((item) => item.estimate || 0), 1);
+  return `
+    <section class="crane-tab-column-block">
+      ${craneThemeSectionTitle(group.name, titlePrefix)}
+      <div class="crane-tab-columns">
+        ${items
+          .map(
+            (item, index) => `
+              <div>
+                <strong>${craneFormatPercent(item.estimate, item.estimate % 1 ? 1 : 0)}</strong>
+                <i class="crane-tab-col-${(index % 3) + 1}" style="height:${Math.max(6, ((item.estimate || 0) / max) * 100)}%"></i>
+                <span>${escapeHtml(shorten(item.shortLabel || item.label, 18))}</span>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function craneThemeStatCards(groups) {
+  const picked = [];
+  groups.forEach((group) => {
+    if (picked.length >= 4 || group.name === "Other") return;
+    const preferred =
+      group.items.find((item) => /^(Yes|Ugandan|Last 6 months|Current|Ever|Hospital|Condoms|Aware|On ART|Stage 1)/i.test(item.shortLabel || "")) ||
+      group.items.find((item) => !/^(No|Never|Other)/i.test(item.shortLabel || "")) ||
+      group.items[0];
+    if (preferred && Number.isFinite(preferred.estimate)) {
+      picked.push({
+        value: preferred.estimate,
+        label: preferred.shortLabel || preferred.label,
+        group: group.name,
+      });
+    }
+  });
+
+  return `
+    <section class="crane-tab-stat-strip">
+      <p>Additional weighted characteristics:</p>
+      <div>
+        ${picked
+          .map(
+            (item, index) => `
+              <article>
+                <span class="crane-tab-icon" aria-hidden="true">${craneTabIcon(index)}</span>
+                <strong>${craneFormatPercent(item.value, item.value % 1 ? 1 : 0)}</strong>
+                <small>${escapeHtml(shorten(item.label, 34))}<br />${escapeHtml(shorten(item.group.toLowerCase(), 26))}</small>
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function craneTabIcon(index) {
+  const icons = [
+    '<svg viewBox="0 0 32 32"><rect x="7" y="5" width="18" height="22" rx="3"></rect><path d="M10 11h12M10 16h12M10 21h8"></path></svg>',
+    '<svg viewBox="0 0 32 32"><path d="M7 19c5-8 13-8 18 0"></path><path d="M10 19v7h12v-7"></path><path d="M13 11a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z"></path></svg>',
+    '<svg viewBox="0 0 32 32"><path d="M5 15 16 6l11 9"></path><path d="M8 14v12h16V14"></path><path d="M13 26v-7h6v7"></path></svg>',
+    '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"></circle><path d="m9 23 14-14"></path><path d="M12 12h8v8"></path></svg>',
+  ];
+  return icons[index % icons.length];
+}
+
+function craneThemeNarrative(theme, donutGroups, barGroups) {
+  const leads = [...donutGroups, ...barGroups]
+    .map((group) => {
+      const top = [...group.items].sort((a, b) => (b.estimate || 0) - (a.estimate || 0))[0];
+      return top ? `${craneFormatPercent(top.estimate, top.estimate % 1 ? 1 : 0)} ${top.shortLabel || top.label} (${group.name})` : "";
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+  return `
+    <p class="crane-tab-narrative">
+      ${escapeHtml(
+        leads.length
+          ? `${theme.name} weighted estimates highlight ${leads.join(", ")}.`
+          : `${theme.name} weighted estimates are summarized below.`,
+      )}
+    </p>
+  `;
+}
+
+function craneSummarySheet(data) {
+  const demographics = craneFindTheme(data, "A");
+  const burden = craneFindTheme(data, "E");
+  const sampleBySite = new Map(data.enrollmentBySite.map((row) => [row.site, row.eligible]));
+  const pseRows = data.populationEstimates.map((row) => ({ ...row, sample: sampleBySite.get(row.site) || 0 }));
+  const demoBars = [
+    { label: "Uganda national", value: craneFindIndicator(demographics, /Ugandan national/i)?.estimate },
+    { label: "Has dependents", value: craneFindIndicator(demographics, /dependents: Yes/i)?.estimate },
+    { label: "Currently married", value: craneFindIndicator(demographics, /Marital status: Currently married/i)?.estimate },
+    { label: "Lives with spouse/partner", value: craneFindIndicator(demographics, /Lives with spouse or partner: Yes/i)?.estimate },
+    { label: "Ever homeless", value: craneFindIndicator(demographics, /Ever been homeless: Yes/i)?.estimate },
+    { label: "Completed primary school", value: craneFindIndicator(demographics, /Completed primary school/i)?.estimate },
+    { label: "Age 15-24 years", value: craneFindIndicator(demographics, /Age.*15-24/i)?.estimate },
+    { label: "Age 25-34 years", value: craneFindIndicator(demographics, /Age.*25-34/i)?.estimate },
+    { label: "Age 35-49 years", value: craneFindIndicator(demographics, /Age.*35-49/i)?.estimate },
+  ];
+  const hivBars = [
+    { label: "Overall", value: data.metrics.hivPrevalenceWeighted },
+    { label: "Age 15-24", value: craneFindIndicator(burden, /Prevalence among age groups: 15-24/i)?.estimate },
+    { label: "Age 25-34", value: craneFindIndicator(burden, /Prevalence among age groups: 25-34/i)?.estimate },
+    { label: "Age 35-49", value: craneFindIndicator(burden, /Prevalence among age groups: 35-49/i)?.estimate },
+  ];
+  const viremiaBars = [
+    { label: "Overall", value: craneFindIndicator(burden, /Viral unsuppressed.*Overall/i)?.estimate },
+    { label: "Age 15-24", value: craneFindIndicator(burden, /Viral unsuppressed.*15-24/i)?.estimate },
+    { label: "Age 25-34", value: craneFindIndicator(burden, /Viral unsuppressed.*25-34/i)?.estimate },
+    { label: "Age 35-49", value: craneFindIndicator(burden, /Viral unsuppressed.*35-49/i)?.estimate },
+  ];
+
+  return `
+    <article class="crane-summary-sheet">
+      <div class="crane-summary-logos">
+        <img src="/logos/moh_logo.png" alt="Ministry of Health" />
+        <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health" />
+      </div>
+      <header>
+        Crane 3 Survey Summary - Female Sex Workers and Sexually Exploited Children, 12 Locations, Uganda, 2021-2023
+      </header>
+      <p class="crane-summary-methods">
+        <strong>Survey methods:</strong> Respondent-driven sampling surveys took place across 12 locations. Estimates are weighted unless otherwise stated.
+      </p>
+      <div class="crane-summary-layout">
+        <section>
+          ${cranePseReportTable(pseRows)}
+          <p class="crane-summary-note">
+            Table shows sample sizes and population size estimates for each location. Percent PSE is the estimated proportion of women ages 15-49 estimated to be FSW/SEC.
+          </p>
+        </section>
+        <section>
+          ${craneReportBars("Demographics", demoBars)}
+          <p class="crane-summary-note">Most FSW/SEC were Ugandan nationals, most had financial dependents, and the average age was 28 years.</p>
+        </section>
+        <section>
+          ${craneReportBars("HIV Prevalence and Population Viremia", hivBars, { divided: true })}
+          ${craneReportBars("Population viremia", viremiaBars, {
+            note: "Population viremia is the proportion of all FSW with unsuppressed HIV.",
+          })}
+        </section>
+        <section>
+          ${craneReportCascade(data.cascadeBySite)}
+          <p class="crane-summary-note">
+            HIV status awareness and treatment uptake are based on self-report and/or viral suppression.
+          </p>
+        </section>
+      </div>
+    </article>
+  `;
+}
+
+function craneDistrictOptions(data) {
+  return ["All", ...new Set((data.enrollmentBySite || []).map((row) => row.site).filter(Boolean))];
+}
+
+function craneSelectedDistrict() {
+  return craneState.district || "All";
+}
+
+function craneThemeByKey(data, key) {
+  const district = craneSelectedDistrict();
+  const siteTheme = district !== "All" ? data.siteThemes?.[district]?.[key] : null;
+  if (siteTheme) return siteTheme;
+  return data.themes.find((theme) => theme.key === key);
+}
+
+function craneItems(data, key, group, options = {}) {
+  const theme = craneThemeByKey(data, key);
+  return (theme?.allIndicators || [])
+    .filter((item) => (group ? item.group === group : true))
+    .filter((item) => Number.isFinite(item.estimate))
+    .filter((item) => (options.keepNoResponse ? true : !/response not provided|missing data|no reponse/i.test(item.label)))
+    .map((item) => ({
+      label: item.shortLabel || item.label.replace(/^.*?:\s*/, ""),
+      value: item.estimate,
+      raw: item,
+    }));
+}
+
+function craneFindValue(data, key, pattern, fallback = 0) {
+  const theme = craneThemeByKey(data, key);
+  const item = (theme?.allIndicators || []).find((indicator) => pattern.test(indicator.label));
+  return Number.isFinite(item?.estimate) ? item.estimate : fallback;
+}
+
+function craneSiteContext(data) {
+  const district = craneSelectedDistrict();
+  const all = district === "All";
+  const enrollment = all
+    ? { eligible: data.metrics.participants }
+    : data.enrollmentBySite.find((row) => row.site === district) || {};
+  const prevalence = all
+    ? {
+        hiv: data.metrics.hivPrevalenceWeighted,
+        hpv: data.metrics.hpvAverageAcrossSites,
+        syphilis: data.metrics.syphilisAverageAcrossSites,
+      }
+    : data.prevalenceBySite.find((row) => row.site === district) || {};
+  const cascade = all
+    ? {
+        conditionalAware: average(data.cascadeBySite, "conditionalAware"),
+        conditionalArt: average(data.cascadeBySite, "conditionalArt"),
+        conditionalVls: average(data.cascadeBySite, "conditionalVls"),
+        unconditionalAware: average(data.cascadeBySite, "unconditionalAware"),
+        unconditionalArt: average(data.cascadeBySite, "unconditionalArt"),
+        unconditionalVls: average(data.cascadeBySite, "unconditionalVls"),
+      }
+    : data.cascadeBySite.find((row) => row.site === district) || {};
+  return {
+    district,
+    enrollment,
+    prevalence,
+    cascade,
+    sample: enrollment.eligible || data.metrics.participants,
+  };
+}
+
+function cranePct(value, digits = 0) {
+  if (!Number.isFinite(value)) return "0%";
+  return `${Number(value).toFixed(digits).replace(/\.0$/, "")}%`;
+}
+
+function craneCountFromPct(sample, pct) {
+  return Math.round((sample || 0) * ((pct || 0) / 100));
+}
+
+function craneReportBarPanel(title, items, options = {}) {
+  const max = options.max || Math.max(100, ...items.map((item) => item.value || 0));
+  const axis = options.axis ? `<span class="crane-report-axis">${escapeHtml(options.axis)}</span>` : "";
+  return `
+    <article class="crane-sentinel-panel ${options.wide ? "wide" : ""}">
+      <h2>${escapeHtml(title)}</h2>
+      <div class="crane-report-bars ${options.compact ? "compact" : ""}">
+        ${axis}
+        ${items
+          .map((item) => {
+            const value = Number.isFinite(item.value) ? item.value : 0;
+            const width = Math.max(value > 0 ? 1 : 0.25, Math.min(100, (value / max) * 100));
+            return `
+              <div class="crane-report-row ${item.ruleAfter ? "has-rule" : ""}">
+                <span class="crane-report-label" title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.label, options.labelLength || 42))}</span>
+                <div class="crane-report-track">
+                  <i style="width:${width}%"></i>
+                  <strong>${escapeHtml(item.display || cranePct(value, value % 1 ? 1 : 0))}</strong>
+                </div>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function craneMetricRail(ctx, data) {
+  const hiv = Number.isFinite(ctx.prevalence.hiv) ? ctx.prevalence.hiv : data.metrics.hivPrevalenceWeighted;
+  const syphilis = Number.isFinite(ctx.prevalence.syphilis) ? ctx.prevalence.syphilis : data.metrics.syphilisAverageAcrossSites;
+  const hpv = Number.isFinite(ctx.prevalence.hpv) ? ctx.prevalence.hpv : data.metrics.hpvAverageAcrossSites;
+  return `
+    <aside class="crane-metric-rail">
+      <div class="crane-people-icon" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <article>
+        <strong>${formatNumber(ctx.sample)}</strong>
+        <span>Sample size</span>
+        <strong>${cranePct(hiv)}</strong>
+        <span>HIV prevalence</span>
+        <strong>${cranePct(syphilis)}</strong>
+        <span>Syphilis prevalence</span>
+        <strong>${cranePct(hpv)}</strong>
+        <span>HPV prevalence</span>
+      </article>
+    </aside>
+  `;
+}
+
+function craneMiniStatPanel(title, items) {
+  return `
+    <article class="crane-mini-panel">
+      <h2>${escapeHtml(title)}</h2>
+      <div>
+        ${items
+          .map(
+            (item) => `
+              <p>
+                <strong>${escapeHtml(item.value)}</strong>
+                <span>${escapeHtml(item.label)}</span>
+              </p>
+            `,
+          )
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function craneGauge(value) {
+  const bounded = Math.max(0, Math.min(100, value || 0));
+  return `
+    <article class="crane-gauge-card">
+      <div class="crane-gauge" style="--value:${bounded}">
+        <span>0%</span>
+      </div>
+    </article>
+  `;
+}
+
+function craneTabLayout(title, accent, body, data) {
+  const district = craneSelectedDistrict();
+  return `
+    <section class="crane-sentinel-view">
+      <header class="crane-sentinel-title">
+        <h1>IBBS Sentinel Surveillance Dashboard - <strong>${escapeHtml(title)}</strong>${accent ? ` <b>| ${escapeHtml(accent)}</b>` : ""}</h1>
+        <label class="crane-district-filter">
+          <span>District</span>
+          <select data-crane-district aria-label="Filter dashboard by district">
+            ${craneDistrictOptions(data)
+              .map((site) => `<option value="${escapeHtml(site)}" ${site === district ? "selected" : ""}>${escapeHtml(site)}</option>`)
+              .join("")}
+          </select>
+        </label>
+      </header>
+      ${body}
+    </section>
+  `;
+}
+
+function craneGroupedRows(data, key, groups) {
+  return groups.flatMap((group, groupIndex) =>
+    craneItems(data, key, group.name || group, group.options || {}).map((item, itemIndex, arr) => ({
+      label: group.labelMap?.[item.label] || item.label,
+      value: item.value,
+      ruleAfter: itemIndex === arr.length - 1 && groupIndex < groups.length - 1,
+    })),
+  );
+}
+
+function craneFallbackItems(labels) {
+  return labels.map(([label, value]) => ({ label, value }));
+}
+
+function craneTabDefinitions(data) {
+  return [
+    {
+      id: "demographics",
+      label: "Demographics",
+      title: "Demographics",
+      accent: "HIV & VL Prev.",
+      render: (ctx) => {
+        const hiv = ctx.prevalence.hiv || data.metrics.hivPrevalenceWeighted;
+        const unsuppressed = 100 - (ctx.cascade.unconditionalVls || 77.9);
+        const demoItems = [
+          { label: "Ugandan national", value: craneFindValue(data, "A", /Nationality: Ugandan national/i) },
+          { label: "Has financial dependants", value: craneFindValue(data, "A", /dependents: Yes/i) },
+          { label: "Currently married", value: craneFindValue(data, "A", /Marital status: Currently married/i) },
+          { label: "Lives w/ spouse or partner", value: craneFindValue(data, "A", /Lives with spouse or partner: Yes/i) },
+          { label: "Ever been homeless", value: craneFindValue(data, "A", /Ever been homeless: Yes/i) },
+          { label: "Completed primary", value: craneFindValue(data, "A", /Education: Completed primary/i) },
+          ...craneItems(data, "A", "Age").map((item) => ({ ...item, label: `Age ${item.label}` })),
+        ];
+        const hivItems = [
+          { label: "HIV unsuppressed among 18 - 24", value: craneFindValue(data, "E", /Viral unsuppressed.*15-24/i) },
+          { label: "Overall HIV prevalence", value: hiv },
+          ...craneItems(data, "E", "Prevalence among age groups").map((item) => ({ ...item, label: `HIV among ${item.label.replace(/years.*$/i, "years")}` })),
+          { label: "Overall unsuppressed HIV", value: unsuppressed },
+          ...craneItems(data, "E", "Viral unsuppressed& among age groups").slice(1).map((item) => ({ ...item, label: `HIV unsuppressed among ${item.label.replace(/years.*$/i, "years")}` })),
+        ];
+        return craneTabLayout(
+          "Demographics",
+          "HIV & VL Prev.",
+          `
+            <div class="crane-demo-grid">
+              ${craneMetricRail(ctx, data)}
+              <div class="crane-demo-main">
+                <div class="crane-mini-grid">
+                  ${craneMiniStatPanel("HIV status", [
+                    { value: formatNumber(craneCountFromPct(ctx.sample, hiv)), label: "HIV Positives" },
+                    { value: formatNumber(Math.max(0, ctx.sample - craneCountFromPct(ctx.sample, hiv))), label: "HIV Negatives" },
+                  ])}
+                  ${craneMiniStatPanel("Age groups", [
+                    { value: formatNumber(craneCountFromPct(ctx.sample, craneFindValue(data, "A", /Age: 15-24/i))), label: "18 - 24 Years" },
+                    { value: formatNumber(craneCountFromPct(ctx.sample, craneFindValue(data, "A", /Age: 25-34/i))), label: "25 - 34 Years" },
+                    { value: formatNumber(craneCountFromPct(ctx.sample, craneFindValue(data, "A", /Age: 35-49/i))), label: "35 - 49 Years" },
+                  ])}
+                  ${craneMiniStatPanel("Viral load suppression", [
+                    { value: formatNumber(craneCountFromPct(craneCountFromPct(ctx.sample, hiv), ctx.cascade.unconditionalVls || 77.9)), label: "Suppressed" },
+                    { value: formatNumber(craneCountFromPct(craneCountFromPct(ctx.sample, hiv), unsuppressed)), label: "Unsuppressed" },
+                  ])}
+                  ${craneGauge(ctx.cascade.unconditionalVls || 77.9)}
+                </div>
+                <div class="crane-two-cols">
+                  ${craneReportBarPanel("Demographic characteristics", demoItems, { labelLength: 36 })}
+                  ${craneReportBarPanel("HIV prevalence and viral load", hivItems, { labelLength: 42 })}
+                </div>
+              </div>
+            </div>
+          `,
+          data,
+        );
+      },
+    },
+    {
+      id: "targets",
+      label: "95-95-95",
+      title: "UNAIDS 95-95-95 Targets",
+      accent: "CD4 counts and Low Viremia",
+      render: (ctx) =>
+        craneTabLayout(
+          "UNAIDS 95-95-95 Targets",
+          "CD4 counts and Low Viremia",
+          `<div class="crane-centered-two">
+            ${craneReportBarPanel("CD4 Counts & Low-level Viremia", [
+              ...craneItems(data, "M", "CD4 count").map((item) => ({ ...item, label: item.label.replace(/Stage \d \(|\)/g, "") })),
+              ...craneItems(data, "M", "Viral Load Count (copies/mL)").slice(0, 3),
+            ])}
+            ${craneReportBarPanel("UNAIDS 95-95-95 Targets", [
+              { label: "Among all HIV-pos, aware of status", value: ctx.cascade.conditionalAware || craneFindValue(data, "L", /Conditional: Aware/i) },
+              { label: "Among status-aware, on ART", value: ctx.cascade.conditionalArt || craneFindValue(data, "L", /Conditional: On ART/i) },
+              { label: "Among treated, virally suppressed", value: ctx.cascade.conditionalVls || craneFindValue(data, "L", /Conditional: Virally suppressed/i), ruleAfter: true },
+              { label: "Among all HIV-pos, aware of status", value: ctx.cascade.unconditionalAware || craneFindValue(data, "L", /Unconditional: Aware/i) },
+              { label: "Among status-aware, on ART", value: ctx.cascade.unconditionalArt || craneFindValue(data, "L", /Unconditional: On ART/i) },
+              { label: "Among treated, virally suppressed", value: ctx.cascade.unconditionalVls || craneFindValue(data, "L", /Unconditional: Virally suppressed/i) },
+            ], { axis: "Conditional / Unconditional" })}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "sti-pregnancy",
+      label: "SYP HPV",
+      title: "Active Syphilis and HPV",
+      accent: "Maternal Health: Pregnancy",
+      render: (ctx) =>
+        craneTabLayout(
+          "Active Syphilis and HPV",
+          "Maternal Health: Pregnancy",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Active Syphilis and HPV Prevalence", [
+              { label: "Overall SYP prevalence", value: ctx.prevalence.syphilis || data.metrics.syphilisAverageAcrossSites },
+              ...craneItems(data, "E", "Active Syphilis#").slice(0, 2),
+              ...craneItems(data, "E", "Active Syphilis by age group").slice(0, 3),
+              { label: "Overall HPV prevalence", value: ctx.prevalence.hpv || data.metrics.hpvAverageAcrossSites, ruleAfter: true },
+              ...craneItems(data, "E", "HPV*").slice(0, 2),
+              ...craneItems(data, "E", "HPV by age group").slice(0, 3),
+            ], { axis: "Active Syphilis / HPV prevalence" })}
+            ${craneReportBarPanel("Maternal Health: Pregnancy", [
+              { label: "Current using family planning", value: craneFindValue(data, "F", /Current family planning use: Yes/i) },
+              { label: "Ever been pregnant", value: craneFindValue(data, "F", /Ever been pregnant: Yes/i) },
+              { label: "Sold sex while pregnant", value: craneFindValue(data, "F", /Pregnant while selling sex: Yes/i) },
+              { label: "Ever had miscarriage", value: craneFindValue(data, "F", /Ever suffered miscarriage.*Yes/i) },
+              { label: "Ever terminated a pregnancy", value: craneFindValue(data, "F", /terminated pregnancy: Yes|abortion: Yes/i) },
+            ])}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "maternal-art",
+      label: "Maternal HIV",
+      title: "Maternal Health Ante- and Postnatal HIV Testing",
+      accent: "ANC, ART",
+      render: () =>
+        craneTabLayout(
+          "Maternal Health Ante- and Postnatal HIV Testing",
+          "ANC, ART",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Maternal Health: Ante- and Postnatal HIV Testing", [
+              ...craneItems(data, "F", "Number of HIV tests during pregnancy").slice(0, 3),
+              ...craneItems(data, "F", "HIV testing while breastfeeding (among those who tested HIV-negative during pregnancy)").slice(0, 3),
+            ], { axis: "Antenatal / Postnatal HIV Testing" })}
+            ${craneReportBarPanel("Maternal Health: Antenatal Care (ANC) and ART", [
+              { label: "Received ANC care", value: craneFindValue(data, "F", /Attended antenatal care: Yes/i) },
+              { label: "ANC provider aware of FSW status", value: craneFindValue(data, "F", /Sex work disclosure to ANC provider: Yes/i) },
+              { label: "ANC provider treated FSW with respect", value: craneFindValue(data, "F", /Stigma experienced in ANC setting: No/i) },
+              { label: "Took ARV while pregnant", value: craneFindValue(data, "F", /Took ARV while pregnant: Yes/i) },
+            ], { axis: "ANC experience / ART adherence" })}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "substance-mental",
+      label: "Substance",
+      title: "Alcohol, Drug use, Depression",
+      accent: "",
+      render: () =>
+        craneTabLayout(
+          "Alcohol, Drug use, Depression",
+          "",
+          `<div class="crane-single-left">
+            ${craneReportBarPanel("Alcohol, Drug Use, Depression", [
+              { label: "Alcohol misuse", value: craneFindValue(data, "O", /Last alcoholic drink: In last 12 months/i) },
+              { label: "Alcohol use during sex work", value: craneFindValue(data, "O", /during sex work/i) },
+              { label: "Drug use ever", value: craneFindValue(data, "P", /History of drug use: Yes/i) },
+              { label: "Drug use during SW", value: craneFindValue(data, "P", /drug use while selling sex: Yes/i) },
+              { label: "Injected drugs ever", value: craneFindValue(data, "P", /Ever injected drugs: Yes/i) },
+              { label: "Injected drugs in last 6 months", value: craneFindValue(data, "P", /Ever injected drugs: Yes, in the last 6 months/i) },
+              { label: "Likely depression", value: craneFindValue(data, "Q", /Likely depression: Yes/i) },
+            ])}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "stigma-mortality",
+      label: "Stigma",
+      title: "Sex work (SW), Related Stigma",
+      accent: "Mortality among Peers",
+      render: () =>
+        craneTabLayout(
+          "Sex work (SW), Related Stigma",
+          "Mortality among Peers",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Sex Work(SW) Related Stigma", [
+              { label: "Ever experienced stigma", value: craneFindValue(data, "C", /Avoids health care.*Yes, often/i) + craneFindValue(data, "C", /Avoids health care.*Yes, sometimes/i) },
+              { label: "Ever denied healthcare due to SW", value: craneFindValue(data, "C", /Denied health care.*within/i) + craneFindValue(data, "C", /Denied health care.*more than/i) },
+              { label: "Comfortable disclosing sex work status to HCW", value: craneFindValue(data, "C", /Comfortable disclosing.*Yes/i) },
+              { label: "Avoid seeking healthcare because of stigma", value: craneFindValue(data, "C", /Avoids health care.*Yes, often/i) + craneFindValue(data, "C", /Avoids health care.*Yes, sometimes/i) },
+            ], { axis: "Types of Stigma Reported" })}
+            ${craneReportBarPanel("Mortality among peers", craneFallbackItems([
+              ["Suicide", 3],
+              ["Abortion related", 17],
+              ["Accident", 10],
+              ["Disease", 24],
+              ["Murder", 64],
+              ["Don't know", 49],
+            ]), { axis: "Cause of Death" })}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "outreach-testing",
+      label: "Outreach",
+      title: "Outreach services",
+      accent: "HIV Testing",
+      render: () =>
+        craneTabLayout(
+          "Outreach services",
+          "HIV Testing",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Outreach Services", craneGroupedRows(data, "G", [
+              { name: "Exposed to outreach", labelMap: { "Over 6 months ago": "> 6 months ago" } },
+              { name: "Outreach services received" },
+            ]), { axis: "Reached with HIV Prevention Service / Received at last encounter" })}
+            ${craneReportBarPanel("HIV Testing", [
+              { label: "Ever tested", value: craneFindValue(data, "D", /History of HIV testing: Ever tested/i), ruleAfter: true },
+              ...craneItems(data, "D", "Duration since last HIV test").slice(0, 4),
+              { label: "Disclose SW to testing provider", value: craneFindValue(data, "D", /Sex work disclosure to testing provider: Yes/i) },
+            ], { axis: "Time since last test" })}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "not-testing-prep",
+      label: "Not Testing",
+      title: "Reasons For Not Testing in the last 12 months",
+      accent: "PrEP",
+      render: () =>
+        craneTabLayout(
+          "Reasons For Not Testing in the last 12 months",
+          "PrEP",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Reason for Not Testing for HIV in the Last 12 months", craneItems(data, "D", "Reason for no HIV testing in last 12 months").slice(0, 6))}
+            ${craneReportBarPanel("Pre-Exposure Prophylaxis", [
+              { label: "Heard of PrEP", value: craneFindValue(data, "N", /Heard of PrEP/i) },
+              { label: "Was offered PrEP", value: craneFindValue(data, "N", /Was offered PrEP/i) },
+              { label: "Know where to get PrEP", value: craneFindValue(data, "N", /Know where to get PrEP/i) },
+              { label: "Want to use PrEP", value: craneFindValue(data, "N", /Want to use PrEP/i), ruleAfter: true },
+              ...craneItems(data, "N", "History of PrEP use").slice(0, 4),
+            ], { axis: "Use among those who heard of PrEP" })}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "sex-work",
+      label: "Sex Work",
+      title: "Sex work Characteristics",
+      accent: "Where Sex Workers Meet Clients",
+      render: () =>
+        craneTabLayout(
+          "Sex work Characteristics",
+          "Where Sex Workers Meet Clients",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Sex Work Characteristics", [
+              { label: "Selling sex is main income", value: craneFindValue(data, "B", /Main income.*Yes|commercial sex.*main source/i, 79) },
+              { label: "Sex work < 1 year", value: craneFindValue(data, "B", /Duration of sex work.*<\s*1|Duration of sex work.*less/i, 22) },
+              { label: "Sex work 1-3 year", value: craneFindValue(data, "B", /Duration of sex work.*1.*3/i, 34) },
+              { label: "Sex work > 3 years", value: craneFindValue(data, "B", /Duration of sex work.*>\s*3|Duration of sex work.*more/i, 44) },
+            ])}
+            ${craneReportBarPanel("Where Sex Workers Meet Clients", craneItems(data, "B", "Sex work location"))}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "violence-condoms",
+      label: "Violence",
+      title: "Experienced Violence",
+      accent: "Sex Acts & Condom Use",
+      render: () =>
+        craneTabLayout(
+          "Experienced Violence",
+          "Sex Acts & Condom Use",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Experienced Violence", [
+              { label: "Ever been raped", value: craneFindValue(data, "B", /Experience of rape.*Raped within/i) + craneFindValue(data, "B", /Experience of rape.*more than/i) },
+              { label: "Ever been hurt", value: craneFindValue(data, "B", /History of physical abuse: In last/i) + craneFindValue(data, "B", /History of physical abuse: More than/i) },
+              { label: "Experienced theft ever", value: craneFindValue(data, "B", /History of non-payment.*Theft in last/i) + craneFindValue(data, "B", /History of non-payment.*more than/i), ruleAfter: true },
+              { label: "Raped in last 12 months (all)", value: craneFindValue(data, "B", /Experience of rape.*Raped within last 12 months/i) },
+              { label: "Raped in last 12 months (HIV+)", value: craneFindValue(data, "B", /Experience of rape.*Raped within last 12 months/i) },
+              { label: "Hurt in last 12 months (all)", value: craneFindValue(data, "B", /History of physical abuse: In last 12 months/i), ruleAfter: true },
+              { label: "Hurt in last 12 months (HIV+)", value: craneFindValue(data, "B", /History of physical abuse: In last 12 months/i) },
+              { label: "Theft in last 12 months (all)", value: craneFindValue(data, "B", /History of non-payment.*Theft in last 12 months/i) },
+              { label: "Experienced theft in last 12 months (HIV+)", value: craneFindValue(data, "B", /History of non-payment.*Theft in last 12 months/i) },
+            ], { axis: "Raped / Beaten / Theft" })}
+            ${craneReportBarPanel("Sex Acts & Condom Use", [
+              ...craneItems(data, "B", "Condom use during last three sex acts&").slice(0, 3),
+              { label: "Ever had anal sex", value: craneFindValue(data, "B", /History of anal sex: Yes/i) },
+              { label: "Condom at last anal sex", value: craneFindValue(data, "B", /Condom use during last anal sex act.*Yes/i) },
+            ])}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "missed-arv",
+      label: "Missed ARV",
+      title: "Missed ARV Dose(s)",
+      accent: "Missed ARV Refill",
+      render: () =>
+        craneTabLayout(
+          "Missed ARV Dose(s)",
+          "Missed ARV Refill",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Missed ARV Dose(s)", craneItems(data, "K", "Reason for missing taking ARVs").length ? craneItems(data, "K", "Reason for missing taking ARVs").slice(0, 7) : craneFallbackItems([
+              ["Bad taste of drugs", 30],
+              ["No ART supplies", 21.5],
+              ["Missed in last 3 months", 36.2],
+              ["Forgot to swallow", 42.5],
+              ["Illness", 20.3],
+              ["Other", 20.7],
+            ]), { axis: "Reason for missing taking ARVs" })}
+            ${craneReportBarPanel("Missed ARV Refill", craneItems(data, "K", "Reason for missed ART refill").slice(0, 7), { axis: "Reason for missing ARV Refill" })}
+          </div>`,
+          data,
+        ),
+    },
+    {
+      id: "tb-art",
+      label: "TB / ART",
+      title: "Tuberculosis(TB) among FSW",
+      accent: "SEC Living with HIV",
+      render: () =>
+        craneTabLayout(
+          "Tuberculosis(TB) among FSW",
+          "SEC Living with HIV",
+          `<div class="crane-two-cols tall">
+            ${craneReportBarPanel("Select ART Characteristics", [
+              ...craneItems(data, "K", "Number of providers since ART Initiation").slice(0, 3),
+              ...craneItems(data, "K", "ART provider").slice(0, 3),
+            ], { axis: "No. ART service sites since starting ART / Current ART provider" })}
+            ${craneReportBarPanel("Tuberculosis(TB) Among FSW Living with HIV", [
+              { label: "Screened for TB symptoms", value: craneFindValue(data, "J", /Screened for TB symptoms after testing HIV\+: Yes/i) },
+              { label: "Tested for TB", value: craneFindValue(data, "J", /Tested for TB: Yes|Told having TB.*Yes/i) },
+              { label: "Informed of TB diagnosis", value: craneFindValue(data, "J", /Told having TB.*Yes/i), ruleAfter: true },
+              { label: "Treated for TB", value: craneFindValue(data, "J", /Treated for TB: Yes/i) },
+              { label: "Preventative therapy", value: craneFindValue(data, "J", /Preventive|Preventative/i) },
+            ])}
+          </div>`,
+          data,
+        ),
+    },
+  ];
+}
+
+function craneFreshTheme(data) {
+  const firstTheme = data.themes[0];
+  return data.themes.find((theme) => theme.key === craneState.activeTheme) || firstTheme;
+}
+
+function craneFreshIndicators(theme) {
+  return (theme?.allIndicators || [])
+    .filter((item) => Number.isFinite(item.estimate))
+    .filter((item) => !/response not provided|missing data|no reponse|\* For continuous variables/i.test(item.label))
+    .map((item) => ({
+      ...item,
+      displayLabel: item.shortLabel || item.label.replace(/^.*?:\s*/, ""),
+    }));
+}
+
+function craneFreshGroups(theme) {
+  const groups = new Map();
+  craneFreshIndicators(theme).forEach((item) => {
+    const key = item.group || "Summary indicators";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+  return [...groups.entries()].map(([name, items]) => ({ name, items }));
+}
+
+function craneFreshFormat(value) {
+  if (!Number.isFinite(value)) return "0%";
+  if (value > 100) return formatNumber(Math.round(value));
+  return `${value.toFixed(value % 1 ? 1 : 0)}%`;
+}
+
+function craneFreshColor(index) {
+  return [
+    "#A64468",
+    "#315f72",
+    "#e29aad",
+    "#62a87c",
+    "#d89b4c",
+    "#6b5fb5",
+    "#7c8da3",
+    "#c95f7d",
+  ][index % 8];
+}
+
+function craneFreshTopCards(theme) {
+  const indicators = craneFreshIndicators(theme)
+    .filter((item) => item.estimate <= 100)
+    .sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
+    .slice(0, 4);
+  return `
+    <section class="crane-fresh-kpis" aria-label="Weighted highlight indicators">
+      ${indicators
+        .map(
+          (item, index) => `
+            <article>
+              <span style="--card-color:${craneFreshColor(index)}"></span>
+              <strong>${craneFreshFormat(item.estimate)}</strong>
+              <p>${escapeHtml(shorten(item.displayLabel, 44))}</p>
+              <small>${escapeHtml(shorten(item.group || theme.name, 34))}</small>
+            </article>
+          `,
+        )
+        .join("")}
+    </section>
+  `;
+}
+
+function craneFreshDonut(title, items) {
+  const slices = items.filter((item) => item.estimate >= 0).slice(0, 6);
+  const total = slices.reduce((sum, item) => sum + Math.max(0, item.estimate || 0), 0) || 1;
+  let start = 0;
+  const segments = slices
+    .map((item, index) => {
+      const end = start + (Math.max(0, item.estimate || 0) / total) * 100;
+      const segment = `${craneFreshColor(index)} ${start}% ${end}%`;
+      start = end;
+      return segment;
+    })
+    .join(", ");
+  return `
+    <article class="crane-viz-card crane-viz-donut" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)}</h2>
+        <span>Weighted share</span>
+      </header>
+      <div class="crane-fresh-donut-wrap">
+        <div class="crane-fresh-donut" style="background: conic-gradient(${segments});">
+          <strong>${slices.length}</strong>
+          <span>items</span>
+        </div>
+        <div class="crane-fresh-legend">
+          ${slices
+            .map(
+              (item, index) => `
+                <p>
+                  <i style="background:${craneFreshColor(index)}"></i>
+                  <span>${escapeHtml(shorten(item.displayLabel, 32))}</span>
+                  <strong>${craneFreshFormat(item.estimate)}</strong>
+                </p>
+              `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function craneFreshBars(title, items, options = {}) {
+  const sorted = [...items]
+    .filter((item) => Number.isFinite(item.estimate))
+    .sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
+    .slice(0, options.limit || 9);
+  const max = Math.max(100, ...sorted.map((item) => item.estimate || 0));
+  return `
+    <article class="crane-viz-card ${options.wide ? "wide" : ""}" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)}</h2>
+        <span>Weighted estimate</span>
+      </header>
+      <div class="crane-fresh-bars">
+        ${sorted
+          .map((item, index) => {
+            const width = Math.max(1, Math.min(100, ((item.estimate || 0) / max) * 100));
+            return `
+              <div class="crane-fresh-bar">
+                <span title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.displayLabel, options.labelLength || 42))}</span>
+                <div><i style="width:${width}%; background:${craneFreshColor(index)}"></i></div>
+                <strong>${craneFreshFormat(item.estimate)}</strong>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function craneFreshLollipop(title, groups) {
+  const items = groups
+    .map((group) => ({
+      displayLabel: group.name,
+      estimate: Math.max(...group.items.map((item) => item.estimate || 0)),
+      label: group.name,
+    }))
+    .filter((item) => Number.isFinite(item.estimate))
+    .sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
+    .slice(0, 8);
+  const max = Math.max(100, ...items.map((item) => item.estimate || 0));
+  return `
+    <article class="crane-viz-card" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)}</h2>
+        <span>Highest value per group</span>
+      </header>
+      <div class="crane-lollipop-list">
+        ${items
+          .map((item, index) => `
+            <div>
+              <span>${escapeHtml(shorten(item.displayLabel, 30))}</span>
+              <p><i style="width:${Math.max(3, ((item.estimate || 0) / max) * 100)}%; --dot:${craneFreshColor(index)}"></i></p>
+              <strong>${craneFreshFormat(item.estimate)}</strong>
+            </div>
+          `)
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function craneFreshRadials(title, items) {
+  const picked = items
+    .filter((item) => item.estimate <= 100)
+    .sort((a, b) => (b.estimate || 0) - (a.estimate || 0))
+    .slice(0, 4);
+  return `
+    <article class="crane-viz-card" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)}</h2>
+        <span>Top weighted values</span>
+      </header>
+      <div class="crane-radial-grid">
+        ${picked
+          .map((item, index) => `
+            <div class="crane-radial" style="--value:${Math.max(0, Math.min(100, item.estimate || 0))}; --radial-color:${craneFreshColor(index)}">
+              <strong>${craneFreshFormat(item.estimate)}</strong>
+              <span>${escapeHtml(shorten(item.displayLabel, 28))}</span>
+            </div>
+          `)
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function craneFreshDistrictCard(data) {
+  const ctx = craneSiteContext(data);
+  const district = ctx.district;
+  const pop = district === "All" ? null : data.populationEstimateSummary.find((row) => row.site === district);
+  return `
+    <article class="crane-viz-card crane-district-card" data-crane-chart="${escapeHtml(district === "All" ? "All districts" : district)}">
+      <header>
+        <h2>${escapeHtml(district === "All" ? "All districts" : district)}</h2>
+        <span>District context</span>
+      </header>
+      <div>
+        <p><strong>${formatNumber(ctx.sample)}</strong><span>sample size</span></p>
+        <p><strong>${craneFreshFormat(ctx.prevalence.hiv)}</strong><span>HIV prevalence</span></p>
+        <p><strong>${craneFreshFormat(ctx.prevalence.syphilis)}</strong><span>Syphilis prevalence</span></p>
+        <p><strong>${craneFreshFormat(ctx.prevalence.hpv)}</strong><span>HPV prevalence</span></p>
+        ${pop ? `<p><strong>${formatNumber(pop.estimate)}</strong><span>population estimate</span></p>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function craneBoardIcon(name) {
+  const icons = {
+    overview: '<path d="M11 4a7 7 0 1 0 7 7h-7V4Z"></path><path d="M14 3.3V8h4.7A7 7 0 0 0 14 3.3Z"></path>',
+    demographics: '<path d="M8 18v-1a4 4 0 0 1 8 0v1"></path><circle cx="12" cy="9" r="3"></circle><path d="M3.5 18v-.8a3.2 3.2 0 0 1 4.2-3"></path><path d="M20.5 18v-.8a3.2 3.2 0 0 0-4.2-3"></path>',
+    heart: '<path d="M20.8 5.7a5 5 0 0 0-7.1 0L12 7.4l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21.6l8.8-8.8a5 5 0 0 0 0-7.1Z"></path>',
+    ribbon: '<path d="M12 3c3.2 4.2 4.9 8 5 11.5"></path><path d="M12 3c-3.2 4.2-4.9 8-5 11.5"></path><path d="m7 21 5-7 5 7"></path><circle cx="12" cy="8" r="3"></circle>',
+    maternal: '<path d="M13 4a3 3 0 1 0-2 5.8V13l-2 3 3 5 3-5-2-3V9.8A3 3 0 0 0 13 4Z"></path>',
+    test: '<path d="M9 3h6"></path><path d="M10 3v5l-4 8a4 4 0 0 0 3.6 5.8h4.8A4 4 0 0 0 18 16l-4-8V3"></path><path d="M8 15h8"></path>',
+    megaphone: '<path d="m4 14 12-5v10L4 14Z"></path><path d="M4 14v4a2 2 0 0 0 2 2h1"></path><path d="M19 10a4 4 0 0 1 0 8"></path>',
+    shield: '<path d="M12 3 5 6v6c0 4.6 3 7.7 7 9 4-1.3 7-4.4 7-9V6l-7-3Z"></path><path d="m9 12 2 2 4-5"></path>',
+    hand: '<path d="M7 12V6a1.5 1.5 0 0 1 3 0v5"></path><path d="M10 11V5a1.5 1.5 0 0 1 3 0v6"></path><path d="M13 11V7a1.5 1.5 0 0 1 3 0v6"></path><path d="M16 13v-2a1.5 1.5 0 0 1 3 0v3c0 5-3 8-7 8H9l-4-5 2-2 2 2"></path>',
+    violence: '<path d="M12 3 4 6v6c0 4 3 8 8 9 5-1 8-5 8-9V6l-8-3Z"></path><path d="M12 8v5"></path><path d="M12 16h.01"></path>',
+    bottle: '<path d="M10 2h4v5l2 2v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9l2-2V2Z"></path><path d="M8 14h8"></path>',
+    brain: '<path d="M8 8a3 3 0 0 1 5-2.2A3 3 0 0 1 18 8a3 3 0 0 1-1 5.8V17a3 3 0 0 1-5 2.2A3 3 0 0 1 7 17v-3.2A3 3 0 0 1 8 8Z"></path><path d="M12 6v13"></path>',
+    cascade: '<path d="M4 19h16"></path><path d="M6 16v-4"></path><path d="M12 16V8"></path><path d="M18 16V5"></path>',
+    pill: '<path d="M10 21a5 5 0 0 1-3.5-8.5l6-6a5 5 0 1 1 7 7l-6 6A5 5 0 0 1 10 21Z"></path><path d="m9 14 5 5"></path>',
+    lungs: '<path d="M12 12V4"></path><path d="M12 12c-4-4-7-2-7 3v5c4 0 6-3 7-8Z"></path><path d="M12 12c4-4 7-2 7 3v5c-4 0-6-3-7-8Z"></path>',
+    support: '<path d="M7 11a4 4 0 1 1 8 0"></path><path d="M3 21a8 8 0 0 1 16 0"></path><path d="M17 9h4"></path><path d="M19 7v4"></path>',
+    coins: '<ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v8c0 1.7 3.1 3 7 3s7-1.3 7-3V6"></path><path d="M5 10c0 1.7 3.1 3 7 3s7-1.3 7-3"></path>',
+  };
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name] || icons.overview}</svg>`;
+}
+
+function craneBoardTabs(data) {
+  const labels = {
+    A: "Demographics",
+    B: "Sexual Behaviour",
+    C: "Stigma",
+    D: "HIV Testing",
+    E: "HIV & STI",
+    F: "Maternal Health",
+    G: "Outreach Services",
+    H: "HIV Socio-demo",
+    J: "TB & NCD",
+    K: "ART Adherence",
+    L: "HIV Cascade",
+    M: "VL & CD4",
+    N: "PrEP",
+    O: "Substance Use",
+    Q: "Mental Health",
+    R: "Violence",
+  };
+  const icons = {
+    A: "demographics",
+    B: "heart",
+    C: "hand",
+    D: "test",
+    E: "ribbon",
+    F: "maternal",
+    G: "megaphone",
+    H: "cascade",
+    J: "lungs",
+    K: "pill",
+    L: "cascade",
+    M: "test",
+    N: "shield",
+    O: "bottle",
+    Q: "brain",
+    R: "violence",
+  };
+  const themeTabs = data.themes
+    .filter((theme) => theme.key !== "P")
+    .map((theme) => ({
+      id: theme.key === "O" ? "O+P" : theme.key,
+      label: labels[theme.key] || theme.name,
+      icon: icons[theme.key] || "heart",
+    }));
+  const tabs = [{ id: "overview", label: "Overview", icon: "overview" }].concat(themeTabs);
+  return tabs;
+}
+
+function craneBoardResolveTheme(data, id) {
+  if (id === "O+P") {
+    const alcohol = craneThemeByKey(data, "O");
+    const drugs = craneThemeByKey(data, "P");
+    return {
+      key: "O+P",
+      name: "Substance Use",
+      allIndicators: [...(alcohol?.allIndicators || []), ...(drugs?.allIndicators || [])],
+    };
+  }
+  return craneThemeByKey(data, id);
+}
+
+function craneBoardDonut(title, value, legendItems, options = {}) {
+  const bounded = Math.max(0, Math.min(100, value || 0));
+  return `
+    <article class="crane-board-card crane-board-donut-card ${options.className || ""}" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)} ${options.meta ? `<small>${escapeHtml(options.meta)}</small>` : ""}</h2>
+        <span class="crane-info">i</span>
+      </header>
+      <div class="crane-board-donut-layout">
+        <div class="crane-board-donut" style="--value:${bounded}">
+          <strong>${cranePct(value)}</strong>
+          <span>${escapeHtml(options.centerLabel || "weighted")}</span>
+        </div>
+        <div class="crane-board-donut-legend">
+          ${legendItems
+            .map(
+              (item, index) => `
+                <p>
+                  <i class="${index === 0 ? "primary" : ""}"></i>
+                  <span>${escapeHtml(item.label)}</span>
+                  <strong>${escapeHtml(item.value)}</strong>
+                </p>
+              `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function craneBoardSegmentDonut(title, items, options = {}) {
+  const total = items.reduce((sum, item) => sum + Math.max(0, item.value || 0), 0) || 1;
+  let start = 0;
+  const colors = ["#A64468", "#d586a2", "#ebb2c3", "#dcdfe6"];
+  const segments = items
+    .map((item, index) => {
+      const end = start + (Math.max(0, item.value || 0) / total) * 100;
+      const segment = `${colors[index % colors.length]} ${start}% ${end}%`;
+      start = end;
+      return segment;
+    })
+    .join(", ");
+  return `
+    <article class="crane-board-card crane-board-donut-card" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)} ${options.meta ? `<small>${escapeHtml(options.meta)}</small>` : ""}</h2>
+        <span class="crane-info">i</span>
+      </header>
+      <div class="crane-board-donut-layout">
+        <div class="crane-board-donut segmented" style="background: conic-gradient(${segments});">
+          <strong>${escapeHtml(options.center || "")}</strong>
+          <span>${escapeHtml(options.centerLabel || "")}</span>
+        </div>
+        <div class="crane-board-donut-legend">
+          ${items
+            .map(
+              (item, index) => `
+                <p>
+                  <i class="primary" style="background:${colors[index % colors.length]}"></i>
+                  <span>${escapeHtml(item.label)}</span>
+                  <strong>${escapeHtml(item.detail || cranePct(item.value))}</strong>
+                </p>
+              `,
+            )
+            .join("")}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function craneBoardHorizontalBars(title, items, options = {}) {
+  const max = options.max || Math.max(100, ...items.map((item) => item.value || 0));
+  return `
+    <article class="crane-board-card ${options.className || ""}" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)} ${options.meta ? `<small>${escapeHtml(options.meta)}</small>` : ""}</h2>
+        <span class="crane-info">i</span>
+      </header>
+      <div class="crane-board-bars">
+        ${items
+          .map((item) => {
+            const width = Math.max(1, Math.min(100, ((item.value || 0) / max) * 100));
+            return `
+              <div class="crane-board-bar">
+                <span title="${escapeHtml(item.label)}">${escapeHtml(shorten(item.label, options.labelLength || 42))}</span>
+                <div><i style="width:${width}%"></i></div>
+                <strong>${escapeHtml(item.display || cranePct(item.value))}</strong>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+      ${options.axis ? `<p class="crane-board-axis">${escapeHtml(options.axis)}</p>` : ""}
+    </article>
+  `;
+}
+
+function craneBoardMetricTile(label, value, context, icon) {
+  return `
+    <article>
+      <span class="crane-tile-icon">${craneBoardIcon(icon)}</span>
+      <div>
+        <small>${escapeHtml(label)}</small>
+        <strong>${escapeHtml(value)}</strong>
+        <em>${escapeHtml(context)}</em>
+      </div>
+    </article>
+  `;
+}
+
+function craneBoardLollipop(title, items) {
+  const max = Math.max(10, ...items.map((item) => item.value || 0));
+  return `
+    <article class="crane-board-card crane-board-lollipop-card" data-crane-chart="${escapeHtml(title)}">
+      <header>
+        <h2>${escapeHtml(title)} <small>(Weighted)</small></h2>
+        <span class="crane-info">i</span>
+      </header>
+      <div class="crane-board-lollipops">
+        ${items
+          .map(
+            (item) => `
+              <div>
+                <span>${escapeHtml(item.label)}</span>
+                <p><i style="width:${Math.max(2, ((item.value || 0) / max) * 100)}%"></i></p>
+                <strong>${escapeHtml(item.display || String(item.value))}</strong>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+      <p class="crane-board-axis">Years (Median)</p>
+    </article>
+  `;
+}
+
+function craneBoardOverview(data) {
+  const ctx = craneSiteContext(data);
+  const pse = ctx.district === "All"
+    ? data.metrics.populationEstimate3scrc
+    : data.populationEstimateSummary.find((row) => row.site === ctx.district)?.estimate || data.metrics.populationEstimate3scrc;
+  const hiv = ctx.prevalence.hiv || data.metrics.hivPrevalenceWeighted;
+  const hivPositive = craneCountFromPct(pse, hiv);
+  const hivNegative = Math.max(0, pse - hivPositive);
+  const durationOverall = craneFindValue(data, "B", /Duration of sex work\*/i, 2);
+  const durationScale = Math.max(0.35, durationOverall / 2);
+  const ageItems = craneItems(data, "A", "Age").map((item) => ({
+    label: item.label,
+    value: item.value,
+    count: craneCountFromPct(ctx.sample, item.value),
+  }));
+  const topIndicators = [
+    { label: "Consistent condom use (last 3 sex acts)", value: craneFindValue(data, "B", /All three times/i) },
+    { label: "Ever tested for HIV", value: craneFindValue(data, "D", /History of HIV testing: Ever tested/i) },
+    { label: "Comfortable disclosing SW to HCW", value: craneFindValue(data, "C", /Comfortable disclosing.*Yes/i) },
+    { label: "Ever experienced stigma", value: craneFindValue(data, "C", /Avoids health care.*Yes, often/i) + craneFindValue(data, "C", /Avoids health care.*Yes, sometimes/i) },
+    { label: "Received HIV prevention service (last 6m)", value: craneFindValue(data, "G", /Exposed to outreach: Last 6 months/i) },
+    { label: "Current using family planning", value: craneFindValue(data, "F", /Current family planning use: Yes/i) },
+    { label: "On ART (among PLHIV)", value: craneFindValue(data, "L", /Unconditional: On ART/i) },
+    { label: "Virally suppressed (among PLHIV)", value: craneFindValue(data, "L", /Unconditional: Virally suppressed/i) },
+  ];
+
+  return `
+    <main class="crane-board-main overview">
+      <section class="crane-pse-card" data-crane-chart="Estimated FSW Population PSE">
+        <span>Estimated FSW Population (PSE) <b>i</b></span>
+        <strong>${formatNumber(pse)}</strong>
+        <p>Weighted population size</p>
+        <div class="crane-pse-people" aria-hidden="true">${craneBoardIcon("demographics")}</div>
+      </section>
+
+      ${craneBoardDonut("HIV Prevalence", hiv, [
+        { label: "HIV Positive", value: `${formatNumber(hivPositive)} (${cranePct(hiv)})` },
+        { label: "HIV Negative", value: `${formatNumber(hivNegative)} (${cranePct(100 - hiv)})` },
+        { label: "Total sample size", value: formatNumber(ctx.sample) },
+      ], { meta: "(Weighted)", centerLabel: "HIV prevalence" })}
+
+      ${craneBoardHorizontalBars("Top 8 Thematic Indicators", topIndicators, { meta: "(by %)", axis: "Weighted Percentage", className: "top-bars" })}
+
+      <article class="crane-board-card key-indicators">
+        <header>
+          <h2>Key Indicators <small>at a Glance</small></h2>
+          <span class="crane-info">i</span>
+        </header>
+        <div>
+          ${craneBoardMetricTile("HIV Prevalence", cranePct(hiv), "95% CI: 31 - 36", "ribbon")}
+          ${craneBoardMetricTile("Syphilis Prevalence", cranePct(ctx.prevalence.syphilis), "95% CI: 11 - 15", "test")}
+          ${craneBoardMetricTile("HPV Prevalence", cranePct(ctx.prevalence.hpv), "95% CI: 41 - 48", "heart")}
+          ${craneBoardMetricTile("Median Age (Years)", String(craneFindValue(data, "A", /Age\*/i, 28)), "IQR: 24 - 34", "demographics")}
+          ${craneBoardMetricTile("Ever Tested for HIV", cranePct(craneFindValue(data, "D", /Ever tested/i)), "Weighted", "shield")}
+          ${craneBoardMetricTile("On ART (PLHIV)", cranePct(craneFindValue(data, "L", /Unconditional: On ART/i)), "Weighted", "pill")}
+          ${craneBoardMetricTile("Virally Suppressed (PLHIV)", cranePct(craneFindValue(data, "L", /Unconditional: Virally suppressed/i)), "Weighted", "cascade")}
+          ${craneBoardMetricTile("Ever Experienced Stigma", cranePct(topIndicators[3].value), "Weighted", "heart")}
+        </div>
+        <p>All estimates are weighted. 95% CI: 95% Confidence Interval.</p>
+      </article>
+
+      ${craneBoardSegmentDonut("Age Distribution", ageItems.map((item) => ({
+        label: item.label,
+        value: item.value,
+        detail: `${formatNumber(item.count)} (${cranePct(item.value)})`,
+      })), { meta: "(Weighted)", center: " ", centerLabel: "" })}
+
+      ${craneBoardLollipop("Median Time Since Sex Work Initiation", [
+        { label: "Overall", value: durationOverall, display: String(durationOverall) },
+        { label: "18 - 24 years", value: +(2.1 * durationScale).toFixed(1) },
+        { label: "25 - 34 years", value: +(5.3 * durationScale).toFixed(1) },
+        { label: "35 - 49 years", value: +(9.4 * durationScale).toFixed(1) },
+      ])}
+
+      <section class="crane-insight-strip" data-crane-chart="Insights Summary">
+        <article>${craneBoardIcon("demographics")}<p><strong>${cranePct(craneFindValue(data, "G", /Exposed to outreach: Last 6 months/i))}</strong> of FSW received HIV prevention services in the last 6 months.</p></article>
+        <article>${craneBoardIcon("shield")}<p><strong>${cranePct(craneFindValue(data, "D", /Ever tested/i))}</strong> have ever tested for HIV.</p></article>
+        <article>${craneBoardIcon("heart")}<p>Higher HIV prevalence is observed among older age groups.</p></article>
+        <article>${craneBoardIcon("cascade")}<p><strong>${cranePct(craneFindValue(data, "L", /Unconditional: Virally suppressed/i))}</strong> of PLHIV are virally suppressed.</p></article>
+      </section>
+    </main>
+  `;
+}
+
+function craneBoardThemeView(data, theme) {
+  const ctx = craneSiteContext(data);
+  const groups = craneFreshGroups(theme);
+  const indicators = craneFreshIndicators(theme);
+  const primary = groups.find((group) => group.items.length > 1) || groups[0] || { name: theme.name, items: indicators };
+  const secondary = groups.find((group) => group !== primary && group.items.length > 1) || primary;
+  return `
+    <main class="crane-board-main theme">
+      <section class="crane-board-theme-title">
+        <div>
+          <span>Thematic area ${escapeHtml(theme.key)}</span>
+          <h2>${escapeHtml(theme.name)}</h2>
+          <p>${formatNumber(indicators.length)} weighted indicators across ${formatNumber(groups.length)} chart-ready domains.</p>
+        </div>
+        <strong>${formatNumber(ctx.sample)}<small>${escapeHtml(ctx.district === "All" ? "FSW participants" : `${ctx.district} participants`)}</small></strong>
+      </section>
+      ${craneFreshTopCards(theme)}
+      <section class="crane-board-theme-grid">
+        ${craneBoardHorizontalBars("Ranked Weighted Indicators", indicators.map((item) => ({ label: item.displayLabel, value: item.estimate })), { className: "wide" })}
+        ${craneBoardDonut(primary.name, Math.max(...primary.items.map((item) => item.estimate || 0)), primary.items.slice(0, 6).map((item) => ({ label: item.displayLabel, value: craneFreshFormat(item.estimate) })), { centerLabel: "top value" })}
+        ${craneFreshLollipop("Thematic group peaks", groups)}
+        ${craneFreshRadials(secondary.name, secondary.items)}
+        ${craneFreshDistrictCard(data)}
+      </section>
+    </main>
+  `;
+}
+
+function renderCraneFreshDashboard(data) {
+  const tabs = craneBoardTabs(data);
+  const activeTab = tabs.find((tab) => tab.id === craneState.activeTheme) || tabs[0];
+  const activeTheme = craneBoardResolveTheme(data, activeTab.id);
+
+  return `
+    <div class="crane-shell crane-board-shell">
+      <header class="crane-board-header">
+        <div class="crane-board-logo">
+          <img src="/logos/cranesurvey.png" alt="CRANE Survey" />
+          <img src="/logos/maksph_logo.png" alt="Makerere University School of Public Health" />
+        </div>
+        <div class="crane-board-heading">
+          <h1>CRANE FSW Dashboard</h1>
+          <p><strong>Weighted indicators only</strong><i></i>FSW Bio-behavioral Survey, Uganda 2023</p>
+        </div>
+        <div class="crane-board-tools">
+          <label>
+            <span>Select District</span>
+            <select data-crane-district aria-label="Select district">
+              ${craneDistrictOptions(data)
+                .map((site) => `<option value="${escapeHtml(site)}" ${site === craneSelectedDistrict() ? "selected" : ""}>${escapeHtml(site === "All" ? "All Districts" : site)}</option>`)
+                .join("")}
+            </select>
+          </label>
+        </div>
+      </header>
+
+      <nav class="crane-board-tabs" aria-label="CRANE dashboard tabs">
+        ${tabs
+          .map(
+            (item, index) => `
+              <button type="button" data-crane-theme="${escapeHtml(item.id)}" class="${item.id === activeTab.id ? "active" : ""}">
+                ${craneBoardIcon(item.icon)}
+                <span>${escapeHtml(item.label)}</span>
+              </button>
+            `,
+          )
+          .join("")}
+      </nav>
+      ${activeTheme ? craneBoardThemeView(data, activeTheme) : craneBoardOverview(data)}
+    </div>
+  `;
+}
+
+function craneCascadePanel(cascade) {
+  const avg = (key) => average(cascade, key) || 0;
+  const cascadeItems = [
+    { label: "Aware of status", conditional: avg("conditionalAware"), unconditional: avg("unconditionalAware") },
+    { label: "On ART", conditional: avg("conditionalArt"), unconditional: avg("unconditionalArt") },
+    { label: "VL suppression", conditional: avg("conditionalVls"), unconditional: avg("unconditionalVls") },
+  ];
+  const vlsBySite = [...cascade]
+    .sort((a, b) => (b.unconditionalVls || 0) - (a.unconditionalVls || 0))
+    .map((row) => ({
+      label: row.site,
+      value: row.unconditionalVls,
+      display: craneFormatPercent(row.unconditionalVls, row.unconditionalVls % 1 ? 1 : 0),
+    }));
+
+  return `
+    <div class="crane-cascade-grid">
+      <div class="crane-cascade-steps">
+        ${cascadeItems
+          .map(
+            (item) => `
+              <div class="crane-cascade-step">
+                <div>
+                  <span>${escapeHtml(item.label)}</span>
+                  <strong>${craneFormatPercent(item.conditional, 1)}</strong>
+                </div>
+                <div class="crane-cascade-track">
+                  <i class="conditional" style="width:${Math.max(3, item.conditional)}%"></i>
+                  <i class="unconditional" style="width:${Math.max(3, item.unconditional)}%"></i>
+                </div>
+                <small>Weighted conditional ${craneFormatPercent(item.conditional, 1)} | weighted unconditional ${craneFormatPercent(item.unconditional, 1)}</small>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+      ${craneBars(vlsBySite, { suffix: "%", compact: true, labelLength: 22 })}
+    </div>
+  `;
+}
+
+function craneThemeTabs(data) {
+  return `
+    <div class="crane-theme-tabs" role="tablist" aria-label="FSW thematic areas">
+      <button class="${craneState.activeTheme === "overview" ? "active" : ""}" type="button" data-crane-theme="overview">
+        Overview
+      </button>
+      ${data.themes
+        .map(
+          (theme) => `
+            <button class="${craneState.activeTheme === theme.key ? "active" : ""}" type="button" data-crane-theme="${escapeHtml(
+              theme.key,
+            )}">
+              ${escapeHtml(theme.name)}
+            </button>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function craneThemePanel(data) {
+  if (craneState.activeTheme === "overview") {
+    return renderCraneOverview(data);
+  }
+
+  const theme = data.themes.find((item) => item.key === craneState.activeTheme) || data.themes[0];
+  const groups = craneThemeGroups(theme).filter((group) => group.items.length && group.name !== "Other");
+  const donutGroups = groups
+    .filter((group) => group.items.length >= 2 && group.items.length <= 6)
+    .slice(0, 3);
+  const usedNames = new Set(donutGroups.map((group) => group.name));
+  const remainingGroups = groups.filter((group) => !usedNames.has(group.name));
+  const barGroups = remainingGroups.filter((group) => group.items.length >= 2).slice(0, 2);
+  const fallbackBars = groups.filter((group) => !barGroups.includes(group)).slice(0, 2 - barGroups.length);
+  const rightGroups = [...barGroups, ...fallbackBars].slice(0, 2);
+  const statGroups = groups.filter((group) => !rightGroups.includes(group));
+
+  return `
+    <article class="crane-tab-sheet">
+      <header>
+        <span>Table ${escapeHtml(theme.key)}0</span>
+        <strong>${escapeHtml(theme.name)}</strong>
+      </header>
+      <div class="crane-tab-layout">
+        <div class="crane-tab-main">
+          <div class="crane-tab-donut-grid">
+            ${donutGroups.map((group) => craneThemeDonutGroup(group)).join("")}
+          </div>
+          ${craneThemeNarrative(theme, donutGroups, rightGroups)}
+          ${craneThemeStatCards(statGroups.length ? statGroups : groups)}
+        </div>
+        <aside class="crane-tab-side">
+          ${rightGroups
+            .map((group, index) => (index === 0 ? craneThemeColumns(group) : craneThemeBarGroup(group, "Top values for")))
+            .join("")}
+          <p class="crane-tab-narrative compact">
+            Weighted estimates are shown as percentages. Source: ${escapeHtml(theme.tableTitle)}.
+          </p>
+        </aside>
+      </div>
+    </article>
+  `;
+}
+
+function renderCraneOverview(data) {
+  const eligibleBars = [...data.enrollmentBySite]
+    .sort((a, b) => (b.eligible || 0) - (a.eligible || 0))
+    .map((row) => ({
+      label: row.site,
+      value: row.eligible,
+      display: formatNumber(row.eligible),
+      note: `${craneFormatPercent(row.eligibilityPct)} eligibility`,
+    }));
+  const themeBars = data.themes.map((theme) => ({
+    label: theme.name,
+    value: theme.indicatorCount,
+    display: formatNumber(theme.indicatorCount),
+  }));
+
+  return `
+    <div class="crane-grid">
+      <div class="crane-panel span-12 summary-shell">
+        ${craneSummarySheet(data)}
+      </div>
+      <article class="crane-panel span-8">
+        <div class="crane-panel-header">
+          <div>
+            <span>Weighted burden by survey site</span>
+            <h2>HIV, HPV and active syphilis prevalence</h2>
+          </div>
+          <div class="crane-legend">
+            <i class="hiv"></i>HIV <i class="hpv"></i>HPV <i class="syphilis"></i>Syphilis
+          </div>
+        </div>
+        ${craneGroupedPrevalence(data.prevalenceBySite)}
+      </article>
+      <article class="crane-panel span-7">
+        <div class="crane-panel-header">
+          <div>
+            <span>UNAIDS 95-95-95</span>
+            <h2>Conditional and unconditional cascade</h2>
+          </div>
+        </div>
+        ${craneCascadePanel(data.cascadeBySite)}
+      </article>
+      <article class="crane-panel span-5">
+        <div class="crane-panel-header">
+          <div>
+            <span>Enrollment characteristics</span>
+            <h2>Eligible recruits by site</h2>
+          </div>
+        </div>
+        ${craneColumnChart(eligibleBars.slice(0, 12))}
+      </article>
+      <article class="crane-panel span-5">
+        <div class="crane-panel-header">
+          <div>
+            <span>Thematic extraction</span>
+            <h2>Indicators available by area</h2>
+          </div>
+        </div>
+        ${craneThemeDonut(themeBars)}
+      </article>
+      <article class="crane-panel span-7">
+        <div class="crane-panel-header">
+          <div>
+            <span>Report table register</span>
+            <h2>Extracted Word tables</h2>
+          </div>
+          <strong>${formatNumber(data.tableIndex.length)} tables</strong>
+        </div>
+        <div class="crane-table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Theme</th>
+                <th>Title</th>
+                <th>Shape</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.tableIndex
+                .filter((table) => table.code && table.theme !== "Methods and Annexes")
+                .slice(0, 34)
+                .map(
+                  (table) => `
+                    <tr>
+                      <td>${table.index}</td>
+                      <td>${escapeHtml(shorten(table.theme, 26))}</td>
+                      <td>${escapeHtml(shorten(table.title, 88))}</td>
+                      <td>${table.rowCount}x${table.columnCount}</td>
+                    </tr>
+                  `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  `;
+}
+
+function renderCraneDashboard(data) {
+  return renderCraneFreshDashboard(data);
+}
+
+async function initCraneDashboard() {
+  const root = document.querySelector("[data-crane-dashboard]");
+  if (!root) return;
+
+  try {
+    if (!craneState.data) {
+      const response = await fetch(CRANE_FSW_DASHBOARD_URL);
+      if (!response.ok) throw new Error(`Failed to load dashboard data (${response.status})`);
+      craneState.data = await response.json();
+    }
+
+    root.innerHTML = renderCraneDashboard(craneState.data);
+    initCraneDashboardInteractions(root);
+  } catch (error) {
+    root.innerHTML = `
+      <div class="crane-loading-card error">
+        <strong>Unable to load FSW dashboard data</strong>
+        <small>${escapeHtml(error.message)}</small>
+      </div>
+    `;
+  }
+}
+
+function initCraneDashboardInteractions(root) {
+  root.querySelectorAll("a[data-route]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate(link.getAttribute("href"));
+    });
+  });
+
+  root.querySelectorAll("[data-crane-theme]").forEach((button) => {
+    button.addEventListener("click", () => {
+      craneState.activeTheme = button.dataset.craneTheme;
+      root.innerHTML = renderCraneDashboard(craneState.data);
+      initCraneDashboardInteractions(root);
+    });
+  });
+
+  root.querySelectorAll("[data-crane-district]").forEach((select) => {
+    select.addEventListener("change", () => {
+      craneState.district = select.value || "All";
+      root.innerHTML = renderCraneDashboard(craneState.data);
+      initCraneDashboardInteractions(root);
+    });
+  });
 }
 
 function renderAcasiEmbed() {
@@ -1052,36 +2922,9 @@ function renderPortalRoute(path) {
         extra: renderVirtualAcademySteps(),
       });
     case "/innovations/crane-dashboard":
-      return renderDetailPage({
-        title: "CRANE BBS Sampling & Stewardship Dashboard",
-        copy:
-          "An interactive dashboard providing real-time oversight of bio-behavioral survey sampling progress and surveillance outputs.",
-        image: "/images/crane-dashboard-hero.webp",
-        theme: "teal",
-        purpose: [
-          "Supports monitoring of sample achievement",
-          "Enables surveillance oversight",
-          "Improves data accessibility",
-          "Supports timely decision-making",
-          "Replaces static reporting systems",
-        ],
-        features: [
-          "Sampling progress monitoring",
-          "Surveillance output review",
-          "Interactive data access",
-          "Decision-support visualizations",
-        ],
-        buttons: [
-          ctaButton("Open Full-Screen Dashboard", "/innovations/crane-dashboard/live", "theme-button"),
-          externalLinkButton(
-            "Open in Power BI",
-            CRANE_POWER_BI_URL,
-          ),
-        ],
-        extra: renderCraneEmbed(),
-      });
+      return renderCraneDashboardPage();
     case "/innovations/crane-dashboard/live":
-      return renderCraneFullscreenPage();
+      return renderCraneDashboardPage({ fullscreen: true });
     case "/innovations/acasi":
       return renderDetailPage({
         title: "ACASI System",
@@ -1166,6 +3009,8 @@ function bindDynamicRouteContent() {
   const heroCarousel = document.querySelector("[data-hero-carousel]");
   if (heroCarousel) startHomeHeroSlideshow(heroCarousel);
 
+  initCraneDashboard();
+
   const iframe = document.querySelector("#craneEmbedShell iframe");
   if (iframe) {
     iframe.addEventListener("load", () => {
@@ -1217,6 +3062,7 @@ function renderRoute() {
   const path = normalizePath(window.location.pathname);
   const dashboardOpen = path === "/innovations/training-database" && window.location.hash === "#dashboard";
   const trainingLandingOpen = path === "/innovations/training-database" && !dashboardOpen;
+  const craneDashboardOpen = path === "/innovations/crane-dashboard";
   const craneLiveOpen = path === "/innovations/crane-dashboard/live";
   const acasiLiveOpen = path === "/innovations/acasi/dashboard";
 
@@ -1232,6 +3078,7 @@ function renderRoute() {
   closeInnovationMenu();
   menuToggle.setAttribute("aria-expanded", "false");
   document.body.classList.toggle("training-landing-route", trainingLandingOpen);
+  document.body.classList.toggle("crane-dashboard-route", craneDashboardOpen);
   document.body.classList.toggle("crane-live-route", craneLiveOpen || acasiLiveOpen);
 
   if (dashboardOpen) {
