@@ -939,6 +939,63 @@ function renderVirtualAcademySteps() {
 }
 
 function renderCraneLandingPage() {
+  const combinedStats = [
+    { value: "16,251", label: "FSW participants across both dashboard waves" },
+    { value: "15", label: "unique sampled districts represented on the landing page" },
+    { value: "544", label: "report tables extracted into dashboard-ready data" },
+    { value: "17", label: "thematic areas used to organize the CRANE FSW dashboards" },
+  ];
+  const comparisonItems = [
+    {
+      label: "Participants",
+      crane3: "7,947",
+      crane4: "8,304",
+      note: "CRANE 4 added 357 more participants.",
+      scale3: 96,
+      scale4: 100,
+    },
+    {
+      label: "Survey districts",
+      crane3: "12",
+      crane4: "15",
+      note: "Coverage expanded with Buliisa, Hoima, and Kabale.",
+      scale3: 80,
+      scale4: 100,
+    },
+    {
+      label: "HIV prevalence",
+      crane3: "33%",
+      crane4: "31%",
+      note: "Both waves remain high and need close program review.",
+      scale3: 100,
+      scale4: 94,
+    },
+    {
+      label: "Population estimate",
+      crane3: "21,161",
+      crane4: "38,283",
+      note: "The estimated FSW population increased in the newer dashboard.",
+      scale3: 55,
+      scale4: 100,
+    },
+  ];
+  const narrativeCards = [
+    {
+      title: "Coverage expanded",
+      copy:
+        "CRANE 3 covers 12 districts, while CRANE 4 expands the FSW sentinel surveillance view to 15 districts. This makes the landing page a clear starting point for comparing survey coverage before opening either dashboard.",
+    },
+    {
+      title: "Report tables became dashboard data",
+      copy:
+        "The dashboards are built from extracted Word report tables, turning static survey findings into district filters, thematic tabs, maps, and chart-ready views for faster review.",
+    },
+    {
+      title: "Use the dashboards for review meetings",
+      copy:
+        "The landing page separates the two survey waves, then each dashboard supports focused discussion on HIV, STI, service uptake, stigma, violence, ART, mental health, and social support indicators.",
+    },
+  ];
   const surveyCards = [
     {
       title: "CRANE 3 FSW Dashboard",
@@ -1008,6 +1065,59 @@ function renderCraneLandingPage() {
         </div>
       </section>
 
+      <section class="content-section crane-insight-section">
+        <div class="section-shell">
+          <div class="crane-stat-grid">
+            ${combinedStats
+              .map(
+                (item) => `
+                  <article class="crane-stat-card reveal">
+                    <strong>${item.value}</strong>
+                    <span>${item.label}</span>
+                  </article>
+                `,
+              )
+              .join("")}
+          </div>
+          <div class="crane-wave-panel reveal">
+            <div class="crane-wave-copy">
+              <h2>Two FSW survey waves, one dashboard entry point</h2>
+              <p>
+                CRANE 3 and CRANE 4 are kept as separate dashboards so teams can inspect each survey wave on its
+                own terms. The landing page highlights the headline differences before users move into detailed
+                thematic tabs and district filters.
+              </p>
+            </div>
+            <div class="crane-wave-comparison">
+              ${comparisonItems
+                .map(
+                  (item) => `
+                    <article class="crane-wave-row">
+                      <header>
+                        <strong>${item.label}</strong>
+                        <span>${item.note}</span>
+                      </header>
+                      <div class="crane-wave-bars">
+                        <div>
+                          <span>CRANE 3</span>
+                          <i><b style="width:${item.scale3}%"></b></i>
+                          <strong>${item.crane3}</strong>
+                        </div>
+                        <div>
+                          <span>CRANE 4</span>
+                          <i><b style="width:${item.scale4}%"></b></i>
+                          <strong>${item.crane4}</strong>
+                        </div>
+                      </div>
+                    </article>
+                  `,
+                )
+                .join("")}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="content-section crane-survey-story">
         <div class="section-shell crane-survey-story-grid">
           <div>
@@ -1020,18 +1130,16 @@ function renderCraneLandingPage() {
             </p>
           </div>
           <div class="crane-survey-notes">
-            <article>
-              <strong>CRANE 3</strong>
-              <span>Baseline FSW dashboard prepared from the final survey report with 12 sampled districts.</span>
-            </article>
-            <article>
-              <strong>CRANE 4</strong>
-              <span>Updated FSW sentinel surveillance dashboard prepared from the new Word report tables.</span>
-            </article>
-            <article>
-              <strong>Dashboard Use</strong>
-              <span>Designed for program review, district filtering, thematic comparison, and presentation-ready charts.</span>
-            </article>
+            ${narrativeCards
+              .map(
+                (card) => `
+                  <article>
+                    <strong>${card.title}</strong>
+                    <span>${card.copy}</span>
+                  </article>
+                `,
+              )
+              .join("")}
           </div>
         </div>
       </section>
