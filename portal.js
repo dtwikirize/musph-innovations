@@ -2414,6 +2414,67 @@ function craneBoardLollipop(title, items) {
   `;
 }
 
+function craneSurveyLocationsMap(sites) {
+  const districtPositions = {
+    Arua: { lat: 3.03, lon: 30.91, dx: -14, dy: -10, anchor: "end" },
+    Busia: { lat: 0.46, lon: 34.09, dx: 18, dy: 30, anchor: "start" },
+    Buvuma: { lat: 0.14, lon: 33.26, dx: 14, dy: 20, anchor: "start" },
+    "Fort Portal": { lat: 0.67, lon: 30.27, dx: -14, dy: 4, anchor: "end" },
+    Gulu: { lat: 2.77, lon: 32.3, dx: 14, dy: -6, anchor: "start" },
+    Jinja: { lat: 0.42, lon: 33.2, dx: 14, dy: -8, anchor: "start" },
+    Kampala: { lat: 0.35, lon: 32.58, dx: -12, dy: -12, anchor: "end" },
+    Lira: { lat: 2.25, lon: 32.9, dx: 14, dy: 4, anchor: "start" },
+    Masaka: { lat: -0.34, lon: 31.73, dx: -14, dy: 14, anchor: "end" },
+    Mbale: { lat: 1.08, lon: 34.17, dx: 18, dy: -10, anchor: "start" },
+    Mbarara: { lat: -0.61, lon: 30.65, dx: -14, dy: 6, anchor: "end" },
+    Tororo: { lat: 0.69, lon: 34.18, dx: 20, dy: 14, anchor: "start" },
+  };
+  const minLon = 29.5;
+  const maxLon = 35.1;
+  const minLat = -1.4;
+  const maxLat = 4.2;
+  const toX = (lon) => 78 + ((lon - minLon) / (maxLon - minLon)) * 462;
+  const toY = (lat) => 318 - ((lat - minLat) / (maxLat - minLat)) * 282;
+  const points = sites
+    .map((site) => ({ site, ...districtPositions[site] }))
+    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon));
+
+  return `
+    <div class="crane-survey-map" aria-label="${escapeHtml(`${points.length} sampled districts mapped across Uganda`)}">
+      <svg viewBox="0 0 620 360" role="img" aria-labelledby="craneMapTitle craneMapDesc">
+        <title id="craneMapTitle">Crane 3 FSW sampled districts</title>
+        <desc id="craneMapDesc">Map-style overview of the 12 Uganda districts sampled in the Crane 3 FSW survey.</desc>
+        <defs>
+          <filter id="craneMapShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#4b1d32" flood-opacity="0.14"></feDropShadow>
+          </filter>
+        </defs>
+        <path
+          class="crane-map-shape"
+          filter="url(#craneMapShadow)"
+          d="M255 34 337 42 385 74 430 103 469 159 450 222 410 248 398 300 344 323 283 309 229 336 190 303 132 300 117 247 80 216 104 166 92 118 139 80 199 88Z"
+        ></path>
+        <path class="crane-map-lake" d="M309 235c38-9 80 4 106 33-34 42-99 47-134 8 7-17 15-30 28-41Z"></path>
+        ${points
+          .map((point, index) => {
+            const x = toX(point.lon);
+            const y = toY(point.lat);
+            const labelX = x + point.dx;
+            const labelY = y + point.dy;
+            return `
+              <g class="crane-map-point" style="--pin-delay:${index * 35}ms">
+                <line x1="${x}" y1="${y}" x2="${labelX}" y2="${labelY}"></line>
+                <circle cx="${x}" cy="${y}" r="7"></circle>
+                <text x="${labelX}" y="${labelY}" text-anchor="${point.anchor}">${escapeHtml(point.site)}</text>
+              </g>
+            `;
+          })
+          .join("")}
+      </svg>
+    </div>
+  `;
+}
+
 function craneBoardOverview(data) {
   const ctx = craneSiteContext(data);
   const pse = ctx.district === "All"
@@ -2463,9 +2524,7 @@ function craneBoardOverview(data) {
           <h2>Survey Locations <small>districts sampled</small></h2>
           <strong>${formatNumber(sampledDistricts.length)}</strong>
         </header>
-        <div>
-          ${sampledDistricts.map((site) => `<span>${escapeHtml(site)}</span>`).join("")}
-        </div>
+        ${craneSurveyLocationsMap(sampledDistricts)}
       </article>
 
       <article class="crane-board-card key-indicators">
