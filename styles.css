@@ -1369,6 +1369,21 @@ body {
   --theme: var(--crane-hub-accent);
 }
 
+.crane-hub .cta-button.crane4-button {
+  --theme: #3B7D23;
+  background: linear-gradient(135deg, #3B7D23, #245318);
+}
+
+.crane-hub .cta-button.msm-button {
+  --theme: #D86ECC;
+  background: linear-gradient(135deg, #D86ECC, #9f3f97);
+}
+
+.crane-hub .cta-button.pwid-button {
+  --theme: #239FD7;
+  background: linear-gradient(135deg, #239FD7, #126f9c);
+}
+
 .crane-hub .cta-button.secondary {
   border-color: rgba(255, 255, 255, 0.38);
   background: rgba(255, 255, 255, 0.13);
@@ -1396,6 +1411,21 @@ body {
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 18px 42px rgba(20, 27, 44, 0.08);
+}
+
+.crane-dashboard-choice.is-crane4 {
+  --crane-hub-accent: #3B7D23;
+  --crane-hub-line: #cde2c3;
+}
+
+.crane-dashboard-choice.is-msm {
+  --crane-hub-accent: #D86ECC;
+  --crane-hub-line: #efc6eb;
+}
+
+.crane-dashboard-choice.is-pwid {
+  --crane-hub-accent: #239FD7;
+  --crane-hub-line: #bfe4f5;
 }
 
 .crane-dashboard-choice figure {
@@ -1615,6 +1645,14 @@ body {
   background: linear-gradient(90deg, var(--crane-hub-accent), #7f2c4e);
 }
 
+.crane-wave-bars .crane4 b {
+  background: linear-gradient(90deg, #3B7D23, #245318);
+}
+
+.crane-wave-bars .crane4 strong {
+  color: #3B7D23;
+}
+
 .crane-survey-story {
   padding-top: clamp(34px, 5vw, 64px);
 }
@@ -1825,6 +1863,60 @@ body {
     linear-gradient(180deg, #fff9fc 0, #f7edf2 360px, #f5f2f4 100%),
     #f4f7fb;
   color: #10233f;
+}
+
+.crane-dashboard.is-crane4 {
+  --crane-theme: #3B7D23;
+  --crane-theme-dark: #245318;
+  --crane-theme-soft: #edf7e9;
+  --crane-theme-line: #cde2c3;
+  --crane-chart-1: #3B7D23;
+  --crane-chart-2: #6aa64d;
+  --crane-chart-3: #a4c98d;
+  --crane-chart-4: #245318;
+  --crane-chart-5: #4f9136;
+  --crane-chart-6: #86b86b;
+  --crane-chart-7: #2f681c;
+  --crane-chart-8: #d7e9cd;
+  background:
+    linear-gradient(180deg, #fbfff9 0, #eef7ea 360px, #f3f6f1 100%),
+    #f4f7fb;
+}
+
+.crane-dashboard.is-msm {
+  --crane-theme: #D86ECC;
+  --crane-theme-dark: #9f3f97;
+  --crane-theme-soft: #fbecfa;
+  --crane-theme-line: #efc6eb;
+  --crane-chart-1: #D86ECC;
+  --crane-chart-2: #e594dc;
+  --crane-chart-3: #f0b6e9;
+  --crane-chart-4: #a83f9f;
+  --crane-chart-5: #c455ba;
+  --crane-chart-6: #edabe5;
+  --crane-chart-7: #8e3388;
+  --crane-chart-8: #f7d7f3;
+  background:
+    linear-gradient(180deg, #fff9fe 0, #fbedfa 360px, #f7f1f6 100%),
+    #f4f7fb;
+}
+
+.crane-dashboard.is-pwid {
+  --crane-theme: #239FD7;
+  --crane-theme-dark: #126f9c;
+  --crane-theme-soft: #e7f5fc;
+  --crane-theme-line: #bfe4f5;
+  --crane-chart-1: #239FD7;
+  --crane-chart-2: #61b9e2;
+  --crane-chart-3: #a8dcf2;
+  --crane-chart-4: #126f9c;
+  --crane-chart-5: #1688bd;
+  --crane-chart-6: #82caeb;
+  --crane-chart-7: #0d5d84;
+  --crane-chart-8: #d4eef9;
+  background:
+    linear-gradient(180deg, #f7fcff 0, #eaf6fc 360px, #f1f5f7 100%),
+    #f4f7fb;
 }
 
 .crane-dashboard.is-fullscreen {
@@ -3236,7 +3328,7 @@ body {
   gap: 12px;
   background:
     radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.15), transparent 38%),
-    linear-gradient(135deg, #aa3b6b, #993c62 65%, #8c335b);
+    linear-gradient(135deg, var(--crane-theme), var(--crane-theme-dark) 68%, color-mix(in srgb, var(--crane-theme-dark) 82%, #111));
   color: #fff;
   padding: 22px;
   text-align: center;
