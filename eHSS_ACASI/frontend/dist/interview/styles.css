@@ -1,12 +1,14 @@
 :root {
   color: #111827;
-  background: #ffffff;
+  background: #fbfcf8;
   font-family: "Segoe UI", Arial, sans-serif;
   --blue: #2563eb;
   --navy: #0f172a;
   --muted: #64748b;
   --line: #d9dee8;
-  --soft: #f7f9fc;
+  --app-bg: #fbfcf8;
+  --panel-bg: #fffffd;
+  --soft: #f4f7ef;
   --green: #0f766e;
   --amber: #b45309;
   --red: #b91c1c;
@@ -18,7 +20,7 @@
 
 body {
   margin: 0;
-  background: #ffffff;
+  background: var(--app-bg);
   overflow: hidden;
 }
 
@@ -38,6 +40,7 @@ button {
 .acasi-app {
   min-height: 100svh;
   display: grid;
+  background: var(--app-bg);
 }
 
 .start-screen {
@@ -113,7 +116,7 @@ button {
   padding: 0 34px 0 12px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: #fff;
+  background: var(--panel-bg);
   color: var(--navy);
   font-size: 14px;
 }
@@ -175,7 +178,7 @@ button {
   min-height: 54px;
   padding: 0 22px;
   border: 1px solid #b8bdc7;
-  background: #fff;
+  background: var(--panel-bg);
   color: #000;
   font-size: 24px;
   font-weight: 600;
@@ -199,6 +202,7 @@ svg {
   grid-template-rows: auto 10px minmax(420px, 1fr) auto;
   gap: clamp(12px, 1.8vh, 18px);
   padding: clamp(10px, 2vw, 20px);
+  background: var(--app-bg);
   overflow: hidden;
 }
 
@@ -214,7 +218,7 @@ svg {
   min-height: 48px;
   padding: 0 22px;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--panel-bg);
   color: var(--navy);
   font-size: 14px;
   font-weight: 700;
@@ -248,7 +252,7 @@ svg {
   padding: clamp(24px, 3vw, 42px);
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #fff;
+  background: var(--panel-bg);
   box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
 }
 
@@ -303,23 +307,25 @@ svg {
 
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: clamp(7px, 1vh, 10px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 2vh, 20px);
   align-content: start;
   overflow: hidden;
 }
 
 .options-grid.many-options {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .option-button {
-  min-height: clamp(62px, 9vh, 84px);
-  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  min-height: clamp(94px, 14vh, 132px);
+  padding: 20px 28px;
   border: 1.5px solid var(--line);
-  background: #fff;
+  background: var(--panel-bg);
   color: var(--navy);
-  font-size: clamp(14px, 1.45vw, 17px);
+  font-size: clamp(18px, 1.65vw, 24px);
   font-weight: 700;
   text-align: left;
   cursor: pointer;
@@ -366,7 +372,7 @@ svg {
 
 .secondary-button {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--panel-bg);
   color: var(--navy);
 }
 
@@ -443,7 +449,7 @@ svg {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: #fff;
+  background: var(--panel-bg);
 }
 
 .report-grid h3 {
@@ -503,6 +509,12 @@ svg {
   .question-panel {
     min-height: 360px;
     padding: 16px;
+  }
+
+  .option-button {
+    min-height: 76px;
+    padding: 16px 18px;
+    font-size: 18px;
   }
 
   .interview-footer,
