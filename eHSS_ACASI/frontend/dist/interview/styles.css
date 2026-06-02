@@ -96,7 +96,7 @@ button {
 .interview-header strong {
   display: block;
   color: var(--navy);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -199,24 +199,30 @@ svg {
 .report-screen {
   height: 100svh;
   display: grid;
-  grid-template-rows: auto 10px minmax(420px, 1fr) auto;
-  gap: clamp(12px, 1.8vh, 18px);
-  padding: clamp(10px, 2vw, 20px);
+  grid-template-rows: auto 6px minmax(420px, 1fr) auto;
+  gap: clamp(8px, 1.2vh, 12px);
+  padding: clamp(8px, 1.4vw, 14px) clamp(10px, 2vw, 20px);
   background: var(--app-bg);
   overflow: hidden;
 }
 
 .interview-header span {
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.interview-header #clientNumberLabel {
+  color: var(--blue);
+  font-weight: 800;
 }
 
 .ghost-button {
   width: auto;
-  min-height: 48px;
-  padding: 0 22px;
+  min-height: 40px;
+  padding: 0 18px;
   border: 1px solid var(--line);
   background: var(--panel-bg);
   color: var(--navy);
@@ -226,7 +232,7 @@ svg {
 }
 
 .progress-shell {
-  height: 8px;
+  height: 6px;
   overflow: hidden;
   border-radius: 999px;
   background: #eef2f7;
@@ -493,8 +499,8 @@ svg {
   }
 
   .interview-screen {
-    grid-template-rows: auto 10px minmax(360px, 1fr) auto;
-    gap: 12px;
+    grid-template-rows: auto 6px minmax(360px, 1fr) auto;
+    gap: 10px;
   }
 
   body {
