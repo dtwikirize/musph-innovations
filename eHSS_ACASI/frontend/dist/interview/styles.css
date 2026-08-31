@@ -2004,3 +2004,16 @@ svg {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* The grid still fills the width, but rows are packed to the top at their
+   natural height instead of stretching to fill the page vertically. */
+.language-screen .language-grid {
+  grid-auto-rows: auto;
+  align-content: start;
+}
+
+.language-screen .language-option {
+  min-height: 68px;
+  padding: 14px 18px;
+  font-size: 17px;
+}
