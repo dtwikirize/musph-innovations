@@ -274,15 +274,36 @@ let speechTimer = null;
 let preferredVoice = null;
 let landingImageIndex = 0;
 
+const LANGUAGE_NAMES = {
+  en: "English",
+  nyn: "Runyankole",
+  ttj: "Rutooro",
+  ach: "Acholi",
+  laj: "Langi",
+  sw: "Swahili",
+  luo: "Luo",
+  nkz: "Rukonjo",
+  xog: "Lusoga"
+};
+
 const screens = {
   start: document.querySelector('[data-screen="start"]'),
   register: document.querySelector('[data-screen="register"]'),
+  language: document.querySelector('[data-screen="language"]'),
   interview: document.querySelector('[data-screen="interview"]'),
   video: document.querySelector('[data-screen="video"]'),
   report: document.querySelector('[data-screen="report"]')
 };
 
-const registration = { age: null, finger: "Index", left: false, right: false };
+const registration = { age: null, finger: "Index", left: false, right: false, entryPoint: null };
+
+// Queue numbers run in sequence for the session, starting at Q-001.
+let queueCounter = 0;
+let queueNumber = "";
+const nextQueueNumber = () => {
+  queueCounter += 1;
+  return `Q-${String(queueCounter).padStart(3, "0")}`;
+};
 
 const prefilledIds = new Set();
 
@@ -318,15 +339,32 @@ const updateRegistrationState = () => {
       ? "Age group will show here"
       : "Age must be 15 or above";
 
+  const captured = (registration.left ? 1 : 0) + (registration.right ? 1 : 0);
+  const counter = document.getElementById("captureCounter");
+  counter.querySelector(".capture-count").textContent = `${captured} of 2`;
+  counter.querySelector(".capture-label").textContent =
+    captured === 2
+      ? `fingerprints captured successfully`
+      : captured === 1
+        ? `fingerprint captured successfully`
+        : "fingerprints captured";
+  counter.classList.toggle("is-partial", captured === 1);
+  counter.classList.toggle("is-complete", captured === 2);
+
+  document.getElementById("entryPointHint").textContent = registration.entryPoint
+    ? `Entry point: ${registration.entryPoint}`
+    : "No entry point selected";
+
   const missing = [];
   if (!group) missing.push("a valid age");
+  if (!registration.entryPoint) missing.push("entry point");
   if (!registration.left) missing.push("left hand scan");
   if (!registration.right) missing.push("right hand scan");
 
   const ready = missing.length === 0;
   document.getElementById("beginInterviewButton").disabled = !ready;
   document.getElementById("registerValidation").textContent = ready
-    ? `Ready — ${registration.finger} finger enrolled on both hands`
+    ? `Ready — ${queueNumber}, ${registration.entryPoint}, ${registration.finger} finger on both hands`
     : `Still needed: ${missing.join(", ")}`;
 };
 
@@ -350,9 +388,13 @@ const resetRegistration = () => {
   registration.age = null;
   registration.left = false;
   registration.right = false;
+  registration.entryPoint = null;
   clientNumber = generateClientNumber();
+  queueNumber = nextQueueNumber();
   document.getElementById("registerClientId").textContent = clientNumber;
+  document.getElementById("registerQueue").textContent = queueNumber;
   document.getElementById("registerAge").value = "";
+  document.querySelectorAll(".entry-option").forEach((b) => b.classList.remove("active"));
   document.querySelectorAll(".scan-pad").forEach((pad) => {
     pad.classList.remove("scanning", "captured");
     pad.querySelector(".scan-status").textContent = "Tap to scan";
@@ -770,6 +812,8 @@ const buildReport = () => {
   document.getElementById("reportClientNumber").textContent = `Client ${clientNumber}`;
   fillList("profileList", [
     `Client number: ${clientNumber}`,
+    `Queue number: ${queueNumber || "Not assigned"}`,
+    `Entry point: ${registration.entryPoint || "Not recorded"}`,
     `Sex: ${profileValue("sex")}`,
     `Age group: ${profileValue("age")}`,
     `Occupation/community: ${profileValue("occupation")}`
@@ -819,6 +863,15 @@ document.getElementById("registerAge").addEventListener("input", (e) => {
   updateRegistrationState();
 });
 
+document.querySelectorAll(".entry-option").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".entry-option").forEach((b) => b.classList.remove("active"));
+    button.classList.add("active");
+    registration.entryPoint = button.dataset.entry;
+    updateRegistrationState();
+  });
+});
+
 document.querySelectorAll(".finger-option").forEach((button) => {
   button.addEventListener("click", () => {
     document.querySelectorAll(".finger-option").forEach((b) => b.classList.remove("active"));
@@ -847,6 +900,24 @@ document.getElementById("beginInterviewButton").addEventListener("click", () => 
     responses.age = ageIndex;
     prefilledIds.add("age");
   }
+  currentIndex = 0;
+  document.getElementById("languageClientNumber").textContent = `Client ${clientNumber}`;
+  showScreen("language");
+});
+
+document.querySelectorAll(".language-option").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".language-option").forEach((b) => b.classList.remove("active"));
+    button.classList.add("active");
+    currentLang = button.dataset.lang;
+    questions = getTranslatedQuestions(currentLang);
+    document.getElementById("languageSelected").textContent = `Selected: ${LANGUAGE_NAMES[currentLang]}`;
+  });
+});
+
+document.getElementById("languageBackButton").addEventListener("click", () => showScreen("register"));
+
+document.getElementById("languageContinueButton").addEventListener("click", () => {
   currentIndex = 0;
   showScreen("interview");
   renderQuestion({ autoPlay: true });
@@ -908,14 +979,6 @@ document.getElementById("printButton").addEventListener("click", () => window.pr
 document.getElementById("newInterviewButton").addEventListener("click", () => {
   resetInterview();
   showScreen("start");
-});
-
-document.getElementById("languageSelect").addEventListener("change", (e) => {
-  currentLang = e.target.value;
-  questions = getTranslatedQuestions(currentLang);
-  if (!screens.interview.classList.contains("hidden")) {
-    renderQuestion();
-  }
 });
 
 initializeVoices();

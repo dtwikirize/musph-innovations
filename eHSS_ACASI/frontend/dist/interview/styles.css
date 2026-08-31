@@ -611,6 +611,13 @@ svg {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  align-items: start;
+}
+
+.register-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .register-card {
@@ -719,11 +726,63 @@ svg {
   transition: border-color 0.2s, background 0.2s;
 }
 
-.scan-pad svg {
-  width: 46px;
-  height: 46px;
-  fill: var(--muted);
-  transition: fill 0.2s;
+.scan-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--soft);
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+.scan-icon,
+.scan-tick {
+  width: 52px;
+  height: 52px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.2s;
+}
+
+.scan-icon {
+  grid-area: 1 / 1;
+}
+
+.scan-tick {
+  grid-area: 1 / 1;
+  stroke: #fff;
+  stroke-width: 2.6;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+/* Sweep line that travels down the finger while scanning. */
+.scan-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  top: 0;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  opacity: 0;
+}
+
+.scan-pad.scanning .scan-sweep {
+  opacity: 1;
+  animation: scanSweep 1.1s ease-in-out infinite;
+}
+
+@keyframes scanSweep {
+  0% { transform: translateY(6px); }
+  50% { transform: translateY(78px); }
+  100% { transform: translateY(6px); }
 }
 
 .scan-pad strong {
@@ -747,11 +806,14 @@ svg {
   border-color: var(--amber);
   border-style: solid;
   background: #fff7ed;
-  animation: scanPulse 0.9s ease-in-out infinite;
 }
 
-.scan-pad.scanning svg {
-  fill: var(--amber);
+.scan-pad.scanning .scan-ring {
+  background: #fef3c7;
+}
+
+.scan-pad.scanning .scan-icon {
+  stroke: var(--amber);
 }
 
 .scan-pad.scanning .scan-status {
@@ -765,8 +827,17 @@ svg {
   animation: none;
 }
 
-.scan-pad.captured svg {
-  fill: var(--green);
+.scan-pad.captured .scan-ring {
+  background: var(--green);
+}
+
+.scan-pad.captured .scan-icon {
+  opacity: 0;
+}
+
+.scan-pad.captured .scan-tick {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .scan-pad.captured .scan-status {
@@ -1010,4 +1081,325 @@ svg {
 .report-grid article.flags-card li {
   color: #991b1b;
   font-weight: 600;
+}
+
+.fingerprint-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.capture-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+}
+
+.capture-counter .capture-count {
+  color: var(--navy);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.capture-counter .capture-label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.capture-counter.is-partial {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.capture-counter.is-partial .capture-count {
+  color: var(--amber);
+}
+
+.capture-counter.is-complete {
+  background: #ecfdf5;
+  border-color: var(--green);
+}
+
+.capture-counter.is-complete .capture-count,
+.capture-counter.is-complete .capture-label {
+  color: #065f46;
+}
+
+/* ---- Fingerprint scanner: deliberately distinct from the rest of the form.
+   Dark teal instrument panel so it reads as hardware, not a form field. ---- */
+.fingerprint-card {
+  background: linear-gradient(160deg, #0b2b2b, #06403c 60%, #063a45);
+  border-color: #0b4f4a;
+  color: #e6fffb;
+  box-shadow: 0 10px 30px rgba(4, 47, 46, 0.28);
+}
+
+.fingerprint-card h3 {
+  color: #7ff0dc;
+}
+
+.fingerprint-card p {
+  color: rgba(230, 255, 251, 0.72);
+}
+
+.fingerprint-card .demo-note {
+  color: rgba(230, 255, 251, 0.5);
+}
+
+.fingerprint-card .finger-option {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(127, 240, 220, 0.28);
+  color: #d7fff8;
+}
+
+.fingerprint-card .finger-option.active {
+  background: #14b8a6;
+  border-color: #5eead4;
+  color: #04302c;
+}
+
+.fingerprint-card .capture-counter {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(127, 240, 220, 0.24);
+}
+
+.fingerprint-card .capture-counter .capture-count {
+  color: #7ff0dc;
+}
+
+.fingerprint-card .capture-counter .capture-label {
+  color: rgba(230, 255, 251, 0.7);
+}
+
+.fingerprint-card .capture-counter.is-partial {
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.fingerprint-card .capture-counter.is-partial .capture-count {
+  color: #fcd34d;
+}
+
+.fingerprint-card .capture-counter.is-partial .capture-label {
+  color: rgba(252, 211, 77, 0.85);
+}
+
+.fingerprint-card .capture-counter.is-complete {
+  background: rgba(52, 211, 153, 0.16);
+  border-color: #34d399;
+}
+
+.fingerprint-card .capture-counter.is-complete .capture-count,
+.fingerprint-card .capture-counter.is-complete .capture-label {
+  color: #6ee7b7;
+}
+
+/* Scan pads as glowing sensor plates */
+.fingerprint-card .scan-pad {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(127, 240, 220, 0.3);
+}
+
+.fingerprint-card .scan-pad strong {
+  color: #eafffb;
+}
+
+.fingerprint-card .scan-pad .scan-status {
+  color: rgba(230, 255, 251, 0.65);
+}
+
+.fingerprint-card .scan-ring {
+  background: rgba(127, 240, 220, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(127, 240, 220, 0.28);
+}
+
+.fingerprint-card .scan-icon {
+  stroke: #7ff0dc;
+}
+
+.fingerprint-card .scan-pad:hover {
+  border-color: #5eead4;
+  background: rgba(94, 234, 212, 0.1);
+}
+
+.fingerprint-card .scan-pad.scanning {
+  border-color: #fcd34d;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.fingerprint-card .scan-pad.scanning .scan-ring {
+  background: rgba(251, 191, 36, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(252, 211, 77, 0.55);
+}
+
+.fingerprint-card .scan-pad.scanning .scan-icon {
+  stroke: #fcd34d;
+}
+
+.fingerprint-card .scan-pad.scanning .scan-status {
+  color: #fcd34d;
+}
+
+.fingerprint-card .scan-pad.captured {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.14);
+}
+
+.fingerprint-card .scan-pad.captured .scan-ring {
+  background: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22);
+}
+
+.fingerprint-card .scan-pad.captured .scan-status {
+  color: #6ee7b7;
+}
+
+/* ---- Language selection ---- */
+.language-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  background: var(--app-bg);
+}
+
+.language-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px clamp(16px, 4vw, 48px) 20px;
+}
+
+.language-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.language-option {
+  padding: 26px 20px;
+  border: 1px solid var(--line);
+  background: var(--panel-bg);
+  color: var(--navy);
+  font-size: 19px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 14px !important;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.language-option:hover {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.language-option.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+}
+
+.queue-box {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+
+.queue-box span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.queue-box strong {
+  color: #3730a3;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.entry-choice {
+  display: flex;
+  gap: 10px;
+}
+
+.entry-option {
+  flex: 1;
+  padding: 16px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--navy);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  border-radius: 12px !important;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.entry-option:hover {
+  border-color: var(--blue);
+  background: #f5f8ff;
+}
+
+.entry-option.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.start-facts {
+  list-style: none;
+  margin: 0 0 26px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.start-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.start-facts svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: #93c5fd;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+@media (max-width: 600px) {
+  .start-facts {
+    gap: 8px;
+  }
+
+  .start-facts li {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
 }

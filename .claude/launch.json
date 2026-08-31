@@ -1,0 +1,24 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "GSD Dashboard",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 4175
+    },
+    {
+      "name": "ACASI Interview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4180",
+        "--directory",
+        "eHSS_ACASI/frontend/dist"
+      ],
+      "port": 4180,
+      "url": "http://localhost:4180"
+    }
+  ]
+}
