@@ -387,23 +387,23 @@ const VIDEO_LIBRARY = {
 let videoPlaylist = [];
 let videoIndex = 0;
 
-// Drop video files into ./videos/ and map them here. DEMO_VIDEO is the
-// shared fallback used for any topic without its own file.
-const DEMO_VIDEO = "./videos/demo.mp4";
+// Counselling videos live in ./videos/. ENDSES is the default fallback
+// used for any topic that has no video of its own.
+const DEMO_VIDEO = "./videos/ENDSES.mp4";
 
 const VIDEO_SOURCES = {
-  "Understanding HIV risk and testing options": DEMO_VIDEO,
-  "Services for people at higher risk for HIV": DEMO_VIDEO,
-  "Reducing HIV risk from injecting drug use": DEMO_VIDEO,
-  "Safer sex, condoms, and STI prevention": DEMO_VIDEO,
-  "Correct condom and lubricant use": DEMO_VIDEO,
-  "Getting help after sexual violence": DEMO_VIDEO
+  "Understanding HIV risk and testing options": "./videos/SXTXGEN.mp4",
+  "Services for people at higher risk for HIV": "./videos/MULPAT.mp4",
+  "Reducing HIV risk from injecting drug use": "./videos/DRGUS.mp4",
+  "Safer sex, condoms, and STI prevention": "./videos/SXSELL.mp4",
+  "Correct condom and lubricant use": "./videos/SXCOND.mp4",
+  "Getting help after sexual violence": "./videos/SXRAPE.mp4"
 };
 
 const loadVideoFor = (topic) => {
   const player = document.getElementById("videoPlayer");
   const placeholder = document.getElementById("videoPlaceholder");
-  const src = VIDEO_SOURCES[topic];
+  const src = VIDEO_SOURCES[topic] || DEMO_VIDEO;
 
   player.pause();
 
