@@ -20,7 +20,7 @@ const questions = [
   {
     id: "age",
     text: "What is your age group?",
-    help: "Choose the age group that fits you best.",
+    help: "",
     options: [
       { label: "15 to 19 years", score: 0, value: "15-19 years" },
       { label: "20 to 24 years", score: 0, value: "20-24 years" },
@@ -217,7 +217,7 @@ const playQuestionAudio = () => {
   document.getElementById("audioStatus").textContent = "Playing question and options";
 
   const queue = [
-    { text: `${question.text}. ${question.help}` },
+    { text: question.help ? `${question.text}. ${question.help}` : question.text },
     ...question.options.map((option, index) => ({ text: option.label, optionIndex: index }))
   ];
 
