@@ -14,9 +14,7 @@ const questions = [
     help: "This helps the system provide the right screening summary.",
     options: [
       { label: "Female", score: 0, value: "Female" },
-      { label: "Male", score: 0, value: "Male" },
-      { label: "Other", score: 0, value: "Other" },
-      { label: "Prefer not to answer", score: 0, value: "Not answered" }
+      { label: "Male", score: 0, value: "Male" }
     ]
   },
   {
