@@ -1838,3 +1838,36 @@ svg {
 .details-footer #regenerateIdButton {
   margin-left: auto;
 }
+
+/* ---- Registration + language: 4px corners throughout.
+   !important is needed because the button radii are themselves set with
+   !important (buttons are globally reset to 0, then re-rounded per control). */
+.register-screen .interview-header,
+.register-screen .register-card,
+.register-screen .details-card,
+.register-screen .fingerprint-card,
+.register-screen .client-id-box,
+.register-screen .queue-box,
+.register-screen .age-input,
+.register-screen .entry-option,
+.register-screen .finger-option,
+.register-screen .capture-counter,
+.register-screen .scan-pad,
+.register-screen .enrol-done,
+.register-screen .ghost-button,
+.register-screen .primary-button,
+.register-screen .secondary-button,
+.language-screen .interview-header,
+.language-screen .language-option,
+.language-screen .ghost-button,
+.language-screen .primary-button,
+.language-screen .secondary-button {
+  border-radius: 4px !important;
+}
+
+/* Pill chips in these two headers square off as well. */
+.register-screen .interview-header span,
+.language-screen .interview-header span,
+.language-screen #languageClientNumber {
+  border-radius: 4px !important;
+}
