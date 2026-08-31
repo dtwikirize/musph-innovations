@@ -259,7 +259,7 @@ svg {
   max-height: 100%;
   place-self: center;
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: clamp(12px, 2vh, 24px);
   padding: clamp(24px, 3vw, 42px);
   border: 1px solid var(--line);
@@ -575,12 +575,12 @@ svg {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 24px clamp(16px, 4vw, 48px) 20px;
+  padding: 18px clamp(16px, 4vw, 48px) 16px;
 }
 
 .register-intro,
 .video-intro {
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 
 .register-intro span,
@@ -596,9 +596,9 @@ svg {
 
 .register-intro h2,
 .video-intro h2 {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: var(--navy);
-  font-size: clamp(26px, 3.4vw, 36px);
+  font-size: clamp(22px, 2.4vw, 28px);
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -607,25 +607,25 @@ svg {
 .video-intro p {
   margin: 0;
   color: var(--muted);
-  font-size: 17px;
+  font-size: 15px;
   max-width: 62ch;
 }
 
 .register-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
   align-items: start;
 }
 
 .register-column {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .register-card {
-  padding: 20px;
+  padding: 16px 18px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--panel-bg);
@@ -636,20 +636,20 @@ svg {
 }
 
 .register-card h3 {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: var(--navy);
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .register-card p {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .client-id-box {
-  padding: 14px 16px;
+  padding: 11px 14px;
   border: 1px dashed var(--blue);
   border-radius: 12px;
   background: #f5f8ff;
@@ -663,7 +663,7 @@ svg {
 
 .age-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 11px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #fff;
@@ -690,12 +690,12 @@ svg {
 .finger-choice {
   display: flex;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .finger-option {
   flex: 1;
-  padding: 14px;
+  padding: 11px;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--navy);
@@ -721,8 +721,8 @@ svg {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 16px;
+  gap: 6px;
+  padding: 16px 14px;
   border: 2px dashed var(--line);
   border-radius: 16px;
   background: #fff;
@@ -734,8 +734,8 @@ svg {
   position: relative;
   display: grid;
   place-items: center;
-  width: 88px;
-  height: 88px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: var(--soft);
   overflow: hidden;
@@ -744,8 +744,8 @@ svg {
 
 .scan-icon,
 .scan-tick {
-  width: 52px;
-  height: 52px;
+  width: 40px;
+  height: 40px;
   fill: none;
   stroke: var(--muted);
   stroke-width: 1.7;
@@ -785,7 +785,7 @@ svg {
 
 @keyframes scanSweep {
   0% { transform: translateY(6px); }
-  50% { transform: translateY(78px); }
+  50% { transform: translateY(60px); }
   100% { transform: translateY(6px); }
 }
 
@@ -1096,8 +1096,8 @@ svg {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 12px 16px;
-  margin-bottom: 14px;
+  padding: 9px 14px;
+  margin-bottom: 12px;
   border-radius: 12px;
   background: var(--soft);
   border: 1px solid var(--line);
@@ -1134,133 +1134,132 @@ svg {
   color: #065f46;
 }
 
-/* ---- Fingerprint scanner: deliberately distinct from the rest of the form.
-   Dark teal instrument panel so it reads as hardware, not a form field. ---- */
+/* ---- Fingerprint scanner: light blue panel so it stands apart from the
+   plain form cards without going dark. ---- */
 .fingerprint-card {
-  background: linear-gradient(160deg, #0b2b2b, #06403c 60%, #063a45);
-  border-color: #0b4f4a;
-  color: #e6fffb;
-  box-shadow: 0 10px 30px rgba(4, 47, 46, 0.28);
+  background: linear-gradient(165deg, #f0f6ff, #dfeaff 55%, #d6e4ff);
+  border-color: #b6cdf7;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.1);
 }
 
 .fingerprint-card h3 {
-  color: #7ff0dc;
+  color: #1d4ed8;
 }
 
 .fingerprint-card p {
-  color: rgba(230, 255, 251, 0.72);
+  color: #475569;
 }
 
 .fingerprint-card .demo-note {
-  color: rgba(230, 255, 251, 0.5);
+  color: #64748b;
 }
 
 .fingerprint-card .finger-option {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(127, 240, 220, 0.28);
-  color: #d7fff8;
+  background: rgba(255, 255, 255, 0.75);
+  border-color: #b6cdf7;
+  color: #1e3a8a;
 }
 
 .fingerprint-card .finger-option.active {
-  background: #14b8a6;
-  border-color: #5eead4;
-  color: #04302c;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
 }
 
 .fingerprint-card .capture-counter {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(127, 240, 220, 0.24);
+  background: rgba(255, 255, 255, 0.7);
+  border-color: #b6cdf7;
 }
 
 .fingerprint-card .capture-counter .capture-count {
-  color: #7ff0dc;
+  color: #1d4ed8;
 }
 
 .fingerprint-card .capture-counter .capture-label {
-  color: rgba(230, 255, 251, 0.7);
+  color: #475569;
 }
 
 .fingerprint-card .capture-counter.is-partial {
-  background: rgba(251, 191, 36, 0.14);
-  border-color: rgba(251, 191, 36, 0.5);
+  background: #fffbeb;
+  border-color: #fcd34d;
 }
 
 .fingerprint-card .capture-counter.is-partial .capture-count {
-  color: #fcd34d;
+  color: var(--amber);
 }
 
 .fingerprint-card .capture-counter.is-partial .capture-label {
-  color: rgba(252, 211, 77, 0.85);
+  color: #92400e;
 }
 
 .fingerprint-card .capture-counter.is-complete {
-  background: rgba(52, 211, 153, 0.16);
-  border-color: #34d399;
+  background: #ecfdf5;
+  border-color: var(--green);
 }
 
 .fingerprint-card .capture-counter.is-complete .capture-count,
 .fingerprint-card .capture-counter.is-complete .capture-label {
-  color: #6ee7b7;
+  color: #065f46;
 }
 
-/* Scan pads as glowing sensor plates */
+/* Scan pads as light sensor plates */
 .fingerprint-card .scan-pad {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(127, 240, 220, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #a9c4f5;
 }
 
 .fingerprint-card .scan-pad strong {
-  color: #eafffb;
+  color: #1e3a8a;
 }
 
 .fingerprint-card .scan-pad .scan-status {
-  color: rgba(230, 255, 251, 0.65);
+  color: #64748b;
 }
 
 .fingerprint-card .scan-ring {
-  background: rgba(127, 240, 220, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(127, 240, 220, 0.28);
+  background: #e3edff;
+  box-shadow: inset 0 0 0 1px #b6cdf7;
 }
 
 .fingerprint-card .scan-icon {
-  stroke: #7ff0dc;
+  stroke: var(--blue);
 }
 
 .fingerprint-card .scan-pad:hover {
-  border-color: #5eead4;
-  background: rgba(94, 234, 212, 0.1);
+  border-color: var(--blue);
+  background: #eaf1ff;
 }
 
 .fingerprint-card .scan-pad.scanning {
-  border-color: #fcd34d;
-  background: rgba(251, 191, 36, 0.12);
+  border-color: var(--amber);
+  background: #fffbeb;
 }
 
 .fingerprint-card .scan-pad.scanning .scan-ring {
-  background: rgba(251, 191, 36, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(252, 211, 77, 0.55);
+  background: #fef3c7;
+  box-shadow: inset 0 0 0 1px #fcd34d;
 }
 
 .fingerprint-card .scan-pad.scanning .scan-icon {
-  stroke: #fcd34d;
+  stroke: var(--amber);
 }
 
 .fingerprint-card .scan-pad.scanning .scan-status {
-  color: #fcd34d;
+  color: #92400e;
 }
 
 .fingerprint-card .scan-pad.captured {
-  border-color: #34d399;
-  background: rgba(52, 211, 153, 0.14);
+  border-color: var(--green);
+  background: #ecfdf5;
 }
 
 .fingerprint-card .scan-pad.captured .scan-ring {
   background: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
 }
 
 .fingerprint-card .scan-pad.captured .scan-status {
-  color: #6ee7b7;
+  color: #047857;
 }
 
 /* ---- Language selection ---- */
@@ -1316,8 +1315,8 @@ svg {
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
+  padding: 9px 14px;
+  margin-bottom: 10px;
   border-radius: 12px;
   background: #eef2ff;
   border: 1px solid #c7d2fe;
@@ -1343,7 +1342,7 @@ svg {
 
 .entry-option {
   flex: 1;
-  padding: 16px 12px;
+  padding: 12px 10px;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--navy);

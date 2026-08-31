@@ -12,113 +12,127 @@ const TRANSLATIONS = {
     langCode: "sw-KE",
     sex:        { text: "Je, wewe ni wa jinsia gani?", help: "", opts: ["Mwanamke", "Mwanaume"] },
     age:        { text: "Uko katika kundi gani la umri?", help: "", opts: ["Miaka 15 hadi 19", "Miaka 20 hadi 24", "Miaka 25 hadi 34", "Miaka 35 na zaidi"] },
-    occupation: { text: "Kazi au jamii ipi inakuelezea zaidi?", help: "Hii husaidia kutambua watu wanaohitaji msaada wa kuzuia VVU.", opts: ["Dereva wa lori", "Huduma za sare", "Mfanyabiashara", "Kufanya kazi katika jamii ya wavuvi", "Mfanyakazi wa ngono", "Mfanyakazi wa baa, hoteli, au burudani", "Mwanafunzi", "Nyingine"] },
-    sellSex:    { text: "Katika miezi 12 iliyopita, umewahi kuuza ngono kwa pesa, zawadi, au msaada?", help: "Jibu lako ni la siri na husaidia kupendekeza huduma za siri.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
-    buySex:     { text: "Katika miezi 12 iliyopita, umewahi kununua ngono au kubadilishana pesa kwa ngono?", help: "Chagua jibu linaloelezea hali yako vizuri.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
-    injectDrugs:{ text: "Je, umewahi kujidunga dawa za kulevya au kushiriki sindano?", help: "Hii husaidia kupendekeza huduma za kupunguza madhara na kuzuia VVU.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
-    partners:   { text: "Katika miezi 12 iliyopita, ulikuwa na washirika zaidi ya mmoja wa ngono?", help: "Chagua jibu linaloelezea hali yako vizuri.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
-    condom:     { text: "Mara ngapi unatumia kondomu wakati wa ngono?", help: "Hii husaidia kupendekeza huduma za kuzuia.", opts: ["Kila wakati", "Wakati mwingine", "Kamwe", "Sijishughulishi kimapenzi"] },
-    testing:    { text: "Je, umejipima VVU katika miezi 3 iliyopita?", help: "Kupima hivi karibuni hukusaidia kujua hali yako ya sasa.", opts: ["Ndiyo, na najua matokeo yangu", "Hapana", "Nilijipima, lakini sijui matokeo", "Napendelea kutotojibu"] },
+    occupation: { text: "Kazi au jamii ipi inakuelezea zaidi?", help: "", opts: ["Dereva wa lori", "Huduma za sare", "Mfanyabiashara", "Kufanya kazi katika jamii ya wavuvi", "Mfanyakazi wa ngono", "Mfanyakazi wa baa, hoteli, au burudani", "Mwanafunzi", "Nyingine"] },
+    sellSex:    { text: "Katika miezi 12 iliyopita, umewahi kuuza ngono kwa pesa, zawadi, au msaada?", help: "", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
+    buySex:     { text: "Katika miezi 12 iliyopita, umewahi kununua ngono au kubadilishana pesa kwa ngono?", help: "", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
+    injectDrugs:{ text: "Je, umewahi kujidunga dawa za kulevya au kushiriki sindano?", help: "", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
+    partners:   { text: "Katika miezi 12 iliyopita, ulikuwa na washirika zaidi ya mmoja wa ngono?", help: "", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
+    condom:     { text: "Mara ngapi unatumia kondomu wakati wa ngono?", help: "", opts: ["Kila wakati", "Wakati mwingine", "Kamwe", "Sijishughulishi kimapenzi"] },
+    testing:    { text: "Je, umejipima VVU katika miezi 3 iliyopita?", help: "", opts: ["Ndiyo, na najua matokeo yangu", "Hapana", "Nilijipima, lakini sijui matokeo", "Napendelea kutotojibu"] },
     testResult: { text: "Matokeo ya kipimo chako cha VVU yalikuwa yapi?", help: "", opts: ["Hasi", "Chanya"] },
-    violence:   { text: "Je, umepata ngono ya kulazimishwa au unyanyasaji wa kijinsia hivi karibuni?", help: "Unaweza kuchagua kutotojibu. Huduma za msaada zinapatikana.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Ninahitaji msaada sasa"] }
+    violence:   { text: "Je, umepata ngono ya kulazimishwa au unyanyasaji wa kijinsia hivi karibuni?", help: "", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Ninahitaji msaada sasa"] }
   },
   nyn: {
     langCode: "en-UG",
     sex:        { text: "Orikuha omukazi oba omushaija?", help: "", opts: ["Omukazi", "Omushaija"] },
     age:        { text: "Emiaka emingahi oyorereire?", help: "", opts: ["Emiaka 15 okutuuka 19", "Emiaka 20 okutuuka 24", "Emiaka 25 okutuuka 34", "Emiaka 35 n'obusingye"] },
-    occupation: { text: "Omulimu oba eishangiro erihe erikugyenderaho?", help: "Eki ekifuza okwetegyereza abantu abakundikira obuyambi bw'okuzigira HIV.", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu ishangiro ry'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara, omuhoteli, oba oburinganye", "Omweshongora", "Ekindi"] },
-    sellSex:    { text: "Mu myezi 12 eyahirire, waagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "Eihe lyaawe ni ery'obweimba era ryafuza okuteekateeka obupiimo bw'ebyama.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    buySex:     { text: "Mu myezi 12 eyahirire, waguura obushaguku oba wagiizaho ensimbi?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    injectDrugs:{ text: "Wariijomba emishumo oba wagaana emimwa oba ebishaho by'omwijomba?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira HIV.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira.", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
-    testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "Okuzirwa obu kuhiire kukufuza okumanya obuzigu bwawe.", opts: ["Yego, nzi ebiija byangye", "Nedda", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
+    occupation: { text: "Omulimu oba eishangiro erihe erikugyenderaho?", help: "", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu ishangiro ry'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara, omuhoteli, oba oburinganye", "Omweshongora", "Ekindi"] },
+    sellSex:    { text: "Mu myezi 12 eyahirire, waagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    buySex:     { text: "Mu myezi 12 eyahirire, waguura obushaguku oba wagiizaho ensimbi?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    injectDrugs:{ text: "Wariijomba emishumo oba wagaana emimwa oba ebishaho by'omwijomba?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
+    testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "", opts: ["Yego, nzi ebiija byangye", "Nedda", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
     testResult: { text: "Ebiija by'okuzirwa kwawe kwa HIV byali bihi?", help: "", opts: ["Negative", "Positive"] },
-    violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "Ushobora okuhura obutagyira. Obupiimo bw'obuyambi buriho.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
+    violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
   },
   ttj: {
     langCode: "en-UG",
     sex:        { text: "Orikuha omukazi oba omushaija?", help: "", opts: ["Omukazi", "Omushaija"] },
     age:        { text: "Emiaka emingahi oyorereire?", help: "", opts: ["Emiaka 15 okutuuka 19", "Emiaka 20 okutuuka 24", "Emiaka 25 okutuuka 34", "Emiaka 35 n'obusingye"] },
-    occupation: { text: "Omulimu oba eishangiro erihe erikugyenderaho?", help: "Eki ekifuza okwetegyereza abantu abakundikira obuyambi bw'okuzigira HIV.", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu ishangiro ry'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara, omuhoteli, oba oburinganye", "Omweshongora", "Ekindi"] },
-    sellSex:    { text: "Mu myezi 12 eyahirire, waagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "Eihe lyaawe ni ery'obweimba era ryafuza okuteekateeka obupiimo bw'ebyama.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    buySex:     { text: "Mu myezi 12 eyahirire, waguura obushaguku oba wagiizaho ensimbi?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    injectDrugs:{ text: "Wariijomba emishumo oba wagaana emimwa oba ebishaho by'omwijomba?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira HIV.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
-    condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira.", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
-    testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "Okuzirwa obu kuhiire kukufuza okumanya obuzigu bwawe.", opts: ["Yego, nzi ebiija byangye", "Nedda", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
+    occupation: { text: "Omulimu oba eishangiro erihe erikugyenderaho?", help: "", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu ishangiro ry'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara, omuhoteli, oba oburinganye", "Omweshongora", "Ekindi"] },
+    sellSex:    { text: "Mu myezi 12 eyahirire, waagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    buySex:     { text: "Mu myezi 12 eyahirire, waguura obushaguku oba wagiizaho ensimbi?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    injectDrugs:{ text: "Wariijomba emishumo oba wagaana emimwa oba ebishaho by'omwijomba?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
+    condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
+    testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "", opts: ["Yego, nzi ebiija byangye", "Nedda", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
     testResult: { text: "Ebiija by'okuzirwa kwawe kwa HIV byali bihi?", help: "", opts: ["Negative", "Positive"] },
-    violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "Ushobora okuhura obutagyira. Obupiimo bw'obuyambi buriho.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
+    violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
   },
   ach: {
     langCode: "en-UG",
     sex:        { text: "In dako onyo laco?", help: "", opts: ["Dako", "Laco"] },
     age:        { text: "I iye diro pa mwaka?", help: "", opts: ["Mwaka 15 nio 19", "Mwaka 20 nio 24", "Mwaka 25 nio 34", "Mwaka 35 ki malo"] },
-    occupation: { text: "Tic onyo doggola mene aye ma kwacu?", help: "Man bimede nongo jo ma myero ginying kony me geng HIV.", opts: ["Lapit gwere", "Tic me mony", "Lacan", "Tic i doggola pa lutur rec", "Ladit pa okuto", "Tic i baa, hote, onyo timme me yweya", "Lapeny", "Mukene"] },
-    sellSex:    { text: "I kare me dwe 12 ma okato, ibedo ka yero okuto pi lim, mot, onyo kony?", help: "Lagam ni tye me mung dok bimede tero yee ki tic me mung.", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    buySex:     { text: "I kare me dwe 12 ma okato, igulo okuto onyo ibiyo lim pi okuto?", help: "Yer lagam ma kwako i wi kit me kwo ni.", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    injectDrugs:{ text: "Igoyo iye yat i kome onyo iyabo kim me goyo?", help: "Man bimede tero tic me kwanyo kec me HIV.", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    partners:   { text: "I kare me dwe 12 ma okato, ibedo ki luwot me okuto pa mene makato achel?", help: "Yer lagam ma kwako i wi kit me kwo ni.", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    condom:     { text: "Itiyo ki kondom kopac mene i kare me okuto?", help: "Man bimede tero tic me geng.", opts: ["Jwijwi", "Kare mukene", "Pe kiny", "Atimo okuto pe"] },
-    testing:    { text: "Ikwanyo kit pi HIV i kare me dwe 3 ma okato?", help: "Kwanyo ma okato bimede ŋeyo kit ni kombedi.", opts: ["Ee, aŋeyo yot pa kwanyo", "Pe", "Akwanyo, ento aŋeyo pe yot", "Amito pe lagam"] },
+    occupation: { text: "Tic onyo doggola mene aye ma kwacu?", help: "", opts: ["Lapit gwere", "Tic me mony", "Lacan", "Tic i doggola pa lutur rec", "Ladit pa okuto", "Tic i baa, hote, onyo timme me yweya", "Lapeny", "Mukene"] },
+    sellSex:    { text: "I kare me dwe 12 ma okato, ibedo ka yero okuto pi lim, mot, onyo kony?", help: "", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    buySex:     { text: "I kare me dwe 12 ma okato, igulo okuto onyo ibiyo lim pi okuto?", help: "", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    injectDrugs:{ text: "Igoyo iye yat i kome onyo iyabo kim me goyo?", help: "", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    partners:   { text: "I kare me dwe 12 ma okato, ibedo ki luwot me okuto pa mene makato achel?", help: "", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    condom:     { text: "Itiyo ki kondom kopac mene i kare me okuto?", help: "", opts: ["Jwijwi", "Kare mukene", "Pe kiny", "Atimo okuto pe"] },
+    testing:    { text: "Ikwanyo kit pi HIV i kare me dwe 3 ma okato?", help: "", opts: ["Ee, aŋeyo yot pa kwanyo", "Pe", "Akwanyo, ento aŋeyo pe yot", "Amito pe lagam"] },
     testResult: { text: "Yot pa kwanyo HIV ni obedo ngo?", help: "", opts: ["Negative", "Positive"] },
-    violence:   { text: "Inoŋo okuto me lony onyo nek me okuto kombedi?", help: "Itwero yer pe lagam. Tic me kony tye.", opts: ["Pe", "Ee", "Amito pe lagam", "Amito kony kombedi"] }
+    violence:   { text: "Inoŋo okuto me lony onyo nek me okuto kombedi?", help: "", opts: ["Pe", "Ee", "Amito pe lagam", "Amito kony kombedi"] }
   },
   laj: {
     langCode: "en-UG",
     sex:        { text: "In dako onyo laco?", help: "", opts: ["Dako", "Laco"] },
     age:        { text: "I iye diro pa mwaka?", help: "", opts: ["Mwaka 15 nio 19", "Mwaka 20 nio 24", "Mwaka 25 nio 34", "Mwaka 35 ki malo"] },
-    occupation: { text: "Tic onyo doggola mene aye ma kwacuni?", help: "Man bimede nongo jo ma myero ginying kony me geng HIV.", opts: ["Lapit gwere", "Tic me mony", "Lacan", "Tic i doggola pa lutur rec", "Ladit pa okuto", "Tic i baa, hote, onyo timme me yweya", "Lapeny", "Mukene"] },
-    sellSex:    { text: "I kare me dwe 12 ma okato, ibedo ka yero okuto pi lim, mot, onyo kony?", help: "Lagam ni tye me mung dok bimede tero yee ki tic me mung.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    buySex:     { text: "I kare me dwe 12 ma okato, igulo okuto onyo ibiyo lim pi okuto?", help: "Yer lagam ma kwako i wi kit me kwo ni.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    injectDrugs:{ text: "Igoyo iye yat i kome onyo iyabo kim me goyo?", help: "Man bimede tero tic me kwanyo kec me HIV.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    partners:   { text: "I kare me dwe 12 ma okato, ibedo ki luwot me okuto pa mene makato achel?", help: "Yer lagam ma kwako i wi kit me kwo ni.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
-    condom:     { text: "Itiyo ki kondom kopac mene i kare me okuto?", help: "Man bimede tero tic me geng.", opts: ["Jwijwi", "Kare mukene", "Pe kiny", "Atimo okuto pe"] },
-    testing:    { text: "Ikwanyo kit pi HIV i kare me dwe 3 ma okato?", help: "Kwanyo ma okato bimede ŋeyo kit ni kombedi.", opts: ["Ee, aŋeyo yot pa kwanyo", "Daŋ", "Akwanyo, ento aŋeyo pe yot", "Amito pe lagam"] },
+    occupation: { text: "Tic onyo doggola mene aye ma kwacuni?", help: "", opts: ["Lapit gwere", "Tic me mony", "Lacan", "Tic i doggola pa lutur rec", "Ladit pa okuto", "Tic i baa, hote, onyo timme me yweya", "Lapeny", "Mukene"] },
+    sellSex:    { text: "I kare me dwe 12 ma okato, ibedo ka yero okuto pi lim, mot, onyo kony?", help: "", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    buySex:     { text: "I kare me dwe 12 ma okato, igulo okuto onyo ibiyo lim pi okuto?", help: "", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    injectDrugs:{ text: "Igoyo iye yat i kome onyo iyabo kim me goyo?", help: "", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    partners:   { text: "I kare me dwe 12 ma okato, ibedo ki luwot me okuto pa mene makato achel?", help: "", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
+    condom:     { text: "Itiyo ki kondom kopac mene i kare me okuto?", help: "", opts: ["Jwijwi", "Kare mukene", "Pe kiny", "Atimo okuto pe"] },
+    testing:    { text: "Ikwanyo kit pi HIV i kare me dwe 3 ma okato?", help: "", opts: ["Ee, aŋeyo yot pa kwanyo", "Daŋ", "Akwanyo, ento aŋeyo pe yot", "Amito pe lagam"] },
     testResult: { text: "Yot pa kwanyo HIV ni obedo ngo?", help: "", opts: ["Negative", "Positive"] },
-    violence:   { text: "Inoŋo okuto me lony onyo nek me okuto kombedi?", help: "Itwero yer pe lagam. Tic me kony tye.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Amito kony kombedi"] }
+    violence:   { text: "Inoŋo okuto me lony onyo nek me okuto kombedi?", help: "", opts: ["Daŋ", "Ee", "Amito pe lagam", "Amito kony kombedi"] }
   },
   luo: {
     langCode: "en-UG",
     sex:        { text: "In dhako kata dichuo?", help: "", opts: ["Dhako", "Dichuo"] },
     age:        { text: "In e odi mar higni mage?", help: "", opts: ["Higni 15 nyaka 19", "Higni 20 nyaka 24", "Higni 25 nyaka 34", "Higni 35 kata malo"] },
-    occupation: { text: "Tich kata oganda mane e ma neno-ni?", help: "Mano kony nono ji ma dwaro kony mar geng HIV.", opts: ["Jatend gari maduong", "Tich mar mony", "Japuonj ohala", "Tich e oganda mar lupo rech", "Jatich mar hera", "Jatich mar bar, hote, kata miel", "Japuonj", "Mamoko"] },
-    sellSex:    { text: "E dwe 12 ma osekalo, ne iulo hera pi pesa, mich, kata kony?", help: "Dwoki ni en mopondo kendo kony sikiero tich mopondo.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
-    buySex:     { text: "E dwe 12 ma osekalo, ne igulo hera kata ichangoo pesa gi hera?", help: "Yier dwoki ma neno kit ngimani.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
-    injectDrugs:{ text: "Ne isunju yath e ringri kata ipogno sindano?", help: "Mano kony sikiero tich mar geng HIV.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
-    partners:   { text: "E dwe 12 ma osekalo, ne in gi jopith hera mang'eny moloyo achiel?", help: "Yier dwoki ma neno kit ngimani.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
-    condom:     { text: "Itiyo gi kondom manger nade e kindeni mar hera?", help: "Mano kony sikiero tich mar geng.", opts: ["Kinde duto", "Kinde moko", "Ok kinde moro", "Ok atimo hera"] },
-    testing:    { text: "Ne ikwayo HIV e dwe 3 ma osekalo?", help: "Kwayo ma okalo kony ŋeyo kit mar sani.", opts: ["Ee, aŋeyo donge mar kwayo", "Ooyo", "Ne akwayo, to ok aŋeyo donge", "Adwaro ok adwok"] },
+    occupation: { text: "Tich kata oganda mane e ma neno-ni?", help: "", opts: ["Jatend gari maduong", "Tich mar mony", "Japuonj ohala", "Tich e oganda mar lupo rech", "Jatich mar hera", "Jatich mar bar, hote, kata miel", "Japuonj", "Mamoko"] },
+    sellSex:    { text: "E dwe 12 ma osekalo, ne iulo hera pi pesa, mich, kata kony?", help: "", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
+    buySex:     { text: "E dwe 12 ma osekalo, ne igulo hera kata ichangoo pesa gi hera?", help: "", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
+    injectDrugs:{ text: "Ne isunju yath e ringri kata ipogno sindano?", help: "", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
+    partners:   { text: "E dwe 12 ma osekalo, ne in gi jopith hera mang'eny moloyo achiel?", help: "", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
+    condom:     { text: "Itiyo gi kondom manger nade e kindeni mar hera?", help: "", opts: ["Kinde duto", "Kinde moko", "Ok kinde moro", "Ok atimo hera"] },
+    testing:    { text: "Ne ikwayo HIV e dwe 3 ma osekalo?", help: "", opts: ["Ee, aŋeyo donge mar kwayo", "Ooyo", "Ne akwayo, to ok aŋeyo donge", "Adwaro ok adwok"] },
     testResult: { text: "Donge mar kwayo HIV ni ne en mane?", help: "", opts: ["Negative", "Positive"] },
-    violence:   { text: "Ne in gi hera ma opimo kata mirima mar hera nd'uchieni?", help: "Itwero yier ok idwok. Tich kony nitie.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Adwaro kony sani"] }
+    violence:   { text: "Ne in gi hera ma opimo kata mirima mar hera nd'uchieni?", help: "", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Adwaro kony sani"] }
   },
   nkz: {
     langCode: "en-UG",
     sex:        { text: "Ng'o omukali oba omusaija?", help: "", opts: ["Omukali", "Omusaija"] },
     age:        { text: "Emyaka emingahi oyithireho?", help: "", opts: ["Emyaka 15 okutuuka 19", "Emyaka 20 okutuuka 24", "Emyaka 25 okutuuka 34", "Emyaka 35 n'obusingye"] },
-    occupation: { text: "Omulimu oba empande nyande erikugyenderaho?", help: "Eki ekifuza okwetegyereza abantu abakundikira obuyambi bw'okuzigira HIV.", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu mpande y'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara oba omuhoteli", "Omweshongora", "Ekindi"] },
-    sellSex:    { text: "Mu myezi 12 eyahirire, wagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "Eihe lyaawe ni ery'obweimba era ryafuza okuteekateeka obupiimo.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
-    buySex:     { text: "Mu myezi 12 eyahirire, waguura obushaguku oba wagiizaho ensimbi?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
-    injectDrugs:{ text: "Wariijomba emishumo oba wagaana emimwa eby'omwijomba?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira HIV.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
-    partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
-    condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira.", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
-    testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "Okuzirwa obu kuhiire kukufuza okumanya obuzigu bwawe.", opts: ["Ye, nzi ebiija byangye", "Ehe", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
+    occupation: { text: "Omulimu oba empande nyande erikugyenderaho?", help: "", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu mpande y'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara oba omuhoteli", "Omweshongora", "Ekindi"] },
+    sellSex:    { text: "Mu myezi 12 eyahirire, wagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
+    buySex:     { text: "Mu myezi 12 eyahirire, waguura obushaguku oba wagiizaho ensimbi?", help: "", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
+    injectDrugs:{ text: "Wariijomba emishumo oba wagaana emimwa eby'omwijomba?", help: "", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
+    partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
+    condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
+    testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "", opts: ["Ye, nzi ebiija byangye", "Ehe", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
     testResult: { text: "Ebiija by'okuzirwa kwawe kwa HIV byali bihi?", help: "", opts: ["Negative", "Positive"] },
-    violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "Ushobora okuhura obutagyira. Obupiimo bw'obuyambi buriho.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
+    violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
   },
   xog: {
     langCode: "en-UG",
     sex:        { text: "Oli omukazi oba omusajja?", help: "", opts: ["Omukazi", "Omusajja"] },
     age:        { text: "Emyaka emingahi olina?", help: "", opts: ["Emyaka 15 okutuuka 19", "Emyaka 20 okutuuka 24", "Emyaka 25 okutuuka 34", "Emyaka 35 n'okusingako"] },
-    occupation: { text: "Mulimu oba ekibiina ki ekikutegeeza obutuufu?", help: "Eki kuyamba okumanya abantu abayinza okufuna obuyambi bw'okugema HIV.", opts: ["Musomesa wa lori", "Emirimo gy'omuteekateeka", "Musuubuzi", "Okukolera mu kibiina ky'abaŋonge", "Mukola w'obusajjagazi", "Mukola wa baa, hooteli, oba obusesenye", "Musoomi", "Ekirala"] },
-    sellSex:    { text: "Mu myezi 12 egiyise, wayita obusajjagazi olw'ensimbi, ebirabo, oba obuyambi?", help: "Okuddamu kwaawe kwe kya kyama era kuyamba okwekenneenya obuyambi obwa kyama.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
-    buySex:     { text: "Mu myezi 12 egiyise, wagula obusajjagazi oba wagiizaako ensimbi?", help: "Londa okuddamu okukutegeeza obutuufu.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
-    injectDrugs:{ text: "Wagoba ebirowoozo oba wasaasaana empiso oba ebikozesebwa?", help: "Eki kuyamba okwekenneenya obuyambi bw'okugema HIV.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
-    partners:   { text: "Mu myezi 12 egiyise, waabanga n'abasajjagazi abasinga omu?", help: "Londa okuddamu okukutegeeza obutuufu.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
-    condom:     { text: "Okozesa kondomu emirundi emingahi mu kufuba obusajjagazi?", help: "Eki kuyamba okwekenneenya obuyambi bw'okugema.", opts: ["Buli kiseera", "Emirundi emika", "Nedda na kiseera", "Sikolagana obusajjagazi"] },
-    testing:    { text: "Wakkebwa HIV mu myezi 3 egiyise?", help: "Okukkebwa okukuuse kuyamba okumanya embeera yawe kati.", opts: ["Yee, nManyi ebivaamu byange", "Nedda", "Naakkebwa, naye simanyi ebivaamu", "Njagala obutaddamu"] },
+    occupation: { text: "Mulimu oba ekibiina ki ekikutegeeza obutuufu?", help: "", opts: ["Musomesa wa lori", "Emirimo gy'omuteekateeka", "Musuubuzi", "Okukolera mu kibiina ky'abaŋonge", "Mukola w'obusajjagazi", "Mukola wa baa, hooteli, oba obusesenye", "Musoomi", "Ekirala"] },
+    sellSex:    { text: "Mu myezi 12 egiyise, wayita obusajjagazi olw'ensimbi, ebirabo, oba obuyambi?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    buySex:     { text: "Mu myezi 12 egiyise, wagula obusajjagazi oba wagiizaako ensimbi?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    injectDrugs:{ text: "Wagoba ebirowoozo oba wasaasaana empiso oba ebikozesebwa?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    partners:   { text: "Mu myezi 12 egiyise, waabanga n'abasajjagazi abasinga omu?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    condom:     { text: "Okozesa kondomu emirundi emingahi mu kufuba obusajjagazi?", help: "", opts: ["Buli kiseera", "Emirundi emika", "Nedda na kiseera", "Sikolagana obusajjagazi"] },
+    testing:    { text: "Wakkebwa HIV mu myezi 3 egiyise?", help: "", opts: ["Yee, nManyi ebivaamu byange", "Nedda", "Naakkebwa, naye simanyi ebivaamu", "Njagala obutaddamu"] },
     testResult: { text: "Ebivaamu by'okukkebwa kwo kwa HIV byali biki?", help: "", opts: ["Negative", "Positive"] },
-    violence:   { text: "Walobera obusajjagazi obw'omukodo oba okukaabirwa kw'obusajjagazi bukyali?", help: "Oyinza okulonda obutaddamu. Obuyambi buliwo.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Njagala obuyambi kati"] }
+    violence:   { text: "Walobera obusajjagazi obw'omukodo oba okukaabirwa kw'obusajjagazi bukyali?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Njagala obuyambi kati"] }
+  },
+  lg: {
+    langCode: "en-UG",
+    sex:        { text: "Oli mukazi oba musajja?", help: "", opts: ["Mukazi", "Musajja"] },
+    age:        { text: "Olina emyaka emeka?", help: "", opts: ["Emyaka 15 okutuuka 19", "Emyaka 20 okutuuka 24", "Emyaka 25 okutuuka 34", "Emyaka 35 n'okusingawo"] },
+    occupation: { text: "Mulimu ki oba kitundu ki ekikutuukirako?", help: "", opts: ["Omugoba wa loole", "Emirimu gy'obwesimbu", "Omusuubuzi", "Okukolera mu kitundu ky'abavubi", "Omukozi w'okwegatta", "Omukozi wa baa, wooteeri, oba amasanyu", "Omuyizi", "Ekirala"] },
+    sellSex:    { text: "Mu myezi 12 egiyise, watunda okwegatta olw'ensimbi, ebirabo, oba obuyambi?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    buySex:     { text: "Mu myezi 12 egiyise, wagula okwegatta oba wawanyisiganya ensimbi olw'okwegatta?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    injectDrugs:{ text: "Weefumbise eddagala oba wakozesa empiso z'abalala?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    partners:   { text: "Mu myezi 12 egiyise, wabeera n'abeegattira nabo abasukka omu?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
+    condom:     { text: "Okozesa kondomu emirundi emeka nga weegatta?", help: "", opts: ["Buli kiseera", "Oluusi", "Nedda n'omulundi gumu", "Siyingira mu kwegatta"] },
+    testing:    { text: "Wakebera HIV mu myezi 3 egiyise?", help: "", opts: ["Yee, era mmanyi ebyavuddemu", "Nedda", "Nakebera, naye simanyi ebyavuddemu", "Njagala obutaddamu"] },
+    testResult: { text: "Ebyavuddemu mu kukebera kwo kwa HIV byali biki?", help: "", opts: ["Negative", "Positive"] },
+    violence:   { text: "Wakakibwa okwegatta oba wayisibwa obubi mu kwegatta mu biseera bino?", help: "", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Njagala obuyambi kati"] }
   }
 };
 
@@ -163,7 +177,7 @@ const BASE_QUESTIONS = [
   {
     id: "occupation",
     text: "Which occupation or community best describes you?",
-    help: "This helps identify people who may benefit from focused HIV prevention support.",
+    help: "",
     options: [
       { label: "Truck driver", score: 2, group: "Truck drivers", flag: "Mobile occupation" },
       { label: "Uniformed services", score: 2, group: "Uniformed services", flag: "Uniformed services" },
@@ -178,7 +192,7 @@ const BASE_QUESTIONS = [
   {
     id: "sellSex",
     text: "In the last 12 months, have you sold sex for money, gifts, or support?",
-    help: "Your answer is private and helps recommend confidential services.",
+    help: "",
     options: [
       { label: "No", score: 0 },
       { label: "Yes", score: 4, group: "SW", flag: "Sold sex" },
@@ -189,7 +203,7 @@ const BASE_QUESTIONS = [
   {
     id: "buySex",
     text: "In the last 12 months, have you bought sex or exchanged money or gifts for sex?",
-    help: "Choose the answer that best describes your situation.",
+    help: "",
     options: [
       { label: "No", score: 0 },
       { label: "Yes", score: 3, group: "Client of sex worker", flag: "Bought sex" },
@@ -200,7 +214,7 @@ const BASE_QUESTIONS = [
   {
     id: "injectDrugs",
     text: "Have you injected drugs or shared needles or injecting equipment?",
-    help: "This helps recommend harm reduction and HIV prevention services.",
+    help: "",
     options: [
       { label: "No", score: 0 },
       { label: "Yes", score: 4, group: "PWID", flag: "Injected drugs" },
@@ -211,7 +225,7 @@ const BASE_QUESTIONS = [
   {
     id: "partners",
     text: "In the last 12 months, have you had more than one sexual partner?",
-    help: "Choose the answer that best describes your situation.",
+    help: "",
     options: [
       { label: "No", score: 0 },
       { label: "Yes", score: 2, flag: "Multiple sexual partners" },
@@ -222,7 +236,7 @@ const BASE_QUESTIONS = [
   {
     id: "condom",
     text: "How often do you use condoms during sex?",
-    help: "This helps recommend prevention services.",
+    help: "",
     options: [
       { label: "Always", score: 0 },
       { label: "Sometimes", score: 2, flag: "Inconsistent condom use" },
@@ -233,7 +247,7 @@ const BASE_QUESTIONS = [
   {
     id: "testing",
     text: "Have you tested for HIV in the last 3 months?",
-    help: "Recent testing helps you know your current status.",
+    help: "",
     options: [
       { label: "Yes, and I know my result", score: 0 },
       { label: "No", score: 2, flag: "Needs HIV testing" },
@@ -254,7 +268,7 @@ const BASE_QUESTIONS = [
   {
     id: "violence",
     text: "Have you experienced forced sex or sexual violence recently?",
-    help: "You can choose not to answer. Support services are available.",
+    help: "",
     options: [
       { label: "No", score: 0 },
       { label: "Yes", score: 4, flag: "Needs post-violence care" },
@@ -283,7 +297,8 @@ const LANGUAGE_NAMES = {
   sw: "Swahili",
   luo: "Luo",
   nkz: "Rukonjo",
-  xog: "Lusoga"
+  xog: "Lusoga",
+  lg: "Luganda"
 };
 
 const screens = {
@@ -544,7 +559,8 @@ const renderVideoScreen = () => {
     playlist.appendChild(button);
   });
 
-  document.getElementById("videoPreviousButton").disabled = videoIndex === 0;
+  // Always enabled: from the first topic Previous steps back to the interview.
+  document.getElementById("videoPreviousButton").disabled = false;
   document.getElementById("videoNextButton").innerHTML =
     videoIndex === total - 1
       ? `View my report
@@ -605,6 +621,13 @@ const selectedOptionFor = (questionId) => {
 const profileValue = (questionId, fallback = "Not answered") =>
   selectedOptionFor(questionId)?.value || selectedOptionFor(questionId)?.label || fallback;
 
+// The audio status row is no longer rendered; keep these calls harmless so
+// the speech flow does not need to know about the UI.
+const setAudioStatus = (text) => {
+  const el = document.getElementById("audioStatus");
+  if (el) el.textContent = text;
+};
+
 const clearOptionSpeech = () => {
   document.querySelectorAll(".option-button.speaking").forEach((button) => button.classList.remove("speaking"));
 };
@@ -639,10 +662,10 @@ const playQuestionAudio = () => {
   const run = ++speechRun;
   stopAudio();
   speechRun = run;
-  document.getElementById("audioStatus").textContent = "Playing question and options";
+  setAudioStatus("Playing question and options");
 
   const queue = [
-    { text: question.help ? `${question.text}. ${question.help}` : question.text },
+    { text: question.text },
     ...question.options.map((option, index) => ({ text: option.label, optionIndex: index }))
   ];
 
@@ -651,7 +674,7 @@ const playQuestionAudio = () => {
     clearOptionSpeech();
     const item = queue[index];
     if (!item) {
-      document.getElementById("audioStatus").textContent = "Audio complete";
+      setAudioStatus("Audio complete");
       return;
     }
     const played = speakSegment(item.text, {
@@ -666,7 +689,7 @@ const playQuestionAudio = () => {
       }
     });
     if (!played) {
-      document.getElementById("audioStatus").textContent = "Audio is not available in this browser";
+      setAudioStatus("Audio is not available in this browser");
     }
   };
 
@@ -688,9 +711,10 @@ const renderQuestion = ({ autoPlay = false } = {}) => {
   document.getElementById("clientNumberLabel").textContent = `Client ${clientNumber}`;
   document.getElementById("questionCounter").textContent = `Question ${currentIndex + 1} of ${asked.length}`;
   document.getElementById("questionText").textContent = question.text;
-  document.getElementById("questionHelp").textContent = question.help;
   document.getElementById("progressBar").style.width = `${((currentIndex + 1) / asked.length) * 100}%`;
-  document.getElementById("previousButton").disabled = currentIndex === 0;
+  // Always enabled: from the first question Previous steps back to the
+  // language screen rather than dead-ending.
+  document.getElementById("previousButton").disabled = false;
   setNextButtonLabel();
 
   const grid = document.getElementById("optionsGrid");
@@ -711,7 +735,7 @@ const renderQuestion = ({ autoPlay = false } = {}) => {
     grid.appendChild(button);
   });
 
-  document.getElementById("audioStatus").textContent = "Audio will play automatically";
+  setAudioStatus("Audio will play automatically");
   if (autoPlay) speechTimer = window.setTimeout(playQuestionAudio, 350);
 };
 
@@ -923,10 +947,13 @@ document.getElementById("languageContinueButton").addEventListener("click", () =
   renderQuestion({ autoPlay: true });
 });
 
-document.getElementById("audioButton").addEventListener("click", playQuestionAudio);
-
 document.getElementById("previousButton").addEventListener("click", () => {
-  currentIndex = Math.max(currentIndex - 1, 0);
+  if (currentIndex === 0) {
+    stopAudio();
+    showScreen("language");
+    return;
+  }
+  currentIndex -= 1;
   renderQuestion({ autoPlay: true });
 });
 
@@ -959,7 +986,14 @@ document.getElementById("editButton").addEventListener("click", () => {
 });
 
 document.getElementById("videoPreviousButton").addEventListener("click", () => {
-  videoIndex = Math.max(videoIndex - 1, 0);
+  if (videoIndex === 0) {
+    // Step back into the interview at its last question.
+    currentIndex = Math.max(activeQuestions().length - 1, 0);
+    showScreen("interview");
+    renderQuestion({ autoPlay: false });
+    return;
+  }
+  videoIndex -= 1;
   renderVideoScreen();
 });
 
