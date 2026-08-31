@@ -1626,3 +1626,215 @@ svg {
 .header-right span::after {
   content: none !important;
 }
+
+/* ---- Registration compaction: fit the whole page at 100% zoom on a
+   1366x768 laptop without scrolling. ---- */
+.register-screen .register-intro {
+  margin-bottom: 10px;
+}
+
+.register-screen .register-intro span {
+  margin-bottom: 3px;
+  font-size: 11.5px;
+}
+
+.register-screen .register-intro h2 {
+  font-size: clamp(19px, 1.6vw, 23px);
+  margin: 0;
+}
+
+.register-screen .register-card {
+  padding: 12px 14px;
+}
+
+.register-screen .register-card h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.register-screen .register-grid,
+.register-screen .register-column {
+  gap: 10px;
+}
+
+.register-screen .client-id-box {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+}
+
+.register-screen .queue-box {
+  padding: 7px 12px;
+  margin-bottom: 8px;
+}
+
+.register-screen .queue-box strong {
+  font-size: 19px;
+}
+
+.register-screen #regenerateIdButton {
+  min-height: 30px;
+  padding: 0 12px;
+  font-size: 12.5px;
+}
+
+.register-screen .age-input {
+  padding: 9px 12px;
+  font-size: 18px;
+}
+
+.register-screen .register-hint {
+  margin-top: 7px;
+  font-size: 13px;
+}
+
+.register-screen .entry-option {
+  padding: 10px 8px;
+  font-size: 15px;
+}
+
+.register-screen .finger-choice {
+  margin-bottom: 9px;
+}
+
+.register-screen .finger-option {
+  padding: 9px;
+  font-size: 14.5px;
+}
+
+.register-screen .capture-counter {
+  padding: 7px 12px;
+  margin-bottom: 9px;
+}
+
+.register-screen .capture-counter .capture-count {
+  font-size: 17px;
+}
+
+.register-screen .capture-counter .capture-label {
+  font-size: 13px;
+}
+
+.register-screen .scan-pad {
+  gap: 6px;
+  padding: 10px;
+}
+
+.register-screen .scan-ring {
+  width: 56px;
+  height: 56px;
+}
+
+.register-screen .scan-icon,
+.register-screen .scan-tick {
+  width: 33px;
+  height: 33px;
+}
+
+.register-screen .scan-pad strong {
+  font-size: 15px;
+}
+
+.register-screen .scan-pad .scan-status {
+  font-size: 13px;
+}
+
+.register-screen .enrol-done {
+  margin-top: 9px;
+  padding: 8px 12px;
+  font-size: 13.5px;
+}
+
+.register-screen .demo-note {
+  margin-top: 8px;
+  font-size: 11.5px;
+}
+
+.register-screen .interview-footer {
+  padding-top: 4px;
+}
+
+.register-screen .primary-button {
+  min-height: 46px;
+}
+
+.register-screen .register-validation {
+  font-size: 13.5px;
+}
+
+/* ---- Client details: labelled fields in paired rows, so the left half is
+   one organised panel instead of three stacked cards. ---- */
+.details-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Explicit class rather than :has(), so the column order is correct even on
+   browsers without :has() support. */
+.field-row-flip {
+  grid-template-columns: auto 1fr;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.field-narrow {
+  width: 116px;
+  flex: none;
+}
+
+.field-label {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.register-screen .details-card .client-id-box,
+.register-screen .details-card .queue-box,
+.register-screen .details-card .age-input {
+  margin-bottom: 0;
+}
+
+.register-screen .details-card .queue-box {
+  justify-content: center;
+  padding: 8px 12px;
+}
+
+.register-screen .details-card .queue-box strong {
+  font-size: 20px;
+}
+
+.register-screen .details-card .age-input {
+  text-align: center;
+}
+
+.details-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.details-footer .register-hint {
+  margin-top: 0;
+}
+
+.details-footer #regenerateIdButton {
+  margin-left: auto;
+}

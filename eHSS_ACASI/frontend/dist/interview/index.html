@@ -83,45 +83,47 @@
           <div class="register-intro">
             <span>Step 1 of 3 &middot; Demonstration</span>
             <h2>Register this client</h2>
-
-            <p>Capture age, assign a client ID, and enrol fingerprints before the private interview begins.</p>
           </div>
 
           <div class="register-grid">
-            <div class="register-column">
-              <article class="register-card">
-                <h3>1. Client ID &amp; queue</h3>
-                <p>Both assigned automatically. No names are recorded.</p>
-                <div class="client-id-box" id="registerClientId">ACASI-...</div>
-                <div class="queue-box">
-                  <span>Queue number</span>
-                  <strong id="registerQueue">Q-000</strong>
-                </div>
-                <button class="ghost-button" type="button" id="regenerateIdButton">Generate new ID</button>
-              </article>
+            <article class="register-card details-card">
+              <h3>1. Client details</h3>
 
-              <article class="register-card">
-                <h3>2. Age</h3>
-                <p>Enter the client's age in completed years.</p>
-                <input class="age-input" type="number" id="registerAge" min="10" max="99" placeholder="e.g. 24" inputmode="numeric" />
+              <div class="field-row">
+                <label class="field" for="registerClientId">
+                  <span class="field-label">Client ID</span>
+                  <div class="client-id-box" id="registerClientId">ACASI-...</div>
+                </label>
+                <div class="field field-narrow">
+                  <span class="field-label">Queue</span>
+                  <div class="queue-box"><strong id="registerQueue">Q-000</strong></div>
+                </div>
+              </div>
+
+              <div class="field-row field-row-flip">
+                <label class="field field-narrow" for="registerAge">
+                  <span class="field-label">Age</span>
+                  <input class="age-input" type="number" id="registerAge" min="10" max="99" placeholder="24" inputmode="numeric" />
+                </label>
+                <div class="field">
+                  <span class="field-label">Entry point</span>
+                  <div class="entry-choice" role="group" aria-label="Entry point">
+                    <button class="entry-option" type="button" data-entry="OPD">OPD</button>
+                    <button class="entry-option" type="button" data-entry="ART">ART</button>
+                    <button class="entry-option" type="button" data-entry="HTS">HTS</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="details-footer">
                 <span class="register-hint" id="ageDerivedGroup">Age group will show here</span>
-              </article>
-
-              <article class="register-card">
-                <h3>3. Entry point</h3>
-                <p>Where is the client being seen from?</p>
-                <div class="entry-choice" role="group" aria-label="Entry point">
-                  <button class="entry-option" type="button" data-entry="OPD">OPD</button>
-                  <button class="entry-option" type="button" data-entry="ART">ART</button>
-                  <button class="entry-option" type="button" data-entry="HTS">HTS</button>
-                </div>
                 <span class="register-hint" id="entryPointHint">No entry point selected</span>
-              </article>
-            </div>
+                <button class="ghost-button" type="button" id="regenerateIdButton">New ID</button>
+              </div>
+            </article>
 
             <article class="register-card fingerprint-card">
               <h3>4. Fingerprint enrolment</h3>
-              <p>Select which finger to capture, then scan both hands.</p>
 
               <div class="finger-choice" role="group" aria-label="Finger to capture">
                 <button class="finger-option active" type="button" data-finger="Index">Index finger</button>
