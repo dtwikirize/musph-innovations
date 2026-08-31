@@ -340,14 +340,16 @@ svg {
 .option-button:hover,
 .option-button.selected {
   border-color: var(--blue);
-  background: #f2f6ff;
-  box-shadow: inset 0 0 0 1px var(--blue);
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
 }
 
 .option-button.speaking {
-  border-color: var(--amber);
-  background: #fff7ed;
-  box-shadow: inset 0 0 0 1px var(--amber), 0 10px 24px rgba(180, 83, 9, 0.14);
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
 }
 
 .interview-footer {
