@@ -3636,7 +3636,7 @@ function renderPortalRoute(path) {
           "Course administration pathways",
         ],
         buttons: [
-          externalLinkButton("Open Virtual Academy", "https://va.elearning-musph.net:8443/"),
+          externalLinkButton("Open Virtual Academy", "https://va.elearning-musph.net/"),
         ],
         extra: renderVirtualAcademySteps(),
       });
@@ -4578,6 +4578,14 @@ function renderElearningStatus(rows) {
   const inProgress = Math.max(rows.length - completed, 0);
   const completedRate = rows.length ? Math.round((completed / rows.length) * 100) : 0;
   const inProgressRate = Math.max(0, 100 - completedRate);
+  const avgGrade = average(
+    rows.filter((row) => row.completed && Number.isFinite(row.grade)),
+    "grade",
+  );
+  const gradeDisplay = avgGrade == null ? "N/A" : `${Math.round(avgGrade)}%`;
+  const gradeBar = avgGrade != null
+    ? `<div class="grade-mini-bar"><div class="grade-mini-fill" style="width:${Math.round(avgGrade)}%"></div></div>`
+    : `<small>No grade data</small>`;
 
   els.elearningStatusBars.innerHTML = `
     <div class="elearning-status-card">
@@ -4595,6 +4603,11 @@ function renderElearningStatus(rows) {
           <span>In progress</span>
           <strong>${formatNumber(inProgress)}</strong>
           <small>${inProgressRate}% of learners</small>
+        </div>
+        <div class="elearning-status-item is-grade">
+          <span>Avg grade (completed)</span>
+          <strong>${gradeDisplay}</strong>
+          ${gradeBar}
         </div>
       </div>
     </div>`;
