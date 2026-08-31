@@ -563,14 +563,18 @@ svg {
 .video-screen {
   display: flex;
   flex-direction: column;
-  min-height: 100svh;
+  height: 100svh;
+  max-height: 100svh;
   background: var(--app-bg);
 }
 
+/* min-height:0 is required for overflow-y to take effect on a flex child. */
 .register-panel,
 .video-panel {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 24px clamp(16px, 4vw, 48px) 20px;
 }
 
@@ -1263,13 +1267,16 @@ svg {
 .language-screen {
   display: flex;
   flex-direction: column;
-  min-height: 100svh;
+  height: 100svh;
+  max-height: 100svh;
   background: var(--app-bg);
 }
 
 .language-panel {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 24px clamp(16px, 4vw, 48px) 20px;
 }
 
@@ -1402,4 +1409,13 @@ svg {
     padding: 8px 12px;
     font-size: 13px;
   }
+}
+
+.register-screen .interview-header,
+.register-screen .interview-footer,
+.language-screen .interview-header,
+.language-screen .interview-footer,
+.video-screen .interview-header,
+.video-screen .interview-footer {
+  flex: none;
 }
