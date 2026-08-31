@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>eHSS ACASI App</title>
+    <title>Electronic Health Self Screening Services By ACASI</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -16,7 +16,13 @@
         </div>
         <div class="start-shade" aria-hidden="true"></div>
         <div class="start-top">
-          <strong>eHSS ACASI</strong>
+          <strong class="brand">
+            <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-7-4.1-7-9.8V6.1L12 3l7 3.1v5.1c0 5.7-7 9.8-7 9.8Z" />
+              <path d="M8 12.2h1.9l1.2-2.2 1.6 4.1 1.1-1.9H16" />
+            </svg>
+            <span class="brand-text">Electronic Health Self Screening Services <span class="brand-by">By ACASI</span></span>
+          </strong>
         </div>
         <div class="start-center start-card">
           <span>Private self-interview</span>
@@ -60,7 +66,13 @@
       <section class="register-screen hidden" data-screen="register">
         <header class="interview-header">
           <div>
-            <strong>eHSS ACASI</strong>
+            <strong class="brand">
+            <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-7-4.1-7-9.8V6.1L12 3l7 3.1v5.1c0 5.7-7 9.8-7 9.8Z" />
+              <path d="M8 12.2h1.9l1.2-2.2 1.6 4.1 1.1-1.9H16" />
+            </svg>
+            <span class="brand-text">Electronic Health Self Screening Services <span class="brand-by">By ACASI</span></span>
+          </strong>
             <span>Client registration</span>
           </div>
           <button class="ghost-button" type="button" id="registerCancelButton">Cancel</button>
@@ -164,6 +176,13 @@
                   <span class="scan-status">Tap to scan</span>
                 </div>
               </div>
+              <div class="enrol-done" id="enrolDone">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Both fingerprints captured &mdash; ready to continue
+              </div>
+
               <small class="demo-note">Demonstration only &mdash; no real fingerprint data is captured or stored.</small>
             </article>
           </div>
@@ -183,7 +202,13 @@
       <section class="language-screen hidden" data-screen="language">
         <header class="interview-header">
           <div>
-            <strong>eHSS ACASI</strong>
+            <strong class="brand">
+            <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-7-4.1-7-9.8V6.1L12 3l7 3.1v5.1c0 5.7-7 9.8-7 9.8Z" />
+              <path d="M8 12.2h1.9l1.2-2.2 1.6 4.1 1.1-1.9H16" />
+            </svg>
+            <span class="brand-text">Electronic Health Self Screening Services <span class="brand-by">By ACASI</span></span>
+          </strong>
             <span id="languageClientNumber">Choose language</span>
           </div>
           <button class="ghost-button" type="button" id="languageBackButton">Back</button>
@@ -224,7 +249,13 @@
       <section class="interview-screen hidden" data-screen="interview">
         <header class="interview-header">
           <div>
-            <strong>eHSS ACASI</strong>
+            <strong class="brand">
+            <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-7-4.1-7-9.8V6.1L12 3l7 3.1v5.1c0 5.7-7 9.8-7 9.8Z" />
+              <path d="M8 12.2h1.9l1.2-2.2 1.6 4.1 1.1-1.9H16" />
+            </svg>
+            <span class="brand-text">Electronic Health Self Screening Services <span class="brand-by">By ACASI</span></span>
+          </strong>
             <span id="questionCounter">Question 1 of 10</span>
             <span id="clientNumberLabel">Client ACASI</span>
           </div>
@@ -260,7 +291,13 @@
       <section class="video-screen hidden" data-screen="video">
         <header class="interview-header">
           <div>
-            <strong>eHSS ACASI</strong>
+            <strong class="brand">
+            <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-7-4.1-7-9.8V6.1L12 3l7 3.1v5.1c0 5.7-7 9.8-7 9.8Z" />
+              <path d="M8 12.2h1.9l1.2-2.2 1.6 4.1 1.1-1.9H16" />
+            </svg>
+            <span class="brand-text">Electronic Health Self Screening Services <span class="brand-by">By ACASI</span></span>
+          </strong>
             <span id="videoClientNumber">Video counselling</span>
             <span id="videoProgressLabel">Topic 1 of 1</span>
           </div>
@@ -306,7 +343,13 @@
       <section class="report-screen hidden" data-screen="report">
         <header class="interview-header">
           <div>
-            <strong>eHSS ACASI</strong>
+            <strong class="brand">
+            <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-7-4.1-7-9.8V6.1L12 3l7 3.1v5.1c0 5.7-7 9.8-7 9.8Z" />
+              <path d="M8 12.2h1.9l1.2-2.2 1.6 4.1 1.1-1.9H16" />
+            </svg>
+            <span class="brand-text">Electronic Health Self Screening Services <span class="brand-by">By ACASI</span></span>
+          </strong>
             <span id="reportClientNumber">Personal report</span>
           </div>
           <button class="ghost-button" type="button" id="editButton">Edit responses</button>

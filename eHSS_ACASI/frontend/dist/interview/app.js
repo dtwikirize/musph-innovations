@@ -365,6 +365,7 @@ const updateRegistrationState = () => {
         : "fingerprints captured";
   counter.classList.toggle("is-partial", captured === 1);
   counter.classList.toggle("is-complete", captured === 2);
+  document.querySelector(".fingerprint-card").classList.toggle("is-complete", captured === 2);
 
   document.getElementById("entryPointHint").textContent = registration.entryPoint
     ? `Entry point: ${registration.entryPoint}`
