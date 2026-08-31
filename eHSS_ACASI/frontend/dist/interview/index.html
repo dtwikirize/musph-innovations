@@ -187,12 +187,14 @@
 
           <div class="video-stage">
             <div class="video-frame" id="videoFrame">
+              <video id="videoPlayer" class="video-player hidden" controls playsinline preload="metadata"></video>
               <div class="video-placeholder" id="videoPlaceholder">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M8 5v14l11-7z" />
                 </svg>
                 <strong id="videoTitle"></strong>
                 <span id="videoDuration"></span>
+                <small id="videoMissingNote">Demo video not yet added for this topic</small>
               </div>
             </div>
             <div class="video-detail">

@@ -386,7 +386,47 @@ const VIDEO_LIBRARY = {
 
 let videoPlaylist = [];
 let videoIndex = 0;
-let pendingReport = null;
+
+// Drop video files into ./videos/ and map them here. DEMO_VIDEO is the
+// shared fallback used for any topic without its own file.
+const DEMO_VIDEO = "./videos/demo.mp4";
+
+const VIDEO_SOURCES = {
+  "Understanding HIV risk and testing options": DEMO_VIDEO,
+  "Services for people at higher risk for HIV": DEMO_VIDEO,
+  "Reducing HIV risk from injecting drug use": DEMO_VIDEO,
+  "Safer sex, condoms, and STI prevention": DEMO_VIDEO,
+  "Correct condom and lubricant use": DEMO_VIDEO,
+  "Getting help after sexual violence": DEMO_VIDEO
+};
+
+const loadVideoFor = (topic) => {
+  const player = document.getElementById("videoPlayer");
+  const placeholder = document.getElementById("videoPlaceholder");
+  const src = VIDEO_SOURCES[topic];
+
+  player.pause();
+
+  if (!src) {
+    player.removeAttribute("src");
+    player.classList.add("hidden");
+    placeholder.classList.remove("hidden");
+    return;
+  }
+
+  // Show the player only once the file is confirmed to load.
+  player.onloadeddata = () => {
+    player.classList.remove("hidden");
+    placeholder.classList.add("hidden");
+  };
+  player.onerror = () => {
+    player.classList.add("hidden");
+    placeholder.classList.remove("hidden");
+  };
+
+  player.src = src;
+  player.load();
+};
 
 const renderVideoScreen = () => {
   const total = videoPlaylist.length;
@@ -401,6 +441,7 @@ const renderVideoScreen = () => {
 
   document.getElementById("videoTitle").textContent = topic;
   document.getElementById("videoDuration").textContent = meta.duration;
+  loadVideoFor(topic);
   document.getElementById("videoDetailTitle").textContent = topic;
   document.getElementById("videoDetailText").textContent = meta.detail;
 
@@ -444,6 +485,10 @@ const renderVideoScreen = () => {
 const showScreen = (screen) => {
   Object.values(screens).forEach((element) => element.classList.add("hidden"));
   screens[screen].classList.remove("hidden");
+  if (screen !== "video") {
+    const player = document.getElementById("videoPlayer");
+    if (player) player.pause();
+  }
 };
 
 const choosePreferredVoice = () => {
