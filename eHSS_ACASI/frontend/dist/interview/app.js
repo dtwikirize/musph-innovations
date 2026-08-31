@@ -218,7 +218,7 @@ const playQuestionAudio = () => {
 
   const queue = [
     { text: `${question.text}. ${question.help}` },
-    ...question.options.map((option, index) => ({ text: `Option ${index + 1}. ${option.label}`, optionIndex: index }))
+    ...question.options.map((option, index) => ({ text: option.label, optionIndex: index }))
   ];
 
   const playNext = (index = 0) => {
