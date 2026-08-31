@@ -19,6 +19,7 @@ const TRANSLATIONS = {
     partners:   { text: "Katika miezi 12 iliyopita, ulikuwa na washirika zaidi ya mmoja wa ngono?", help: "Chagua jibu linaloelezea hali yako vizuri.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
     condom:     { text: "Mara ngapi unatumia kondomu wakati wa ngono?", help: "Hii husaidia kupendekeza huduma za kuzuia.", opts: ["Kila wakati", "Wakati mwingine", "Kamwe", "Sijishughulishi kimapenzi"] },
     testing:    { text: "Je, umejipima VVU katika miezi 3 iliyopita?", help: "Kupima hivi karibuni hukusaidia kujua hali yako ya sasa.", opts: ["Ndiyo, na najua matokeo yangu", "Hapana", "Nilijipima, lakini sijui matokeo", "Napendelea kutotojibu"] },
+    testResult: { text: "Matokeo ya kipimo chako cha VVU yalikuwa yapi?", help: "", opts: ["Hasi", "Chanya"] },
     violence:   { text: "Je, umepata ngono ya kulazimishwa au unyanyasaji wa kijinsia hivi karibuni?", help: "Unaweza kuchagua kutotojibu. Huduma za msaada zinapatikana.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Ninahitaji msaada sasa"] }
   },
   nyn: {
@@ -32,6 +33,7 @@ const TRANSLATIONS = {
     partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
     condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira.", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
     testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "Okuzirwa obu kuhiire kukufuza okumanya obuzigu bwawe.", opts: ["Yego, nzi ebiija byangye", "Nedda", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
+    testResult: { text: "Ebiija by'okuzirwa kwawe kwa HIV byali bihi?", help: "", opts: ["Negative", "Positive"] },
     violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "Ushobora okuhura obutagyira. Obupiimo bw'obuyambi buriho.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
   },
   ttj: {
@@ -45,6 +47,7 @@ const TRANSLATIONS = {
     partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
     condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira.", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
     testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "Okuzirwa obu kuhiire kukufuza okumanya obuzigu bwawe.", opts: ["Yego, nzi ebiija byangye", "Nedda", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
+    testResult: { text: "Ebiija by'okuzirwa kwawe kwa HIV byali bihi?", help: "", opts: ["Negative", "Positive"] },
     violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "Ushobora okuhura obutagyira. Obupiimo bw'obuyambi buriho.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
   },
   ach: {
@@ -58,6 +61,7 @@ const TRANSLATIONS = {
     partners:   { text: "I kare me dwe 12 ma okato, ibedo ki luwot me okuto pa mene makato achel?", help: "Yer lagam ma kwako i wi kit me kwo ni.", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
     condom:     { text: "Itiyo ki kondom kopac mene i kare me okuto?", help: "Man bimede tero tic me geng.", opts: ["Jwijwi", "Kare mukene", "Pe kiny", "Atimo okuto pe"] },
     testing:    { text: "Ikwanyo kit pi HIV i kare me dwe 3 ma okato?", help: "Kwanyo ma okato bimede ŋeyo kit ni kombedi.", opts: ["Ee, aŋeyo yot pa kwanyo", "Pe", "Akwanyo, ento aŋeyo pe yot", "Amito pe lagam"] },
+    testResult: { text: "Yot pa kwanyo HIV ni obedo ngo?", help: "", opts: ["Negative", "Positive"] },
     violence:   { text: "Inoŋo okuto me lony onyo nek me okuto kombedi?", help: "Itwero yer pe lagam. Tic me kony tye.", opts: ["Pe", "Ee", "Amito pe lagam", "Amito kony kombedi"] }
   },
   laj: {
@@ -71,6 +75,7 @@ const TRANSLATIONS = {
     partners:   { text: "I kare me dwe 12 ma okato, ibedo ki luwot me okuto pa mene makato achel?", help: "Yer lagam ma kwako i wi kit me kwo ni.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
     condom:     { text: "Itiyo ki kondom kopac mene i kare me okuto?", help: "Man bimede tero tic me geng.", opts: ["Jwijwi", "Kare mukene", "Pe kiny", "Atimo okuto pe"] },
     testing:    { text: "Ikwanyo kit pi HIV i kare me dwe 3 ma okato?", help: "Kwanyo ma okato bimede ŋeyo kit ni kombedi.", opts: ["Ee, aŋeyo yot pa kwanyo", "Daŋ", "Akwanyo, ento aŋeyo pe yot", "Amito pe lagam"] },
+    testResult: { text: "Yot pa kwanyo HIV ni obedo ngo?", help: "", opts: ["Negative", "Positive"] },
     violence:   { text: "Inoŋo okuto me lony onyo nek me okuto kombedi?", help: "Itwero yer pe lagam. Tic me kony tye.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Amito kony kombedi"] }
   },
   luo: {
@@ -84,6 +89,7 @@ const TRANSLATIONS = {
     partners:   { text: "E dwe 12 ma osekalo, ne in gi jopith hera mang'eny moloyo achiel?", help: "Yier dwoki ma neno kit ngimani.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
     condom:     { text: "Itiyo gi kondom manger nade e kindeni mar hera?", help: "Mano kony sikiero tich mar geng.", opts: ["Kinde duto", "Kinde moko", "Ok kinde moro", "Ok atimo hera"] },
     testing:    { text: "Ne ikwayo HIV e dwe 3 ma osekalo?", help: "Kwayo ma okalo kony ŋeyo kit mar sani.", opts: ["Ee, aŋeyo donge mar kwayo", "Ooyo", "Ne akwayo, to ok aŋeyo donge", "Adwaro ok adwok"] },
+    testResult: { text: "Donge mar kwayo HIV ni ne en mane?", help: "", opts: ["Negative", "Positive"] },
     violence:   { text: "Ne in gi hera ma opimo kata mirima mar hera nd'uchieni?", help: "Itwero yier ok idwok. Tich kony nitie.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Adwaro kony sani"] }
   },
   nkz: {
@@ -97,6 +103,7 @@ const TRANSLATIONS = {
     partners:   { text: "Mu myezi 12 eyahirire, wali nawe n'ababashagukani abasingye omu?", help: "Hura eihe erikugyenderaho ahari obuzigu bwawe.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
     condom:     { text: "Omara emirundi emingahi okuziisha kondomu mu kukora obushaguku?", help: "Eki ekifuza okuteekateeka obupiimo bw'okuzigira.", opts: ["Buri muanya", "Emirundi emika", "Naatyo", "Ndikora obunyabo obu"] },
     testing:    { text: "Waziirwa HIV mu myezi 3 eyahirire?", help: "Okuzirwa obu kuhiire kukufuza okumanya obuzigu bwawe.", opts: ["Ye, nzi ebiija byangye", "Ehe", "Naaziirwa, naye ntimanyi ebiija", "Nkunda obutagyira"] },
+    testResult: { text: "Ebiija by'okuzirwa kwawe kwa HIV byali bihi?", help: "", opts: ["Negative", "Positive"] },
     violence:   { text: "Wabonaho okugaya kw'obushaguku oba okubuzaanya kw'obushaguku obu kuhiire?", help: "Ushobora okuhura obutagyira. Obupiimo bw'obuyambi buriho.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Nkunda obuyambi obu"] }
   },
   xog: {
@@ -110,6 +117,7 @@ const TRANSLATIONS = {
     partners:   { text: "Mu myezi 12 egiyise, waabanga n'abasajjagazi abasinga omu?", help: "Londa okuddamu okukutegeeza obutuufu.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
     condom:     { text: "Okozesa kondomu emirundi emingahi mu kufuba obusajjagazi?", help: "Eki kuyamba okwekenneenya obuyambi bw'okugema.", opts: ["Buli kiseera", "Emirundi emika", "Nedda na kiseera", "Sikolagana obusajjagazi"] },
     testing:    { text: "Wakkebwa HIV mu myezi 3 egiyise?", help: "Okukkebwa okukuuse kuyamba okumanya embeera yawe kati.", opts: ["Yee, nManyi ebivaamu byange", "Nedda", "Naakkebwa, naye simanyi ebivaamu", "Njagala obutaddamu"] },
+    testResult: { text: "Ebivaamu by'okukkebwa kwo kwa HIV byali biki?", help: "", opts: ["Negative", "Positive"] },
     violence:   { text: "Walobera obusajjagazi obw'omukodo oba okukaabirwa kw'obusajjagazi bukyali?", help: "Oyinza okulonda obutaddamu. Obuyambi buliwo.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Njagala obuyambi kati"] }
   }
 };
@@ -234,6 +242,16 @@ const BASE_QUESTIONS = [
     ]
   },
   {
+    id: "testResult",
+    text: "What was your HIV test result?",
+    help: "",
+    showIf: (answers) => answers.testing === 0,
+    options: [
+      { label: "Negative", score: 0, value: "Negative", flag: "Recent negative test" },
+      { label: "Positive", score: 0, value: "Positive", flag: "Known HIV positive" }
+    ]
+  },
+  {
     id: "violence",
     text: "Have you experienced forced sex or sexual violence recently?",
     help: "You can choose not to answer. Support services are available.",
@@ -267,7 +285,22 @@ const screens = {
 const registration = { age: null, finger: "Index", left: false, right: false };
 
 const prefilledIds = new Set();
-const activeQuestions = () => questions.filter((question) => !prefilledIds.has(question.id));
+
+// A question is relevant when its showIf branch condition passes.
+const isRelevant = (question) => !question.showIf || question.showIf(responses);
+
+// Questions actually put to the client: relevant, and not already captured
+// at registration.
+const activeQuestions = () =>
+  questions.filter((question) => !prefilledIds.has(question.id) && isRelevant(question));
+
+// Drop answers to questions that a later edit made irrelevant, so a stale
+// answer cannot leak into the report.
+const purgeHiddenResponses = () => {
+  questions.forEach((question) => {
+    if (!isRelevant(question)) delete responses[question.id];
+  });
+};
 
 const ageGroupFor = (age) => {
   if (age >= 15 && age <= 19) return "15-19 years";
@@ -373,6 +406,15 @@ const VIDEO_LIBRARY = {
       "Put the condom on before any contact and hold the base when withdrawing"
     ]
   },
+  "Living well with HIV: treatment and adherence": {
+    duration: "6 min",
+    detail: "Starting and staying on treatment, and what an undetectable viral load means for your health.",
+    points: [
+      "Treatment started early keeps you healthy and living normally",
+      "Taking ART every day makes the virus undetectable",
+      "An undetectable viral load means you cannot pass HIV to partners"
+    ]
+  },
   "Getting help after sexual violence": {
     duration: "5 min",
     detail: "What support is available after forced sex, and why acting quickly matters.",
@@ -418,6 +460,10 @@ const loadVideoFor = (topic) => {
   player.onloadeddata = () => {
     player.classList.remove("hidden");
     placeholder.classList.add("hidden");
+    // The client has already tapped through the interview, so autoplay with
+    // sound is normally allowed. If the browser still blocks it, the controls
+    // are there to start it manually.
+    player.play().catch(() => {});
   };
   player.onerror = () => {
     player.classList.add("hidden");
@@ -436,22 +482,9 @@ const renderVideoScreen = () => {
   document.getElementById("videoClientNumber").textContent = `Client ${clientNumber}`;
   document.getElementById("videoProgressLabel").textContent = `Topic ${videoIndex + 1} of ${total}`;
   document.getElementById("videoProgressBar").style.width = `${((videoIndex + 1) / total) * 100}%`;
-  document.getElementById("videoIntroText").textContent =
-    `Based on your answers, ${total} counselling ${total === 1 ? "topic has" : "topics have"} been selected for you. Watch these before your report.`;
-
   document.getElementById("videoTitle").textContent = topic;
   document.getElementById("videoDuration").textContent = meta.duration;
   loadVideoFor(topic);
-  document.getElementById("videoDetailTitle").textContent = topic;
-  document.getElementById("videoDetailText").textContent = meta.detail;
-
-  const points = document.getElementById("videoKeyPoints");
-  points.innerHTML = "";
-  meta.points.forEach((point) => {
-    const li = document.createElement("li");
-    li.textContent = point;
-    points.appendChild(li);
-  });
 
   const playlist = document.getElementById("videoPlaylist");
   playlist.innerHTML = "";
@@ -630,6 +663,7 @@ const renderQuestion = ({ autoPlay = false } = {}) => {
     if (responses[question.id] === optionIndex) button.classList.add("selected");
     button.addEventListener("click", () => {
       responses[question.id] = optionIndex;
+      purgeHiddenResponses();
       renderQuestion();
     });
     grid.appendChild(button);
@@ -641,6 +675,7 @@ const renderQuestion = ({ autoPlay = false } = {}) => {
 
 const selectedOptions = () =>
   questions
+    .filter(isRelevant)
     .map((question) => {
       const selectedIndex = responses[question.id];
       if (selectedIndex === undefined) return null;
@@ -677,7 +712,20 @@ const buildReport = () => {
   const riskClass = high ? "high" : moderate || isHighRisk ? "moderate" : "";
   const groupLabel = isHighRisk ? groups.join(", ") : "No risk at all";
 
-  const services = [
+  const knownPositive = flags.includes("Known HIV positive");
+
+  const services = knownPositive
+    ? [
+        "Linkage to HIV treatment and care",
+        "Antiretroviral therapy initiation or adherence support",
+        "Viral load monitoring",
+        "Partner testing and disclosure support",
+        ...(groups.includes("PWID") ? ["Harm reduction counselling and safe injecting support"] : []),
+        ...(flags.includes("Needs post-violence care") || flags.includes("Urgent support requested") ? ["Post-violence care and urgent psychosocial support"] : []),
+        ...(flags.includes("No condom use") || flags.includes("Inconsistent condom use") ? ["Condoms, lubricants, and safer sex counselling"] : []),
+        "Referral to a trained health worker for confidential support"
+      ]
+    : [
     ...(isHighRisk ? ["Focused HIV prevention counselling"] : ["General HIV prevention information"]),
     "HIV testing and result counselling",
     ...(flags.includes("Needs HIV testing") || flags.includes("Needs result follow-up") ? ["Same-day HIV testing or result follow-up"] : []),
@@ -689,17 +737,22 @@ const buildReport = () => {
   ];
 
   const videos = [
-    "Understanding HIV risk and testing options",
-    ...(isHighRisk ? ["Services for people at higher risk for HIV"] : []),
+    ...(knownPositive ? ["Living well with HIV: treatment and adherence"] : ["Understanding HIV risk and testing options"]),
+    ...(isHighRisk && !knownPositive ? ["Services for people at higher risk for HIV"] : []),
     ...(groups.includes("PWID") ? ["Reducing HIV risk from injecting drug use"] : []),
     ...(groups.includes("SW") || groups.includes("Client of sex worker") ? ["Safer sex, condoms, and STI prevention"] : []),
     ...(flags.includes("No condom use") || flags.includes("Inconsistent condom use") ? ["Correct condom and lubricant use"] : []),
     ...(flags.includes("Needs post-violence care") || flags.includes("Urgent support requested") ? ["Getting help after sexual violence"] : [])
   ];
 
-  document.getElementById("riskTitle").textContent = isHighRisk ? "High Risk Group identified" : "No risk at all";
-  document.getElementById("riskDetail").textContent =
-    "This is not a diagnosis. It is a private screening summary to help you choose HIV prevention, testing, counselling, and referral services.";
+  document.getElementById("riskTitle").textContent = knownPositive
+    ? "Already living with HIV"
+    : isHighRisk
+      ? "High Risk Group identified"
+      : "No risk at all";
+  document.getElementById("riskDetail").textContent = knownPositive
+    ? "You told us you have tested positive. This summary focuses on treatment, care, and staying healthy rather than prevention."
+    : "This is not a diagnosis. It is a private screening summary to help you choose HIV prevention, testing, counselling, and referral services.";
   const meter = document.getElementById("riskMeter");
   meter.textContent = level;
   meter.className = `risk-meter ${riskClass}`;
