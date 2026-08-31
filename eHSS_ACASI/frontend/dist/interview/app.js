@@ -10,7 +10,7 @@ const generateClientNumber = () => {
 const TRANSLATIONS = {
   sw: {
     langCode: "sw-KE",
-    sex:        { text: "Je, wewe ni wa jinsia gani?", help: "Hii husaidia mfumo kutoa muhtasari sahihi wa uchunguzi.", opts: ["Mwanamke", "Mwanaume"] },
+    sex:        { text: "Je, wewe ni wa jinsia gani?", help: "", opts: ["Mwanamke", "Mwanaume"] },
     age:        { text: "Uko katika kundi gani la umri?", help: "", opts: ["Miaka 15 hadi 19", "Miaka 20 hadi 24", "Miaka 25 hadi 34", "Miaka 35 na zaidi"] },
     occupation: { text: "Kazi au jamii ipi inakuelezea zaidi?", help: "Hii husaidia kutambua watu wanaohitaji msaada wa kuzuia VVU.", opts: ["Dereva wa lori", "Huduma za sare", "Mfanyabiashara", "Kufanya kazi katika jamii ya wavuvi", "Mfanyakazi wa ngono", "Mfanyakazi wa baa, hoteli, au burudani", "Mwanafunzi", "Nyingine"] },
     sellSex:    { text: "Katika miezi 12 iliyopita, umewahi kuuza ngono kwa pesa, zawadi, au msaada?", help: "Jibu lako ni la siri na husaidia kupendekeza huduma za siri.", opts: ["Hapana", "Ndiyo", "Napendelea kutotojibu", "Sijui"] },
@@ -23,7 +23,7 @@ const TRANSLATIONS = {
   },
   nyn: {
     langCode: "en-UG",
-    sex:        { text: "Orikuha omukazi oba omushaija?", help: "Eki ekifuza obuzigu okuha empungu eri nyaburyo.", opts: ["Omukazi", "Omushaija"] },
+    sex:        { text: "Orikuha omukazi oba omushaija?", help: "", opts: ["Omukazi", "Omushaija"] },
     age:        { text: "Emiaka emingahi oyorereire?", help: "", opts: ["Emiaka 15 okutuuka 19", "Emiaka 20 okutuuka 24", "Emiaka 25 okutuuka 34", "Emiaka 35 n'obusingye"] },
     occupation: { text: "Omulimu oba eishangiro erihe erikugyenderaho?", help: "Eki ekifuza okwetegyereza abantu abakundikira obuyambi bw'okuzigira HIV.", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu ishangiro ry'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara, omuhoteli, oba oburinganye", "Omweshongora", "Ekindi"] },
     sellSex:    { text: "Mu myezi 12 eyahirire, waagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "Eihe lyaawe ni ery'obweimba era ryafuza okuteekateeka obupiimo bw'ebyama.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
@@ -36,7 +36,7 @@ const TRANSLATIONS = {
   },
   ttj: {
     langCode: "en-UG",
-    sex:        { text: "Orikuha omukazi oba omushaija?", help: "Eki ekifuza obuzigu okuha empungu eri nyaburyo.", opts: ["Omukazi", "Omushaija"] },
+    sex:        { text: "Orikuha omukazi oba omushaija?", help: "", opts: ["Omukazi", "Omushaija"] },
     age:        { text: "Emiaka emingahi oyorereire?", help: "", opts: ["Emiaka 15 okutuuka 19", "Emiaka 20 okutuuka 24", "Emiaka 25 okutuuka 34", "Emiaka 35 n'obusingye"] },
     occupation: { text: "Omulimu oba eishangiro erihe erikugyenderaho?", help: "Eki ekifuza okwetegyereza abantu abakundikira obuyambi bw'okuzigira HIV.", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu ishangiro ry'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara, omuhoteli, oba oburinganye", "Omweshongora", "Ekindi"] },
     sellSex:    { text: "Mu myezi 12 eyahirire, waagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "Eihe lyaawe ni ery'obweimba era ryafuza okuteekateeka obupiimo bw'ebyama.", opts: ["Nedda", "Yego", "Nkunda obutagyira", "Ntimanyi"] },
@@ -49,7 +49,7 @@ const TRANSLATIONS = {
   },
   ach: {
     langCode: "en-UG",
-    sex:        { text: "In dako onyo laco?", help: "Man bimede keto tic maber ki nyuthi me yee.", opts: ["Dako", "Laco"] },
+    sex:        { text: "In dako onyo laco?", help: "", opts: ["Dako", "Laco"] },
     age:        { text: "I iye diro pa mwaka?", help: "", opts: ["Mwaka 15 nio 19", "Mwaka 20 nio 24", "Mwaka 25 nio 34", "Mwaka 35 ki malo"] },
     occupation: { text: "Tic onyo doggola mene aye ma kwacu?", help: "Man bimede nongo jo ma myero ginying kony me geng HIV.", opts: ["Lapit gwere", "Tic me mony", "Lacan", "Tic i doggola pa lutur rec", "Ladit pa okuto", "Tic i baa, hote, onyo timme me yweya", "Lapeny", "Mukene"] },
     sellSex:    { text: "I kare me dwe 12 ma okato, ibedo ka yero okuto pi lim, mot, onyo kony?", help: "Lagam ni tye me mung dok bimede tero yee ki tic me mung.", opts: ["Pe", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
@@ -62,7 +62,7 @@ const TRANSLATIONS = {
   },
   laj: {
     langCode: "en-UG",
-    sex:        { text: "In dako onyo laco?", help: "Man bimede kaŋo tic maber ki nyuthi me yee.", opts: ["Dako", "Laco"] },
+    sex:        { text: "In dako onyo laco?", help: "", opts: ["Dako", "Laco"] },
     age:        { text: "I iye diro pa mwaka?", help: "", opts: ["Mwaka 15 nio 19", "Mwaka 20 nio 24", "Mwaka 25 nio 34", "Mwaka 35 ki malo"] },
     occupation: { text: "Tic onyo doggola mene aye ma kwacuni?", help: "Man bimede nongo jo ma myero ginying kony me geng HIV.", opts: ["Lapit gwere", "Tic me mony", "Lacan", "Tic i doggola pa lutur rec", "Ladit pa okuto", "Tic i baa, hote, onyo timme me yweya", "Lapeny", "Mukene"] },
     sellSex:    { text: "I kare me dwe 12 ma okato, ibedo ka yero okuto pi lim, mot, onyo kony?", help: "Lagam ni tye me mung dok bimede tero yee ki tic me mung.", opts: ["Daŋ", "Ee", "Amito pe lagam", "Aŋeyo pe"] },
@@ -75,7 +75,7 @@ const TRANSLATIONS = {
   },
   luo: {
     langCode: "en-UG",
-    sex:        { text: "In dhako kata dichuo?", help: "Mano kony tiend keto rapot maber.", opts: ["Dhako", "Dichuo"] },
+    sex:        { text: "In dhako kata dichuo?", help: "", opts: ["Dhako", "Dichuo"] },
     age:        { text: "In e odi mar higni mage?", help: "", opts: ["Higni 15 nyaka 19", "Higni 20 nyaka 24", "Higni 25 nyaka 34", "Higni 35 kata malo"] },
     occupation: { text: "Tich kata oganda mane e ma neno-ni?", help: "Mano kony nono ji ma dwaro kony mar geng HIV.", opts: ["Jatend gari maduong", "Tich mar mony", "Japuonj ohala", "Tich e oganda mar lupo rech", "Jatich mar hera", "Jatich mar bar, hote, kata miel", "Japuonj", "Mamoko"] },
     sellSex:    { text: "E dwe 12 ma osekalo, ne iulo hera pi pesa, mich, kata kony?", help: "Dwoki ni en mopondo kendo kony sikiero tich mopondo.", opts: ["Ooyo", "Ee", "Adwaro ok adwok", "Ok aŋeyo"] },
@@ -88,7 +88,7 @@ const TRANSLATIONS = {
   },
   nkz: {
     langCode: "en-UG",
-    sex:        { text: "Ng'o omukali oba omusaija?", help: "Eki ekifuza obwomuhanda okuha ebiganyo eby'obuzibu.", opts: ["Omukali", "Omusaija"] },
+    sex:        { text: "Ng'o omukali oba omusaija?", help: "", opts: ["Omukali", "Omusaija"] },
     age:        { text: "Emyaka emingahi oyithireho?", help: "", opts: ["Emyaka 15 okutuuka 19", "Emyaka 20 okutuuka 24", "Emyaka 25 okutuuka 34", "Emyaka 35 n'obusingye"] },
     occupation: { text: "Omulimu oba empande nyande erikugyenderaho?", help: "Eki ekifuza okwetegyereza abantu abakundikira obuyambi bw'okuzigira HIV.", opts: ["Omushofero w'etaaka", "Emirimo gy'omuteekateeka", "Omuhiiriizi", "Okukolera mu mpande y'abasiiga", "Omukora w'obushaguku", "Omukora w'omubaara oba omuhoteli", "Omweshongora", "Ekindi"] },
     sellSex:    { text: "Mu myezi 12 eyahirire, wagiira obushaguku n'ensimbi, ebitabo, oba obuyambi?", help: "Eihe lyaawe ni ery'obweimba era ryafuza okuteekateeka obupiimo.", opts: ["Ehe", "Ye", "Nkunda obutagyira", "Ntimanyi"] },
@@ -101,7 +101,7 @@ const TRANSLATIONS = {
   },
   xog: {
     langCode: "en-UG",
-    sex:        { text: "Oli omukazi oba omusajja?", help: "Eki kuyamba ensisinkano okuwa empuuzi ey'obutuufu.", opts: ["Omukazi", "Omusajja"] },
+    sex:        { text: "Oli omukazi oba omusajja?", help: "", opts: ["Omukazi", "Omusajja"] },
     age:        { text: "Emyaka emingahi olina?", help: "", opts: ["Emyaka 15 okutuuka 19", "Emyaka 20 okutuuka 24", "Emyaka 25 okutuuka 34", "Emyaka 35 n'okusingako"] },
     occupation: { text: "Mulimu oba ekibiina ki ekikutegeeza obutuufu?", help: "Eki kuyamba okumanya abantu abayinza okufuna obuyambi bw'okugema HIV.", opts: ["Musomesa wa lori", "Emirimo gy'omuteekateeka", "Musuubuzi", "Okukolera mu kibiina ky'abaŋonge", "Mukola w'obusajjagazi", "Mukola wa baa, hooteli, oba obusesenye", "Musoomi", "Ekirala"] },
     sellSex:    { text: "Mu myezi 12 egiyise, wayita obusajjagazi olw'ensimbi, ebirabo, oba obuyambi?", help: "Okuddamu kwaawe kwe kya kyama era kuyamba okwekenneenya obuyambi obwa kyama.", opts: ["Nedda", "Yee", "Njagala obutaddamu", "Simanyi"] },
@@ -135,7 +135,7 @@ const BASE_QUESTIONS = [
   {
     id: "sex",
     text: "What is your sex?",
-    help: "This helps the system provide the right screening summary.",
+    help: "",
     options: [
       { label: "Female", score: 0, value: "Female" },
       { label: "Male", score: 0, value: "Male" }
