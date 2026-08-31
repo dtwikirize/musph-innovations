@@ -1871,3 +1871,136 @@ svg {
 .language-screen #languageClientNumber {
   border-radius: 4px !important;
 }
+
+/* ---- Screen gutters ----
+   The screen containers had no padding, so the header and footer ran
+   edge-to-edge: the validation text was clipped at x=0 and the action button
+   sat flush against the right and bottom edges (under the taskbar). Put the
+   gutter on the container so header, panel, and footer share one alignment,
+   and take it back off the panel so vertical space is not paid for twice. */
+.register-screen,
+.language-screen,
+.video-screen {
+  padding: 8px clamp(14px, 2.6vw, 34px) 10px;
+}
+
+.register-panel,
+.language-panel,
+.video-panel {
+  padding: 12px 0 8px;
+}
+
+.register-screen .interview-footer,
+.language-screen .interview-footer,
+.video-screen .interview-footer {
+  padding: 0;
+  gap: 14px;
+}
+
+/* ---- Registration aside: slim right rail showing the flow ahead. ---- */
+.register-screen .register-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 216px;
+}
+
+.register-aside {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-bg);
+}
+
+.register-aside h3 {
+  margin: 0 0 10px;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.aside-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aside-steps li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--navy);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.aside-steps span {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 4px;
+  background: #e3edff;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+}
+
+.aside-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.aside-note svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.8;
+  flex: none;
+  margin-top: 1px;
+}
+
+.aside-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Below three columns the aside drops under the two panels. */
+@media (max-width: 1180px) {
+  .register-screen .register-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .register-aside {
+    grid-column: 1 / -1;
+  }
+
+  .aside-steps {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .aside-note {
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .register-screen .register-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
