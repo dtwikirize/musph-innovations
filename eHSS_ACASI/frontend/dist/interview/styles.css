@@ -100,10 +100,26 @@ button {
 
 .start-top strong,
 .interview-header strong {
-  display: block;
   color: var(--navy);
   font-size: 16px;
-  line-height: 1;
+  line-height: 1.1;
+}
+
+/* Light blue bar, one compact row. */
+.interview-header {
+  min-height: 44px;
+  padding: 5px 12px;
+  border: 1px solid #d7e5fd;
+  border-radius: 12px;
+  background: #eff5ff;
+}
+
+.interview-header > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .start-top,
@@ -213,16 +229,42 @@ svg {
 }
 
 .interview-header span {
-  display: block;
-  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.15;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.interview-header #clientNumberLabel {
-  color: var(--blue);
-  font-weight: 800;
+/* Separator between the brand and the meta chip beside it. */
+.interview-header > div:first-child > .brand:not(:only-child)::after {
+  content: "";
+  width: 1px;
+  height: 15px;
+  margin-left: 10px;
+  background: #c4d8f8;
+}
+
+.interview-header #clientNumberLabel,
+.interview-header #reportClientNumber,
+.interview-header #videoClientNumber,
+.interview-header #languageClientNumber {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #dce9fe;
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.interview-header .ghost-button {
+  min-height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  flex: none;
 }
 
 .ghost-button {
@@ -1471,10 +1513,15 @@ svg {
 }
 
 /* ---- Brand lockup ---- */
-.brand {
+.brand,
+.start-top .brand,
+.interview-header .brand {
   display: inline-flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 9px;
+  white-space: nowrap;
+  line-height: 1.1;
 }
 
 .brand-icon {
@@ -1489,10 +1536,11 @@ svg {
 }
 
 .brand-text {
-  font-size: 14px;
+  font-size: clamp(11px, 1.05vw, 14px);
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .brand-by {
@@ -1515,12 +1563,18 @@ svg {
 
 @media (max-width: 720px) {
   .brand-text {
-    font-size: 12px;
+    font-size: 10.5px;
   }
 
   .brand-icon {
-    width: 22px;
-    height: 22px;
+    width: 19px;
+    height: 19px;
+  }
+
+  .brand,
+  .start-top .brand,
+  .interview-header .brand {
+    gap: 6px;
   }
 }
 
@@ -1538,4 +1592,37 @@ svg {
   color: var(--muted);
   font-weight: 400;
   letter-spacing: -0.005em;
+}
+
+/* The brand's nested spans must stay inline so the name reads as one line;
+   the generic header span rule would otherwise break them apart. */
+.interview-header .brand-text,
+.interview-header .brand-by,
+.start-top .brand-text,
+.start-top .brand-by {
+  display: inline;
+  margin-top: 0;
+  font-size: clamp(11px, 1.05vw, 14px);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.interview-header .brand-by {
+  color: var(--blue);
+}
+
+.start-top .brand-by {
+  color: #7dd3fc;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+/* The separator only belongs between items in the left group. */
+.header-right span::after {
+  content: none !important;
 }
