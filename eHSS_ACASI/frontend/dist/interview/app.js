@@ -497,6 +497,7 @@ const buildReport = () => {
     `Occupation/community: ${profileValue("occupation")}`
   ]);
   fillList("riskGroupList", [groupLabel]);
+  document.getElementById("riskGroupList").closest("article").classList.toggle("has-risk", isHighRisk);
   fillList("serviceList", [...new Set(services)]);
   fillList("videoList", [...new Set(videos)]);
   fillList("flagList", flags.length ? flags : ["No major risk flags selected"]);

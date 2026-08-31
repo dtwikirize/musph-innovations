@@ -460,6 +460,19 @@ svg {
   background: var(--panel-bg);
 }
 
+.report-grid article.has-risk {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+.report-grid article.has-risk h3 {
+  color: #b91c1c;
+}
+
+.report-grid article.has-risk li {
+  color: #7f1d1d;
+}
+
 .report-grid h3 {
   margin: 0 0 12px;
   color: var(--navy);
