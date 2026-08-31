@@ -258,8 +258,187 @@ let landingImageIndex = 0;
 
 const screens = {
   start: document.querySelector('[data-screen="start"]'),
+  register: document.querySelector('[data-screen="register"]'),
   interview: document.querySelector('[data-screen="interview"]'),
+  video: document.querySelector('[data-screen="video"]'),
   report: document.querySelector('[data-screen="report"]')
+};
+
+const registration = { age: null, finger: "Index", left: false, right: false };
+
+const prefilledIds = new Set();
+const activeQuestions = () => questions.filter((question) => !prefilledIds.has(question.id));
+
+const ageGroupFor = (age) => {
+  if (age >= 15 && age <= 19) return "15-19 years";
+  if (age >= 20 && age <= 24) return "20-24 years";
+  if (age >= 25 && age <= 34) return "25-34 years";
+  if (age >= 35) return "35+ years";
+  return null;
+};
+
+const updateRegistrationState = () => {
+  const group = registration.age === null ? null : ageGroupFor(registration.age);
+  document.getElementById("ageDerivedGroup").textContent = group
+    ? `Age group: ${group}`
+    : registration.age === null
+      ? "Age group will show here"
+      : "Age must be 15 or above";
+
+  const missing = [];
+  if (!group) missing.push("a valid age");
+  if (!registration.left) missing.push("left hand scan");
+  if (!registration.right) missing.push("right hand scan");
+
+  const ready = missing.length === 0;
+  document.getElementById("beginInterviewButton").disabled = !ready;
+  document.getElementById("registerValidation").textContent = ready
+    ? `Ready — ${registration.finger} finger enrolled on both hands`
+    : `Still needed: ${missing.join(", ")}`;
+};
+
+const runScan = (pad, hand) => {
+  if (pad.classList.contains("scanning")) return;
+  const status = pad.querySelector(".scan-status");
+  pad.classList.remove("captured");
+  pad.classList.add("scanning");
+  status.textContent = "Scanning…";
+
+  window.setTimeout(() => {
+    pad.classList.remove("scanning");
+    pad.classList.add("captured");
+    status.textContent = `${registration.finger} captured`;
+    registration[hand.toLowerCase()] = true;
+    updateRegistrationState();
+  }, 1600);
+};
+
+const resetRegistration = () => {
+  registration.age = null;
+  registration.left = false;
+  registration.right = false;
+  clientNumber = generateClientNumber();
+  document.getElementById("registerClientId").textContent = clientNumber;
+  document.getElementById("registerAge").value = "";
+  document.querySelectorAll(".scan-pad").forEach((pad) => {
+    pad.classList.remove("scanning", "captured");
+    pad.querySelector(".scan-status").textContent = "Tap to scan";
+  });
+  updateRegistrationState();
+};
+
+const VIDEO_LIBRARY = {
+  "Understanding HIV risk and testing options": {
+    duration: "4 min",
+    detail: "How HIV is passed on, what raises or lowers your risk, and the testing choices available to you today.",
+    points: [
+      "HIV is passed through blood, semen, vaginal fluids, and breast milk",
+      "Testing is free, confidential, and takes about 20 minutes",
+      "Knowing your status early keeps treatment simple and effective"
+    ]
+  },
+  "Services for people at higher risk for HIV": {
+    duration: "5 min",
+    detail: "Focused prevention services available to people whose answers suggest a higher chance of HIV exposure.",
+    points: [
+      "PrEP is a daily pill that prevents HIV before exposure",
+      "PEP can still protect you within 72 hours after exposure",
+      "Regular testing every 3 months is recommended for you"
+    ]
+  },
+  "Reducing HIV risk from injecting drug use": {
+    duration: "6 min",
+    detail: "Harm reduction steps that lower your risk of HIV and hepatitis when injecting.",
+    points: [
+      "Never share needles, syringes, or any injecting equipment",
+      "Free sterile equipment is available at harm reduction sites",
+      "Ask about opioid substitution therapy and support groups"
+    ]
+  },
+  "Safer sex, condoms, and STI prevention": {
+    duration: "5 min",
+    detail: "Practical protection for people who sell or buy sex, including negotiating condom use safely.",
+    points: [
+      "Condoms used correctly every time prevent HIV and most STIs",
+      "Carry your own condoms and lubricant so you are never without",
+      "Screen for STIs regularly, even when you feel well"
+    ]
+  },
+  "Correct condom and lubricant use": {
+    duration: "3 min",
+    detail: "A step-by-step demonstration of putting on a condom and choosing the right lubricant.",
+    points: [
+      "Check the expiry date and open the pack carefully",
+      "Use only water-based or silicone lubricant, never oil",
+      "Put the condom on before any contact and hold the base when withdrawing"
+    ]
+  },
+  "Getting help after sexual violence": {
+    duration: "5 min",
+    detail: "What support is available after forced sex, and why acting quickly matters.",
+    points: [
+      "PEP can prevent HIV if started within 72 hours",
+      "Emergency contraception and injury care are available free",
+      "Counsellors and legal support can help you at your own pace"
+    ]
+  }
+};
+
+let videoPlaylist = [];
+let videoIndex = 0;
+let pendingReport = null;
+
+const renderVideoScreen = () => {
+  const total = videoPlaylist.length;
+  const topic = videoPlaylist[videoIndex];
+  const meta = VIDEO_LIBRARY[topic] || { duration: "4 min", detail: "", points: [] };
+
+  document.getElementById("videoClientNumber").textContent = `Client ${clientNumber}`;
+  document.getElementById("videoProgressLabel").textContent = `Topic ${videoIndex + 1} of ${total}`;
+  document.getElementById("videoProgressBar").style.width = `${((videoIndex + 1) / total) * 100}%`;
+  document.getElementById("videoIntroText").textContent =
+    `Based on your answers, ${total} counselling ${total === 1 ? "topic has" : "topics have"} been selected for you. Watch these before your report.`;
+
+  document.getElementById("videoTitle").textContent = topic;
+  document.getElementById("videoDuration").textContent = meta.duration;
+  document.getElementById("videoDetailTitle").textContent = topic;
+  document.getElementById("videoDetailText").textContent = meta.detail;
+
+  const points = document.getElementById("videoKeyPoints");
+  points.innerHTML = "";
+  meta.points.forEach((point) => {
+    const li = document.createElement("li");
+    li.textContent = point;
+    points.appendChild(li);
+  });
+
+  const playlist = document.getElementById("videoPlaylist");
+  playlist.innerHTML = "";
+  videoPlaylist.forEach((item, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "playlist-item";
+    if (index === videoIndex) button.classList.add("active");
+    if (index < videoIndex) button.classList.add("watched");
+    button.innerHTML = `<span>${index + 1}</span><strong>${item}</strong><small>${(VIDEO_LIBRARY[item] || {}).duration || ""}</small>`;
+    button.addEventListener("click", () => {
+      videoIndex = index;
+      renderVideoScreen();
+    });
+    playlist.appendChild(button);
+  });
+
+  document.getElementById("videoPreviousButton").disabled = videoIndex === 0;
+  document.getElementById("videoNextButton").innerHTML =
+    videoIndex === total - 1
+      ? `View my report
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 12h13m-5-5 5 5-5 5" />
+    </svg>`
+      : `Next topic
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 12h13m-5-5 5 5-5 5" />
+    </svg>`;
 };
 
 const showScreen = (screen) => {
@@ -336,7 +515,7 @@ const speakSegment = (text, { onStart, onEnd } = {}) => {
 };
 
 const playQuestionAudio = () => {
-  const question = questions[currentIndex];
+  const question = activeQuestions()[currentIndex];
   const run = ++speechRun;
   stopAudio();
   speechRun = run;
@@ -375,7 +554,7 @@ const playQuestionAudio = () => {
 };
 
 const setNextButtonLabel = () => {
-  const label = currentIndex === questions.length - 1 ? "Generate report" : "Next";
+  const label = currentIndex === activeQuestions().length - 1 ? "Continue to videos" : "Next";
   document.getElementById("nextButton").innerHTML = `${label}
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M5 12h13m-5-5 5 5-5 5" />
@@ -384,12 +563,13 @@ const setNextButtonLabel = () => {
 
 const renderQuestion = ({ autoPlay = false } = {}) => {
   stopAudio();
-  const question = questions[currentIndex];
+  const asked = activeQuestions();
+  const question = asked[currentIndex];
   document.getElementById("clientNumberLabel").textContent = `Client ${clientNumber}`;
-  document.getElementById("questionCounter").textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+  document.getElementById("questionCounter").textContent = `Question ${currentIndex + 1} of ${asked.length}`;
   document.getElementById("questionText").textContent = question.text;
   document.getElementById("questionHelp").textContent = question.help;
-  document.getElementById("progressBar").style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+  document.getElementById("progressBar").style.width = `${((currentIndex + 1) / asked.length) * 100}%`;
   document.getElementById("previousButton").disabled = currentIndex === 0;
   setNextButtonLabel();
 
@@ -501,11 +681,15 @@ const buildReport = () => {
   fillList("serviceList", [...new Set(services)]);
   fillList("videoList", [...new Set(videos)]);
   fillList("flagList", flags.length ? flags : ["No major risk flags selected"]);
+
+  videoPlaylist = [...new Set(videos)];
+  videoIndex = 0;
 };
 
 const resetInterview = () => {
   stopAudio();
   Object.keys(responses).forEach((key) => delete responses[key]);
+  prefilledIds.clear();
   clientNumber = generateClientNumber();
   currentIndex = 0;
 };
@@ -522,6 +706,50 @@ const rotateLandingImages = () => {
 
 document.getElementById("startButton").addEventListener("click", () => {
   initializeVoices();
+  resetRegistration();
+  showScreen("register");
+});
+
+document.getElementById("regenerateIdButton").addEventListener("click", () => {
+  clientNumber = generateClientNumber();
+  document.getElementById("registerClientId").textContent = clientNumber;
+});
+
+document.getElementById("registerAge").addEventListener("input", (e) => {
+  const value = parseInt(e.target.value, 10);
+  registration.age = Number.isNaN(value) ? null : value;
+  updateRegistrationState();
+});
+
+document.querySelectorAll(".finger-option").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".finger-option").forEach((b) => b.classList.remove("active"));
+    button.classList.add("active");
+    registration.finger = button.dataset.finger;
+    document.querySelectorAll(".scan-pad").forEach((pad) => {
+      pad.classList.remove("scanning", "captured");
+      pad.querySelector(".scan-status").textContent = "Tap to scan";
+    });
+    registration.left = false;
+    registration.right = false;
+    updateRegistrationState();
+  });
+});
+
+document.querySelectorAll(".scan-pad").forEach((pad) => {
+  pad.addEventListener("click", () => runScan(pad, pad.dataset.hand));
+});
+
+document.getElementById("registerCancelButton").addEventListener("click", () => showScreen("start"));
+
+document.getElementById("beginInterviewButton").addEventListener("click", () => {
+  const group = ageGroupFor(registration.age);
+  const ageIndex = BASE_QUESTIONS.find((q) => q.id === "age").options.findIndex((o) => o.value === group);
+  if (ageIndex >= 0) {
+    responses.age = ageIndex;
+    prefilledIds.add("age");
+  }
+  currentIndex = 0;
   showScreen("interview");
   renderQuestion({ autoPlay: true });
 });
@@ -534,15 +762,16 @@ document.getElementById("previousButton").addEventListener("click", () => {
 });
 
 document.getElementById("nextButton").addEventListener("click", () => {
-  const question = questions[currentIndex];
+  const question = activeQuestions()[currentIndex];
   if (responses[question.id] === undefined) {
     stopAudio();
     speakSegment("Please choose one answer before continuing.");
     return;
   }
-  if (currentIndex === questions.length - 1) {
+  if (currentIndex === activeQuestions().length - 1) {
     buildReport();
-    showScreen("report");
+    showScreen("video");
+    renderVideoScreen();
     return;
   }
   currentIndex += 1;
@@ -551,13 +780,30 @@ document.getElementById("nextButton").addEventListener("click", () => {
 
 document.getElementById("restartButton").addEventListener("click", () => {
   resetInterview();
-  renderQuestion({ autoPlay: true });
+  resetRegistration();
+  showScreen("register");
 });
 
 document.getElementById("editButton").addEventListener("click", () => {
   showScreen("interview");
   renderQuestion({ autoPlay: true });
 });
+
+document.getElementById("videoPreviousButton").addEventListener("click", () => {
+  videoIndex = Math.max(videoIndex - 1, 0);
+  renderVideoScreen();
+});
+
+document.getElementById("videoNextButton").addEventListener("click", () => {
+  if (videoIndex === videoPlaylist.length - 1) {
+    showScreen("report");
+    return;
+  }
+  videoIndex += 1;
+  renderVideoScreen();
+});
+
+document.getElementById("skipVideosButton").addEventListener("click", () => showScreen("report"));
 
 document.getElementById("printButton").addEventListener("click", () => window.print());
 

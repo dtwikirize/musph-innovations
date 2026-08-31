@@ -43,6 +43,78 @@
         </div>
       </section>
 
+      <section class="register-screen hidden" data-screen="register">
+        <header class="interview-header">
+          <div>
+            <strong>eHSS ACASI</strong>
+            <span>Client registration</span>
+          </div>
+          <button class="ghost-button" type="button" id="registerCancelButton">Cancel</button>
+        </header>
+
+        <section class="register-panel">
+          <div class="register-intro">
+            <span>Step 1 of 3 &middot; Demonstration</span>
+            <h2>Register this client</h2>
+            <p>Capture age, assign a client ID, and enrol fingerprints before the private interview begins.</p>
+          </div>
+
+          <div class="register-grid">
+            <article class="register-card">
+              <h3>1. Client ID</h3>
+              <p>Assigned automatically. No names are recorded.</p>
+              <div class="client-id-box" id="registerClientId">ACASI-...</div>
+              <button class="ghost-button" type="button" id="regenerateIdButton">Generate new ID</button>
+            </article>
+
+            <article class="register-card">
+              <h3>2. Age</h3>
+              <p>Enter the client's age in completed years.</p>
+              <input class="age-input" type="number" id="registerAge" min="10" max="99" placeholder="e.g. 24" inputmode="numeric" />
+              <span class="register-hint" id="ageDerivedGroup">Age group will show here</span>
+            </article>
+
+            <article class="register-card register-card-wide">
+              <h3>3. Fingerprint enrolment</h3>
+              <p>Select which finger to capture, then scan both hands.</p>
+
+              <div class="finger-choice" role="group" aria-label="Finger to capture">
+                <button class="finger-option active" type="button" data-finger="Index">Index finger</button>
+                <button class="finger-option" type="button" data-finger="Thumb">Thumb</button>
+              </div>
+
+              <div class="scan-row">
+                <div class="scan-pad" id="scanLeft" data-hand="Left">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 2a5 5 0 0 0-5 5v6a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5Zm0 3a2 2 0 0 1 2 2v6a2 2 0 0 1-4 0V7a2 2 0 0 1 2-2Z" />
+                  </svg>
+                  <strong>Left hand</strong>
+                  <span class="scan-status">Tap to scan</span>
+                </div>
+                <div class="scan-pad" id="scanRight" data-hand="Right">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 2a5 5 0 0 0-5 5v6a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5Zm0 3a2 2 0 0 1 2 2v6a2 2 0 0 1-4 0V7a2 2 0 0 1 2-2Z" />
+                  </svg>
+                  <strong>Right hand</strong>
+                  <span class="scan-status">Tap to scan</span>
+                </div>
+              </div>
+              <small class="demo-note">Demonstration only &mdash; no real fingerprint data is captured or stored.</small>
+            </article>
+          </div>
+        </section>
+
+        <footer class="interview-footer">
+          <span class="register-validation" id="registerValidation"></span>
+          <button class="primary-button" type="button" id="beginInterviewButton" disabled>
+            Begin interview
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13m-5-5 5 5-5 5" />
+            </svg>
+          </button>
+        </footer>
+      </section>
+
       <section class="interview-screen hidden" data-screen="interview">
         <header class="interview-header">
           <div>
@@ -85,6 +157,63 @@
           </button>
           <button class="primary-button" type="button" id="nextButton">
             Next
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13m-5-5 5 5-5 5" />
+            </svg>
+          </button>
+        </footer>
+      </section>
+
+      <section class="video-screen hidden" data-screen="video">
+        <header class="interview-header">
+          <div>
+            <strong>eHSS ACASI</strong>
+            <span id="videoClientNumber">Video counselling</span>
+            <span id="videoProgressLabel">Topic 1 of 1</span>
+          </div>
+          <button class="ghost-button" type="button" id="skipVideosButton">Skip to report</button>
+        </header>
+
+        <div class="progress-shell" aria-hidden="true">
+          <div class="progress-bar" id="videoProgressBar"></div>
+        </div>
+
+        <section class="video-panel">
+          <div class="video-intro" id="videoIntro">
+            <span>Tailored for you</span>
+            <h2>Your counselling videos</h2>
+            <p id="videoIntroText"></p>
+          </div>
+
+          <div class="video-stage">
+            <div class="video-frame" id="videoFrame">
+              <div class="video-placeholder" id="videoPlaceholder">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                <strong id="videoTitle"></strong>
+                <span id="videoDuration"></span>
+              </div>
+            </div>
+            <div class="video-detail">
+              <h3 id="videoDetailTitle"></h3>
+              <p id="videoDetailText"></p>
+              <ul id="videoKeyPoints"></ul>
+            </div>
+          </div>
+
+          <div class="video-playlist" id="videoPlaylist"></div>
+        </section>
+
+        <footer class="interview-footer">
+          <button class="secondary-button" type="button" id="videoPreviousButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 12H6m5 5-5-5 5-5" />
+            </svg>
+            Previous
+          </button>
+          <button class="primary-button" type="button" id="videoNextButton">
+            Next topic
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12h13m-5-5 5 5-5 5" />
             </svg>
