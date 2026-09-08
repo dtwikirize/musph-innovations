@@ -397,6 +397,10 @@ function isRealDistrict(value) {
   return Boolean(value && !/^unspecified/i.test(value) && value !== "Unknown");
 }
 
+function isRealCadre(value) {
+  return Boolean(value && !/^unspecified/i.test(value) && value !== "Unknown");
+}
+
 function monthKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
@@ -589,7 +593,7 @@ function normalizeElearningRow(row) {
     district,
     mechanism: cleanLabel(row.Mechanism) || "Unspecified mechanism",
     organizationUnit: cleanLabel(row["Organisation Unit"]) || "Unspecified unit",
-    department: cleanLabel(row.Department) || "Unspecified cadre",
+    department: cleanLabel(row.Cadre) || "Unspecified cadre",
     enrolledDate,
     enrolledYear: enrolledDate ? String(enrolledDate.getFullYear()) : "Unknown",
     enrolledMonth: enrolledDate ? monthKey(enrolledDate) : "Unknown",
@@ -4559,7 +4563,7 @@ function renderElearning(rows) {
   renderRankedBars(els.elearningDistrictBars, countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10), palette.teal);
   renderElearningDistrictCompletion(rows);
   renderRankedBars(els.elearningMechanismBars, countBy(rows, "mechanism").slice(0, 8), palette.blue);
-  renderRankedBars(els.elearningCadreBars, countBy(rows, "department").slice(0, 8), palette.gold);
+  renderRankedBars(els.elearningCadreBars, countBy(rows.filter((row) => isRealCadre(row.department)), "department").slice(0, 8), palette.gold);
   renderElearningTimeline(rows);
   renderElearningTable(rows);
 }
