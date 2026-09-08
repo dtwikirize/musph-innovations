@@ -4464,25 +4464,28 @@ function renderCourseMix(rows) {
     .join("");
 }
 
-function renderRankedBars(container, data, color) {
+function renderRankedBars(container, data, color, shareTotal) {
   if (!data.length) {
     container.innerHTML = emptyMarkup("No data in this filter.");
     return;
   }
   const max = Math.max(...data.map((item) => item.count), 1);
+  const asShare = Number.isFinite(shareTotal) && shareTotal > 0;
   container.innerHTML = data
-    .map(
-      (item) => `<div class="bar-row">
+    .map((item) => {
+      const share = asShare ? Math.round((item.count / shareTotal) * 100) : null;
+      return `<div class="bar-row">
         <div class="bar-top">
           <span>${escapeHtml(shorten(item.name, 34))}</span>
-          <strong>${formatNumber(item.count)}</strong>
+          <strong>${asShare ? `${share}%` : formatNumber(item.count)}</strong>
         </div>
         <div class="bar-track"><div class="bar-fill" style="width:${Math.max(
           2,
           (item.count / max) * 100,
         )}%; background:${color};"></div></div>
-      </div>`,
-    )
+        ${asShare ? `<small class="bar-note">${formatNumber(item.count)} learners</small>` : ""}
+      </div>`;
+    })
     .join("");
 }
 
@@ -4563,7 +4566,8 @@ function renderElearning(rows) {
   renderRankedBars(els.elearningDistrictBars, countBy(rows.filter((row) => isRealDistrict(row.district)), "district").slice(0, 10), palette.teal);
   renderElearningDistrictCompletion(rows);
   renderRankedBars(els.elearningMechanismBars, countBy(rows, "mechanism").slice(0, 8), palette.blue);
-  renderRankedBars(els.elearningCadreBars, countBy(rows.filter((row) => isRealCadre(row.department)), "department").slice(0, 8), palette.gold);
+  const cadreRows = rows.filter((row) => isRealCadre(row.department));
+  renderRankedBars(els.elearningCadreBars, countBy(cadreRows, "department").slice(0, 8), palette.gold, cadreRows.length);
   renderElearningTimeline(rows);
   renderElearningTable(rows);
 }
